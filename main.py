@@ -11,9 +11,10 @@ async def run_server():
     await server.serve()
 
 async def main():
+    await bot.delete_webhook(drop_pending_updates=True)
     await asyncio.gather(
         run_server(),
-        dp.start_polling(bot)
+        dp.start_polling(bot, drop_pending_updates=True)
     )
 
 if __name__ == "__main__":
