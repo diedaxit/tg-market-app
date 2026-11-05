@@ -3,441 +3,563 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MintTags - Полная Версия</title>
+  <title>MintTags: Media Empire</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #0c0d12;
-      --card-bg: #16181f;
-      --card-border: rgba(255, 255, 255, 0.08);
+      --bg: #090a10;
+      --card-bg: #13151f;
+      --card-sub: #1b1e2b;
+      --border: rgba(255, 255, 255, 0.08);
       --gold: #f5a623;
       --green: #2ec4b6;
       --purple: #9c27b0;
+      --blue: #2196f3;
+      --red: #e91e63;
       --text: #ffffff;
-      --text-muted: #8e95a5;
+      --text-muted: #848c9e;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; user-select: none; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 84px; }
 
-    /* Шапка (Уровень, Опыт, Баланс, Удача) */
-    .header { padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; position: sticky; top: 0; background: rgba(12, 13, 18, 0.95); backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid var(--card-border); }
-    
-    .level-box { width: 140px; }
-    .level-text { font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 4px; }
-    .xp-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
-    .xp-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s ease; }
-    
-    .stats-box { text-align: right; }
-    .balance { font-size: 20px; font-weight: 800; color: #fff; }
-    .income-rate { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-    .luck-badge { display: inline-block; background: rgba(245, 166, 35, 0.15); color: var(--gold); padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1px solid rgba(245, 166, 35, 0.3); opacity: 0; transition: opacity 0.3s; }
-    .luck-badge.active { opacity: 1; }
+    /* Верхний статус-бар */
+    .topbar {
+      position: sticky; top: 0; background: rgba(9, 10, 16, 0.95);
+      backdrop-filter: blur(14px); padding: 12px 16px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center; z-index: 100;
+    }
+    .profile-pill { display: flex; align-items: center; gap: 8px; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #262938; border: 2px solid var(--border); object-fit: cover; }
+    .user-info { display: flex; flex-direction: column; }
+    .user-name { font-size: 13px; font-weight: 700; color: #fff; }
+    .user-lvl { font-size: 10px; color: var(--green); font-weight: 700; }
+    .stats-right { text-align: right; }
+    .coins-val { font-size: 16px; font-weight: 900; color: var(--gold); }
+    .income-val { font-size: 10px; color: var(--text-muted); }
 
-    /* Контейнер вкладок */
-    .tab-content { display: none; padding: 16px; animation: fadeIn 0.2s ease; }
-    .tab-content.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    /* Контейнеры вкладок */
+    .view { display: none; padding: 14px 16px; }
+    .view.active { display: block; animation: fadeIn 0.15s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* === ВКЛАДКА: МИНТ === */
-    .mint-stage { background: #111318; border: 1px solid var(--card-border); border-radius: 24px; padding: 30px 16px; text-align: center; margin-bottom: 16px; }
-    .plate { background: #fff; color: #000; border-radius: 12px; padding: 20px; margin: 0 auto 16px; max-width: 300px; border: 4px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s ease; }
-    .plate-header { font-size: 10px; font-weight: 900; color: #555; display: flex; justify-content: space-between; margin-bottom: 8px; }
-    .plate-text { font-size: 32px; font-weight: 900; font-family: monospace; letter-spacing: 2px; }
-    
-    .btn-mint { width: 100%; background: var(--green); color: #000; font-size: 16px; font-weight: 800; padding: 16px; border: none; border-radius: 16px; cursor: pointer; transition: 0.1s; }
-    .btn-mint:active { transform: scale(0.97); }
+    /* ВКЛАДКА 1: МИНТ */
+    .mint-box {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px;
+      padding: 24px 16px; text-align: center; margin-bottom: 14px; position: relative;
+    }
+    .plate {
+      background: #ffffff; color: #111; border-radius: 14px; padding: 18px 12px;
+      max-width: 310px; margin: 0 auto 14px; border: 3px solid #222;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: 0.2s transform;
+    }
+    .plate-hdr { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; color: #666; margin-bottom: 6px; }
+    .plate-body { font-size: 28px; font-weight: 900; font-family: monospace; letter-spacing: 1.5px; }
+    .rarity-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-bottom: 14px; }
+    .btn-mint {
+      width: 100%; background: var(--green); color: #071e1b; border: none; padding: 16px;
+      border-radius: 18px; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.1s transform;
+    }
+    .btn-mint:active { transform: scale(0.98); }
+    .pity-bars { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
+    .bar-line { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
+    .prog { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; margin-top: 2px; }
+    .prog-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; }
 
-    /* === ВКЛАДКА: ГАРАЖ === */
-    .inventory-list { display: flex; flex-direction: column; gap: 10px; }
-    .item-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
-    .item-card.Mythic { border-color: #e91e63; box-shadow: inset 0 0 15px rgba(233, 30, 99, 0.1); }
-    .item-card.Legendary { border-color: #ff9800; }
-    .item-tag { font-size: 18px; font-weight: 800; font-family: monospace; }
-    .item-stats { font-size: 12px; color: var(--text-muted); text-align: right; }
+    /* ВКЛАДКА 2: КАНАЛЫ (ТАЙКУН) */
+    .channel-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;
+      padding: 16px; margin-bottom: 12px;
+    }
+    .ch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .ch-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .ch-subs { font-size: 12px; color: var(--text-muted); }
+    .managers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+    .mgr-btn {
+      background: var(--card-sub); border: 1px solid var(--border); border-radius: 14px;
+      padding: 10px; text-align: left; cursor: pointer;
+    }
+    .mgr-name { font-size: 12px; font-weight: 700; color: #fff; }
+    .mgr-cost { font-size: 11px; color: var(--gold); margin-top: 2px; }
 
-    /* === ВКЛАДКА: МАГАЗИН === */
-    .shop-section { font-size: 18px; font-weight: 800; margin: 20px 0 10px; }
-    .shop-item { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
-    .shop-item h4 { font-size: 15px; margin-bottom: 4px; }
-    .shop-item p { font-size: 12px; color: var(--text-muted); line-height: 1.3; }
-    .btn-buy { background: #232733; color: var(--gold); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; }
+    /* ВКЛАДКА 3: РЫНОК / АУКЦИОН */
+    .market-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    .m-tab {
+      flex: 1; text-align: center; background: var(--card-bg); border: 1px solid var(--border);
+      border-radius: 14px; padding: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
+    }
+    .m-tab.active { background: #fff; color: #000; }
+    .auction-item {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px;
+      padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .auc-time { font-size: 11px; color: #ff5252; font-weight: 700; }
+    .btn-bid {
+      background: var(--card-sub); border: 1px solid var(--gold); color: var(--gold);
+      border-radius: 12px; padding: 8px 12px; font-size: 12px; font-weight: 800; cursor: pointer;
+    }
 
-    /* === ВКЛАДКА: ПАСС === */
-    .pass-header { background: linear-gradient(135deg, #4a148c, #311b92); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
-    .pass-header h2 { font-weight: 900; margin-bottom: 5px; color: #fff; }
-    .pass-level-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; opacity: 0.5; }
-    .pass-level-box.unlocked { opacity: 1; border-color: var(--gold); background: rgba(245, 166, 35, 0.05); }
+    /* ВКЛАДКА 4: РЕФЕРАЛЫ / СИНДИКАТ */
+    .referral-hero {
+      background: linear-gradient(135deg, #1b2838, #111420); border: 1px solid rgba(46,196,182,0.3);
+      border-radius: 20px; padding: 18px; margin-bottom: 14px; text-align: center;
+    }
+    .ref-btn {
+      width: 100%; background: #2ec4b6; color: #000; border: none; padding: 14px;
+      border-radius: 16px; font-weight: 900; font-size: 14px; cursor: pointer; margin-top: 10px;
+    }
 
-    /* Нижний Таб-бар */
-    .tabbar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(12, 13, 18, 0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
-    .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; }
+    /* ВКЛАДКА 5: МАГАЗИН & ПРОФИЛЬ */
+    .shop-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px;
+      padding: 14px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .stars-btn {
+      background: #252329; border: 1px solid rgba(245, 166, 35, 0.4); border-radius: 14px;
+      padding: 8px 14px; font-size: 13px; font-weight: 800; color: var(--gold); cursor: pointer;
+    }
+    .vip-banner {
+      background: linear-gradient(135deg, #2a1f10, #141318); border: 1px solid rgba(245, 166, 35, 0.4);
+      border-radius: 20px; padding: 16px; margin-bottom: 14px;
+    }
+
+    /* Нижний таб-бар */
+    .tabbar {
+      position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
+      background: rgba(9, 10, 16, 0.95); backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center;
+      z-index: 100;
+    }
+    .tab-btn {
+      display: flex; flex-direction: column; align-items: center; gap: 4px;
+      color: var(--text-muted); font-size: 10px; font-weight: 700; cursor: pointer;
+    }
     .tab-btn.active { color: var(--green); }
     .tab-btn svg { width: 22px; height: 22px; fill: currentColor; }
   </style>
 </head>
 <body>
 
-  <!-- ГЛОБАЛЬНАЯ ШАПКА -->
-  <div class="header">
-    <div class="level-box">
-      <div class="level-text">
-        <span id="uiLevel">Ур. 1</span>
-        <span id="uiXp">0 / 100 XP</span>
+  <!-- ВЕРХНИЙ СТАТУС-БАР -->
+  <div class="topbar">
+    <div class="profile-pill">
+      <div class="avatar" id="uiAvatar" style="display:flex;align-items:center;justify-content:center;font-weight:900;">M</div>
+      <div class="user-info">
+        <span class="user-name" id="uiName">Player</span>
+        <span class="user-lvl" id="uiLvl">Ур. 1 • 0 XP</span>
       </div>
-      <div class="xp-bar"><div class="xp-fill" id="uiXpFill"></div></div>
     </div>
-    <div class="stats-box">
-      <div class="balance" id="uiCoins">0 🪙</div>
-      <div class="income-rate" id="uiIncome">+0 COIN / сек</div>
-      <div class="luck-badge" id="uiLuck">🍀 Удача x1</div>
+    <div class="stats-right">
+      <div class="coins-val" id="uiCoins">1,000 COIN</div>
+      <div class="income-val" id="uiIncome">+0 / сек</div>
     </div>
   </div>
 
-  <!-- ВКЛАДКА 1: МИНТ -->
-  <div id="tab-mint" class="tab-content active">
-    <div class="mint-stage">
-      <div class="plate" id="mainPlate">
-        <div class="plate-header">
+  <!-- 1. МИНТ ТЕГОВ -->
+  <div id="view-mint" class="view active">
+    <div class="mint-box">
+      <div class="plate" id="plateEl">
+        <div class="plate-hdr">
           <span>MINTTAGS</span>
-          <span id="plateRarity">COMMON</span>
+          <span id="plateRarity" style="color:#888;">COMMON</span>
         </div>
-        <div class="plate-text" id="plateTag">@TAP_ME</div>
+        <div class="plate-body" id="plateText">@START</div>
       </div>
-      <p id="mintResultText" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Нажми, чтобы выбить первый тег!</p>
-      
-      <button class="btn-mint" onclick="game.mintTag()">Минт тега (100 🪙)</button>
+      <div class="rarity-badge" id="badgeEl" style="background:rgba(255,255,255,0.08);color:#bbb;">
+        Обычный • +1 COIN/сек
+      </div>
+      <button class="btn-mint" onclick="game.mint()">Заминтить тег (100 COIN)</button>
+
+      <div class="pity-bars">
+        <div class="bar-line">
+          <span>До Удачи x2:</span>
+          <span id="pity50Text">0 / 50</span>
+        </div>
+        <div class="prog"><div class="prog-fill" id="pity50Fill"></div></div>
+
+        <div class="bar-line" style="margin-top:4px;">
+          <span>Гарант Epic+:</span>
+          <span id="pity100Text">0 / 100</span>
+        </div>
+        <div class="prog"><div class="prog-fill" id="pity100Fill" style="background:var(--purple);"></div></div>
+      </div>
     </div>
-    <div style="background: var(--card-bg); padding: 16px; border-radius: 16px; font-size: 13px; color: var(--text-muted); border: 1px solid var(--card-border);">
-      ℹ️ <b>Как играть:</b> Трать монеты на минт. Каждый выбитый тег увеличивает твой пассивный доход в секунду. Опыт дается за каждый минт.
+
+    <!-- Зарезервированный рекламный блок -->
+    <div style="border:1px dashed var(--border);border-radius:16px;padding:12px;text-align:center;font-size:10px;color:var(--text-muted);text-transform:uppercase;">
+      Спонсорский блок (Место для рекламы)
     </div>
   </div>
 
-  <!-- ВКЛАДКА 2: ГАРАЖ -->
-  <div id="tab-garage" class="tab-content">
-    <h3 style="margin-bottom: 16px;">Твоя коллекция</h3>
-    <div class="inventory-list" id="inventoryList">
-      <!-- Теги добавляются сюда -->
-      <div style="text-align: center; color: var(--text-muted); padding: 20px;">Пока пусто. Выбей свой первый тег!</div>
+  <!-- 2. ИМПЕРИЯ КАНАЛОВ (ТАЙКУН) -->
+  <div id="view-empire" class="view">
+    <h3 style="font-size:16px;margin-bottom:12px;">Твои Telegram-каналы</h3>
+    <div class="channel-card">
+      <div class="ch-header">
+        <div class="ch-title">
+          <span>📢 Главный канал:</span>
+          <span id="chAssignedTag" style="color:var(--green);font-family:monospace;">@Не привязан</span>
+        </div>
+        <span class="ch-subs" id="chSubs">100 подписчиков</span>
+      </div>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
+        Привяжи выбитый тег из коллекции, чтобы усилить приток подписчиков и доход!
+      </p>
+      <div class="managers-row">
+        <div class="mgr-btn" onclick="game.upgradeManager('smm')">
+          <div class="mgr-name">📱 СММщик (Ур. <span id="smmLvl">1</span>)</div>
+          <div class="mgr-cost" id="smmCost">250 COIN</div>
+        </div>
+        <div class="mgr-btn" onclick="game.upgradeManager('buyer')">
+          <div class="mgr-name">📈 Трафик-байер (Ур. <span id="buyerLvl">0</span>)</div>
+          <div class="mgr-cost" id="buyerCost">1,000 COIN</div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ВКЛАДКА 3: МАГАЗИН (Демократичные цены) -->
-  <div id="tab-shop" class="tab-content">
-    
-    <div class="shop-section">🍀 Удача</div>
-    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Удача умножает шансы выпадения Epic, Legendary и Mythic.</p>
-    
-    <div class="shop-item">
-      <div>
-        <h4>Удача x2 (1 час)</h4>
-        <p>Идеально для быстрого старта</p>
-      </div>
-      <button class="btn-buy" onclick="game.buyLuck(2, 60, 15, 'luck_x2_1h')">15 ⭐️</button>
-    </div>
-    
-    <div class="shop-item">
-      <div>
-        <h4>Удача x3 (2 часа)</h4>
-        <p>Для серьезных охотников за мификами</p>
-      </div>
-      <button class="btn-buy" onclick="game.buyLuck(3, 120, 25, 'luck_x3_2h')">25 ⭐️</button>
+  <!-- 3. РЫНОК И АУКЦИОНЫ -->
+  <div id="view-market" class="view">
+    <div class="market-tabs">
+      <div class="m-tab active" onclick="ui.subTab('auction', this)">🔨 Аукцион</div>
+      <div class="m-tab" onclick="ui.subTab('p2p', this)">🤝 P2P Трейд</div>
     </div>
 
-    <div class="shop-section">👑 VIP & Прочее</div>
-    <div class="shop-item">
-      <div>
-        <h4>VIP Статус (30 дней)</h4>
-        <p>Удача x1.5 навсегда, скидка на минт 20%</p>
+    <div id="sub-auction">
+      <div class="auction-item">
+        <div>
+          <div style="font-size:16px;font-weight:900;font-family:monospace;color:var(--red);">@nike</div>
+          <div style="font-size:11px;color:var(--text-muted);">Лидер: @durov_fan</div>
+          <div class="auc-time">Осталось: 14м 20с</div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:14px;font-weight:900;color:var(--gold);margin-bottom:4px;">1,500 COIN</div>
+          <button class="btn-bid" onclick="game.bidAuction(150)">Ставка (+10%)</button>
+        </div>
       </div>
-      <button class="btn-buy" onclick="game.buyItem('vip_30d', 99)">99 ⭐️</button>
     </div>
-    <div class="shop-item">
-      <div>
-        <h4>50,000 Монет</h4>
-        <p>Мгновенное пополнение</p>
-      </div>
-      <button class="btn-buy" onclick="game.buyCoins(50000, 10, 'coins_50k')">10 ⭐️</button>
+
+    <div id="sub-p2p" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
+      🔒 <b>Комната прямого P2P обмена</b><br><br>
+      Выберите тег из своего инвентаря и отправьте инвайт-ссылку второму игроку.
+      <button class="btn-mint" style="margin-top:14px;font-size:13px;padding:10px;" onclick="alert('Ссылка скопирована! Отправьте её партнёру по обмену.')">
+        Создать комнату обмена
+      </button>
     </div>
   </div>
 
-  <!-- ВКЛАДКА 4: ПАСС -->
-  <div id="tab-pass" class="tab-content">
-    <div class="pass-header">
-      <h2>MINT PASS</h2>
-      <p style="font-size: 13px; opacity: 0.8;">Сезон 1: Начало пути</p>
+  <!-- 4. СИНДИКАТ / РЕФЕРАЛЫ -->
+  <div id="view-syndicate" class="view">
+    <div class="referral-hero">
+      <h2 style="color:#fff;font-size:18px;margin-bottom:6px;">Продюсерский Синдикат</h2>
+      <p style="font-size:12px;color:var(--text-muted);line-height:1.4;">
+        Получай <b>10% пожизненно</b> со всего дохода приглашённых друзей и <b>15% Stars</b> с их покупок в магазине!
+      </p>
+      <button class="ref-btn" onclick="game.shareRef()">Пригласить друга (+1,000 COIN)</button>
     </div>
-    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Уровни открываются за полученный опыт (XP).</p>
-    
-    <div id="passList">
-      <!-- Генерируется скриптом -->
+    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:14px;">
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
+        <span>Приглашено друзей:</span>
+        <b id="refCount">0</b>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;">
+        <span>Заработано на роялти:</span>
+        <b style="color:var(--gold);" id="refEarned">0 COIN</b>
+      </div>
     </div>
   </div>
 
-  <!-- НАВИГАЦИЯ -->
+  <!-- 5. МАГАЗИН & ПРОФИЛЬ -->
+  <div id="view-shop" class="view">
+    <div class="vip-banner">
+      <h3 style="color:var(--gold);font-size:16px;">👑 VIP СТАТУС</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin:4px 0 10px;">
+        Удача x1.5 навсегда, минт без задержек и 0% комиссии на рынке.
+      </p>
+      <button class="stars-btn" onclick="game.buyStars('vip_30d', 49)">Купить за 49 ⭐️</button>
+    </div>
+
+    <h4 style="font-size:14px;margin-bottom:10px;">Бусты удачи (Демократичные цены)</h4>
+    <div class="shop-card">
+      <div>
+        <div style="font-size:14px;font-weight:700;">🍀 Удача x2 (1 час)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Вдвое больше шансов на редкие теги</div>
+      </div>
+      <button class="stars-btn" onclick="game.buyStars('luck_x2_1h', 9)">9 ⭐️</button>
+    </div>
+
+    <div class="shop-card">
+      <div>
+        <div style="font-size:14px;font-weight:700;">🔥 Удача x3 (2 часа)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Для охоты за Epic и Mythic</div>
+      </div>
+      <button class="stars-btn" onclick="game.buyStars('luck_x3_2h', 19)">19 ⭐️</button>
+    </div>
+  </div>
+
+  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
   <div class="tabbar">
-    <div class="tab-btn active" onclick="ui.switchTab('mint', this)">
+    <div class="tab-btn active" onclick="ui.tab('mint', this)">
       <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/></svg>
-      Минт
+      <span>Минт</span>
     </div>
-    <div class="tab-btn" onclick="ui.switchTab('garage', this)">
+    <div class="tab-btn" onclick="ui.tab('empire', this)">
+      <svg viewBox="0 0 24 24"><path d="M4 10h16v10H4zm0-6h16v4H4z"/></svg>
+      <span>Каналы</span>
+    </div>
+    <div class="tab-btn" onclick="ui.tab('market', this)">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
+      <span>Рынок</span>
+    </div>
+    <div class="tab-btn" onclick="ui.tab('syndicate', this)">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-      Гараж
+      <span>Синдикат</span>
     </div>
-    <div class="tab-btn" onclick="ui.switchTab('shop', this)">
-      <svg viewBox="0 0 24 24"><path d="M22 9h-4.7L14 3.6 12.6 5l2.8 4H8.6L11.4 5 10 3.6 6.7 9H2v2h1v9h18v-9h1V9zm-3 9H5v-7h14v7z"/></svg>
-      Магазин
-    </div>
-    <div class="tab-btn" onclick="ui.switchTab('pass', this)">
-      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-      Пасс
+    <div class="tab-btn" onclick="ui.tab('shop', this)">
+      <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
+      <span>Магазин</span>
     </div>
   </div>
 
   <script>
-    // Инициализация Telegram WebApp
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.expand();
-      tg.setHeaderColor('#0c0d12');
+      tg.setHeaderColor('#090a10');
+      tg.setBackgroundColor('#090a10');
     }
 
-    // --- ИГРОВОЙ ДВИЖОК (State Management) ---
+    // Игровой движок
     const game = {
-      state: {
-        coins: 1000,        // Стартовый баланс
+      data: {
+        coins: 1000,
         xp: 0,
-        level: 1,
-        incomePerSec: 0,
+        lvl: 1,
+        totalSpins: 0,
+        pity50: 0,
+        pity100: 0,
         luckMulti: 1.0,
-        luckExpiresAt: 0,   // Timestamp
-        tags: [],
-        passClaimed: []
+        incomeSec: 0,
+        smmLvl: 1,
+        buyerLvl: 0,
+        recentRoots: [], // Буфер анти-повторов корней
+        tags: []
       },
-      
-      rarities: [
-        { name: "Common", weight: 600, color: "#8b92a5", income: 2 },
-        { name: "Rare", weight: 250, color: "#2196f3", income: 10 },
-        { name: "Epic", weight: 100, color: "#9c27b0", income: 50 },
-        { name: "Legendary", weight: 40, color: "#ff9800", income: 200 },
-        { name: "Mythic", weight: 10, color: "#e91e63", income: 1000 }
+
+      roots: [
+        "apex", "ghost", "crypto", "ton", "king", "prime", "zero", "boss", "shadow", 
+        "wolf", "hyper", "meta", "cyber", "blade", "pulse", "flash", "storm", "star"
       ],
 
-      // Боевой пропуск
-      passRewards: [
-        { lvl: 2, reward: 500, type: "coins", desc: "500 COIN" },
-        { lvl: 3, reward: 2, type: "luck", desc: "Удача x2 (15 мин)" },
-        { lvl: 5, reward: 5000, type: "coins", desc: "5,000 COIN" },
+      rarities: [
+        { name: "Common", weight: 70000, color: "#848c9e", inc: 1 },
+        { name: "Uncommon", weight: 20000, color: "#2ec4b6", inc: 4 },
+        { name: "Rare", weight: 7000, color: "#2196f3", inc: 15 },
+        { name: "Epic", weight: 2200, color: "#9c27b0", inc: 60 },
+        { name: "Legendary", weight: 600, color: "#f5a623", inc: 250 },
+        { name: "Mythic", weight: 150, color: "#e91e63", inc: 1000 },
+        { name: "Ultra-Mythic", weight: 50, color: "#ff0033", inc: 5000 }
       ],
 
       init() {
+        this.load();
         setInterval(() => this.tick(), 1000);
-        ui.updateAll();
-        ui.renderPass();
+        ui.update();
       },
 
-      // Игровой цикл: Пассивный доход и таймеры каждую секунду
       tick() {
-        if (this.state.incomePerSec > 0) {
-          this.state.coins += this.state.incomePerSec;
+        if (this.data.incomeSec > 0) {
+          this.data.coins += this.data.incomeSec;
+          ui.update();
         }
-        
-        // Проверка таймера удачи
-        if (this.state.luckMulti > 1 && Date.now() > this.state.luckExpiresAt) {
-          this.state.luckMulti = 1.0;
-          if(tg) tg.showAlert("Действие буста удачи завершено!");
-        }
-        
-        ui.updateTopBar();
       },
 
-      // Логика Минта
-      mintTag() {
-        const cost = 100;
-        if (this.state.coins < cost) {
-          if(tg) tg.HapticFeedback.notificationOccurred('error');
-          alert("Не хватает COIN! Фарми пассивно или купи в магазине.");
+      mint() {
+        if (this.data.coins < 100) {
+          if (tg) tg.HapticFeedback.notificationOccurred('error');
+          alert("Недостаточно COIN!");
           return;
         }
 
-        this.state.coins -= cost;
-        if(tg) tg.HapticFeedback.impactOccurred('medium');
+        this.data.coins -= 100;
+        this.data.totalSpins++;
+        this.data.pity50++;
+        this.data.pity100++;
+        this.addXp(20);
 
-        // Расчет шансов с учетом активной Удачи
-        let totalWeight = 0;
-        const currentWeights = this.rarities.map(r => {
+        if (tg) tg.HapticFeedback.impactOccurred('medium');
+
+        // Проверка гаранта
+        let isEpicGuaranteed = false;
+        if (this.data.pity100 >= 100) {
+          isEpicGuaranteed = true;
+          this.data.pity100 = 0;
+        }
+
+        let currentLuck = this.data.luckMulti;
+        if (this.data.pity50 >= 50) {
+          currentLuck *= 2;
+          this.data.pity50 = 0;
+        }
+
+        // Выбор случайного корня БЕЗ повтора последних 5
+        let availableRoots = this.roots.filter(r => !this.data.recentRoots.includes(r));
+        if (availableRoots.length === 0) availableRoots = this.roots;
+        const selectedRoot = availableRoots[Math.floor(Math.random() * availableRoots.length)];
+
+        this.data.recentRoots.push(selectedRoot);
+        if (this.data.recentRoots.length > 5) this.data.recentRoots.shift();
+
+        // Расчет шансов с бустом
+        let totalW = 0;
+        let pool = this.rarities.map(r => {
           let w = r.weight;
-          if (r.name !== "Common" && r.name !== "Rare") {
-            w = w * this.state.luckMulti; // Буст применяется к Epic и выше
+          if (["Rare", "Epic", "Legendary", "Mythic", "Ultra-Mythic"].includes(r.name)) {
+            w = Math.floor(w * currentLuck);
           }
-          totalWeight += w;
+          if (isEpicGuaranteed && ["Common", "Uncommon", "Rare"].includes(r.name)) {
+            w = 0;
+          }
+          totalW += w;
           return { ...r, w };
         });
 
-        let randomNum = Math.random() * totalWeight;
-        let selected = currentWeights[0];
-        for (let r of currentWeights) {
-          if (randomNum < r.w) { selected = r; break; }
-          randomNum -= r.w;
+        let rnd = Math.random() * totalW;
+        let picked = pool[0];
+        for (let r of pool) {
+          if (rnd < r.w) { picked = r; break; }
+          rnd -= r.w;
         }
 
-        // Генерация имени
-        const words = ["TON", "MINT", "KING", "PRO", "DUBAI", "ZERO", "VIP"];
-        const tag = `@${words[Math.floor(Math.random()*words.length)]}_${Math.floor(100 + Math.random()*899)}`;
+        const tag = `@${selectedRoot}_${Math.floor(10 + Math.random() * 89)}`;
+        this.data.tags.push({ tag, rarity: picked.name, color: picked.color, inc: picked.inc });
+        this.data.incomeSec += picked.inc;
 
-        // Добавление в инвентарь
-        this.state.tags.push({ tag, rarity: selected.name, color: selected.color, income: selected.income });
-        this.state.incomePerSec += selected.income;
+        // Привязываем к каналу первый выбитый тег
+        document.getElementById('chAssignedTag').innerText = tag;
+        document.getElementById('chAssignedTag').style.color = picked.color;
 
-        // Опыт
-        this.addXp(25);
-
-        // Обновление UI
-        ui.playMintAnimation(tag, selected);
-        ui.updateTopBar();
-        ui.renderGarage();
+        ui.renderPlate(tag, picked);
+        this.save();
+        ui.update();
       },
 
       addXp(amount) {
-        this.state.xp += amount;
-        const nextLevelXp = this.state.level * 100;
-        
-        if (this.state.xp >= nextLevelXp) {
-          this.state.xp -= nextLevelXp;
-          this.state.level += 1;
-          if(tg) tg.HapticFeedback.notificationOccurred('success');
-          ui.renderPass(); // Обновляем пасс при повышении уровня
+        this.data.xp += amount;
+        if (this.data.xp >= this.data.lvl * 100) {
+          this.data.xp -= this.data.lvl * 100;
+          this.data.lvl++;
+          if (tg) tg.HapticFeedback.notificationOccurred('success');
         }
       },
 
-      // Демократичная Покупка Удачи (Эмуляция / Подготовка к бэку)
-      buyLuck(multi, minutes, stars, payload) {
-        if(tg && tg.openInvoice) {
-          // Здесь будет вызов бэкенда для генерации инвойса, но для UI мы симулируем успех:
-          // fetch(`/api/invoice?payload=${payload}`) ...
+      upgradeManager(type) {
+        if (type === 'smm') {
+          const cost = this.data.smmLvl * 250;
+          if (this.data.coins >= cost) {
+            this.data.coins -= cost;
+            this.data.smmLvl++;
+            this.data.incomeSec += 5;
+            document.getElementById('smmLvl').innerText = this.data.smmLvl;
+            document.getElementById('smmCost').innerText = (this.data.smmLvl * 250) + " COIN";
+          }
         }
-        
-        // Симуляция успешной оплаты
-        this.state.luckMulti = multi;
-        this.state.luckExpiresAt = Date.now() + (minutes * 60 * 1000);
-        if(tg) tg.HapticFeedback.notificationOccurred('success');
-        alert(`Удача x${multi} успешно активирована на ${minutes} минут!`);
-        ui.updateTopBar();
+        this.save();
+        ui.update();
       },
 
-      buyCoins(amount, stars, payload) {
-        this.state.coins += amount;
-        if(tg) tg.HapticFeedback.notificationOccurred('success');
-        alert(`Баланс пополнен на ${amount.toLocaleString()} COIN!`);
-        ui.updateTopBar();
-      },
-      
-      buyItem(payload, stars) {
-        alert("В разработке: Подключение серверного инвойса на " + stars + " звезд.");
-      }
-    };
-
-    // --- УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ (UI) ---
-    const ui = {
-      switchTab(tabId, btnElement) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-        
-        document.getElementById(`tab-${tabId}`).classList.add('active');
-        btnElement.classList.add('active');
-        if(tg) tg.HapticFeedback.selectionChanged();
-      },
-
-      updateAll() {
-        this.updateTopBar();
-        this.renderGarage();
-      },
-
-      updateTopBar() {
-        document.getElementById('uiCoins').innerText = Math.floor(game.state.coins).toLocaleString() + " 🪙";
-        document.getElementById('uiIncome').innerText = `+${game.state.incomePerSec} COIN / сек`;
-        
-        document.getElementById('uiLevel').innerText = `Ур. ${game.state.level}`;
-        const nextXp = game.state.level * 100;
-        document.getElementById('uiXp').innerText = `${game.state.xp} / ${nextXp}`;
-        document.getElementById('uiXpFill').style.width = `${(game.state.xp / nextXp) * 100}%`;
-
-        // Удача
-        const luckBadge = document.getElementById('uiLuck');
-        if (game.state.luckMulti > 1) {
-          const minsLeft = Math.ceil((game.state.luckExpiresAt - Date.now()) / 60000);
-          luckBadge.innerText = `🍀 x${game.state.luckMulti} (${minsLeft}м)`;
-          luckBadge.classList.add('active');
+      bidAuction(amount) {
+        if (this.data.coins >= amount) {
+          this.data.coins -= amount;
+          alert("Ставка принята! Вы лидер аукциона.");
+          ui.update();
         } else {
-          luckBadge.classList.remove('active');
+          alert("Не хватает COIN для ставки!");
         }
       },
 
-      playMintAnimation(tag, selectedData) {
-        const plate = document.getElementById('mainPlate');
-        const plateTag = document.getElementById('plateTag');
-        const plateRarity = document.getElementById('plateRarity');
-        const resultText = document.getElementById('mintResultText');
-
-        plate.style.transform = 'scale(0.9)';
-        setTimeout(() => {
-          plateTag.innerText = tag;
-          plateRarity.innerText = selectedData.name.toUpperCase();
-          plateRarity.style.color = selectedData.color;
-          plate.style.borderColor = selectedData.color;
-          plate.style.boxShadow = `0 10px 40px ${selectedData.color}66`;
-          
-          resultText.innerHTML = `Выбит <b>${selectedData.name}</b> тег!<br>Пассивный доход: +${selectedData.income} COIN/сек`;
-          resultText.style.color = selectedData.color;
-          
-          plate.style.transform = 'scale(1)';
-        }, 150);
+      shareRef() {
+        const url = `https://t.me/share/url?url=https://t.me/atminttagsbot/app&text=Залетай%20в%20MintTags,%20строй%20медиа-империю!`;
+        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+        else window.open(url, '_blank');
       },
 
-      renderGarage() {
-        const list = document.getElementById('inventoryList');
-        if (game.state.tags.length === 0) return;
-        
-        list.innerHTML = "";
-        // Показываем последние выбитые первыми
-        const reversedTags = [...game.state.tags].reverse();
-        
-        reversedTags.forEach(t => {
-          list.innerHTML += `
-            <div class="item-card ${t.rarity}">
-              <div class="item-tag" style="color: ${t.color}">${t.tag}</div>
-              <div class="item-stats">
-                <div style="font-weight: 700; color: #fff;">${t.rarity}</div>
-                <div>+${t.income} / сек</div>
-              </div>
-            </div>
-          `;
-        });
+      async buyStars(item, stars) {
+        if (tg) tg.HapticFeedback.impactOccurred('medium');
+        try {
+          const res = await fetch(`/api/invoice?payload=${item}`);
+          const resData = await res.json();
+          if (resData.invoice_link && tg.openInvoice) {
+            tg.openInvoice(resData.invoice_link, (status) => {
+              if (status === 'paid') {
+                alert("Оплата прошла успешно! Буст активирован.");
+                game.data.luckMulti = 2.0;
+                ui.update();
+              }
+            });
+          }
+        } catch (e) {
+          alert(`Режим демо-покупки: ${item} (${stars} Stars)`);
+        }
       },
 
-      renderPass() {
-        const list = document.getElementById('passList');
-        list.innerHTML = "";
-        
-        game.passRewards.forEach(reward => {
-          const isUnlocked = game.state.level >= reward.lvl;
-          list.innerHTML += `
-            <div class="pass-level-box ${isUnlocked ? 'unlocked' : ''}">
-              <div>
-                <div style="font-size: 11px; color: var(--text-muted);">Уровень ${reward.lvl}</div>
-                <div style="font-weight: 700; font-size: 14px; color: ${isUnlocked ? 'var(--gold)' : '#fff'}">${reward.desc}</div>
-              </div>
-              <div>
-                ${isUnlocked 
-                  ? '<span style="color: var(--green); font-size: 12px; font-weight: 800;">Доступно</span>' 
-                  : '<span style="color: var(--text-muted); font-size: 12px;">Закрыто</span>'}
-              </div>
-            </div>
-          `;
-        });
+      save() {
+        localStorage.setItem('minttags_save', JSON.stringify(this.data));
+      },
+      load() {
+        const s = localStorage.getItem('minttags_save');
+        if (s) {
+          try { this.data = Object.assign(this.data, JSON.parse(s)); } catch(e){}
+        }
       }
     };
 
-    // Запуск игры
+    // Управление интерфейсом
+    const ui = {
+      tab(name, el) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`view-${name}`).classList.add('active');
+        el.classList.add('active');
+        if (tg) tg.HapticFeedback.selectionChanged();
+      },
+
+      subTab(name, el) {
+        document.querySelectorAll('.m-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.getElementById('sub-auction').style.display = name === 'auction' ? 'block' : 'none';
+        document.getElementById('sub-p2p').style.display = name === 'p2p' ? 'block' : 'none';
+      },
+
+      update() {
+        document.getElementById('uiCoins').innerText = Math.floor(game.data.coins).toLocaleString() + " COIN";
+        document.getElementById('uiIncome').innerText = `+${game.data.incomeSec} / сек`;
+        document.getElementById('uiLvl').innerText = `Ур. ${game.data.lvl} • ${game.data.xp}/${game.data.lvl * 100} XP`;
+
+        document.getElementById('pity50Text').innerText = `${game.data.pity50} / 50`;
+        document.getElementById('pity50Fill').style.width = `${(game.data.pity50 / 50) * 100}%`;
+
+        document.getElementById('pity100Text').innerText = `${game.data.pity100} / 100`;
+        document.getElementById('pity100Fill').style.width = `${(game.data.pity100 / 100) * 100}%`;
+
+        if (tg?.initDataUnsafe?.user) {
+          document.getElementById('uiName').innerText = tg.initDataUnsafe.user.first_name;
+        }
+      },
+
+      renderPlate(tag, r) {
+        const p = document.getElementById('plateEl');
+        document.getElementById('plateText').innerText = tag;
+        document.getElementById('plateRarity').innerText = r.name.toUpperCase();
+        document.getElementById('plateRarity').style.color = r.color;
+        p.style.borderColor = r.color;
+
+        const badge = document.getElementById('badgeEl');
+        badge.innerText = `${r.name} • +${r.inc} COIN/сек`;
+        badge.style.color = r.color;
+        badge.style.background = `${r.color}22`;
+      }
+    };
+
     window.onload = () => game.init();
   </script>
 </body>
