@@ -186,3 +186,27 @@ def mint(user_id: int):
         "income": income,
         "new_balance": round(new_balance, 2)
     }
+    from aiogram.types import LabeledPrice
+from bot import bot
+
+PRICES = {
+    "luck_x2_1h": {"title": "Удача x2 (1 час)", "price": 15},
+    "luck_x3_2h": {"title": "Удача x3 (2 часа)", "price": 25},
+    "coins_50k":  {"title": "50,000 COIN", "price": 10},
+    "vip_30d":    {"title": "VIP на 30 дней", "price": 99},
+}
+
+@app.get("/api/invoice")
+async def get_invoice(payload: str):
+    product = PRICES.get(payload)
+    if not product:
+        raise HTTPException(status_code=400, detail="Товар не найден")
+    
+    link = await bot.create_invoice_link(
+        title=product["title"],
+        description="Внутриигровая покупка в MintTags",
+        payload=payload,
+        currency="XTR",
+        prices=[LabeledPrice(label=product["title"], amount=product["price"])]
+    )
+    return {"invoice_link": link}
