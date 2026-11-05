@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      /* Зелено-белый Luxury стиль */
       --bg: #07170f;
       --card-bg: #102418;
       --card-sub: #173323;
@@ -18,7 +17,6 @@
       --white: #ffffff;
       --text-muted: #8ba89a;
       
-      /* Цвета редкостей */
       --c-com: #90a4ae;
       --c-unc: #4caf50;
       --c-rar: #2196f3;
@@ -71,7 +69,7 @@
       max-width: 310px; margin: 0 auto 12px; border: 4px solid #111;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     }
-    .plate-hdr { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; color: #555; margin-bottom: 6px; }
+    .plate-hdr { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; color: #666; margin-bottom: 6px; }
     .plate-body { font-size: 26px; font-weight: 900; font-family: monospace; letter-spacing: 1.5px; }
     .rarity-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; margin-bottom: 10px; }
     
@@ -84,7 +82,7 @@
     }
     .btn-mint:active { transform: scale(0.97); }
 
-    /* Холд (Гараж) */
+    /* Холд (Сейф) */
     .hold-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .hold-grid { display: flex; flex-direction: column; gap: 10px; }
     .hold-card {
@@ -95,12 +93,11 @@
     .hold-tag { font-size: 18px; font-weight: 900; font-family: monospace; }
     .btn-sell { background: rgba(245, 166, 35, 0.15); color: var(--gold); border: 1px solid var(--gold); padding: 6px 12px; border-radius: 10px; font-size: 12px; font-weight: 800; cursor: pointer; }
 
-    /* Каналы */
-    .channel-card {
+    /* Раздел синдиката и P2P */
+    .referral-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;
-      padding: 16px; margin-bottom: 12px;
+      padding: 18px; margin-bottom: 14px; text-align: center;
     }
-    .mgr-btn { background: var(--card-sub); border: 1px solid var(--border); border-radius: 14px; padding: 10px; cursor: pointer; }
 
     /* Магазин */
     .shop-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
@@ -136,7 +133,6 @@
 
   <!-- 1. МИНТ -->
   <div id="view-mint" class="view active">
-    
     <div class="mint-modes">
       <div class="m-mode active" id="mode-basic" onclick="app.setMode('basic')">
         <div class="m-mode-title">Базовый</div>
@@ -174,23 +170,35 @@
     </div>
   </div>
 
-  <!-- 2. ХОЛД (Гараж) -->
+  <!-- 2. ХОЛД (Гараж / Сейф) -->
   <div id="view-hold" class="view">
     <div class="hold-header">
       <h3 style="font-size:16px;">Сейф (ХОЛД)</h3>
-      <span style="font-size:12px;color:var(--text-muted);"><b id="holdCount">0</b> / 100</span>
+      <span style="font-size:12px;color:var(--text-muted);"><b id="holdCount">0</b> / 100 мест</span>
     </div>
-    <div class="hold-grid" id="holdList">
-      <!-- Сюда падают теги -->
-    </div>
+    <div class="hold-grid" id="holdList"></div>
   </div>
 
-  <!-- 3. КАНАЛЫ -->
-  <div id="view-channels" class="view">
-    <h3 style="font-size:16px;margin-bottom:12px;">Империя Каналов</h3>
-    <div class="channel-card">
-      <h4 style="margin-bottom:6px;">📢 Главный канал</h4>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">В разработке: Привязка тегов из Холда для фарма подписчиков!</p>
+  <!-- 3. СИНДИКАТ И P2P ОБМЕН -->
+  <div id="view-syndicate" class="view">
+    <div class="referral-card">
+      <h3 style="color:#fff;font-size:17px;margin-bottom:6px;">Продюсерский Синдикат</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4;">
+        Забирай лучшие @username первее всех! Получай 10% GRAM со всех доходов друзей и 15% Stars с их покупок.
+      </p>
+      <button class="btn-mint" style="padding:12px;" onclick="app.shareRef()">
+        🚀 Пригласить друга
+      </button>
+    </div>
+
+    <div class="referral-card">
+      <h3 style="color:#fff;font-size:17px;margin-bottom:6px;">🤝 P2P Трейд комната</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4;">
+        Отправь персональную ссылку второму игроку для безопасного обмена тегами тет-а-тет.
+      </p>
+      <button class="btn-mint" style="padding:12px;background:var(--gold);" onclick="app.shareTradeLink()">
+        📤 Открыть комнату обмена
+      </button>
     </div>
   </div>
 
@@ -208,10 +216,26 @@
 
     <div class="shop-card">
       <div>
-        <div style="font-size:14px;font-weight:700;">Удача x3 (2 часа)</div>
-        <div style="font-size:11px;color:var(--text-muted);">Шанс на эксклюзивные айди</div>
+        <div style="font-size:14px;font-weight:700;">🍀 Удача x2 (1 час)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Вдвое больше шансов на редкие теги</div>
+      </div>
+      <button class="stars-btn" onclick="app.buyStars('luck_x2_1h', 19)">19 ⭐️</button>
+    </div>
+
+    <div class="shop-card">
+      <div>
+        <div style="font-size:14px;font-weight:700;">🔥 Удача x3 (2 часа)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Шанс на эксклюзивные и Luxury айди</div>
       </div>
       <button class="stars-btn" onclick="app.buyStars('luck_x3_2h', 39)">39 ⭐️</button>
+    </div>
+
+    <div class="shop-card">
+      <div>
+        <div style="font-size:14px;font-weight:700;">🪙 50,000 GRAM</div>
+        <div style="font-size:11px;color:var(--text-muted);">Быстрое пополнение баланса</div>
+      </div>
+      <button class="stars-btn" onclick="app.buyStars('coins_50k', 15)">15 ⭐️</button>
     </div>
   </div>
 
@@ -223,11 +247,11 @@
     <div class="tab-btn" onclick="ui.tab('hold', this)">
       <svg viewBox="0 0 24 24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-6 0h-4V4h4v2z"/></svg> Холд
     </div>
-    <div class="tab-btn" onclick="ui.tab('channels', this)">
-      <svg viewBox="0 0 24 24"><path d="M4 10h16v10H4zm0-6h16v4H4z"/></svg> Каналы
+    <div class="tab-btn" onclick="ui.tab('syndicate', this)">
+      <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg> Синдикат
     </div>
     <div class="tab-btn" onclick="ui.tab('shop', this)">
-      <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg> Магазин
+      <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg> Магазин
     </div>
   </div>
 
@@ -239,9 +263,9 @@
       tg.setBackgroundColor('#07170f');
     }
 
-    const API_URL = "https://atminttagsbot.onrender.com"; // Убедись, что ссылка правильная
+    const API_URL = "https://atminttagsbot.onrender.com";
     const MY_ID = tg?.initDataUnsafe?.user?.id || 12345;
-    const MY_NAME = tg?.initDataUnsafe?.user?.first_name || "Guest";
+    const MY_NAME = tg?.initDataUnsafe?.user?.first_name || "Player";
 
     const colors = {
       "Common": "#90a4ae", "Uncommon": "#4caf50", "Rare": "#2196f3", "Epic": "#9c27b0",
@@ -256,12 +280,12 @@
 
       async init() {
         try {
-          const res = await fetch(`${API_URL}/api/login`, {
+          await fetch(`${API_URL}/api/login`, {
             method: 'POST', headers: {'Content-Type':'application/json'},
             body: JSON.stringify({user_id: MY_ID, username: MY_NAME})
           });
           await this.loadState();
-        } catch(e) { console.log(e); }
+        } catch(e) { console.error(e); }
       },
 
       async loadState() {
@@ -298,14 +322,13 @@
             const data = await res.json();
             if(tg) tg.HapticFeedback.impactOccurred('heavy');
             
-            // Запуск салюта для редких (Legendary и выше)
             const rareIndex = Object.keys(colors).indexOf(data.rarity);
             if(rareIndex >= 4) this.shootConfetti(colors[data.rarity]);
 
             ui.showDrop(data);
             await this.loadState();
           }
-        } catch(e) { alert("Ошибка соединения"); }
+        } catch(e) { alert("Ошибка соединения с сервером"); }
         document.getElementById('mintBtn').innerText = `Крутить (${this.costs[this.mode].toLocaleString()} GRAM)`;
       },
 
@@ -328,7 +351,49 @@
       },
 
       async buyStars(item, price) {
-        alert("В разработке (Требуется деплой бэкенда для Telegram Stars)");
+        if (tg) tg.HapticFeedback.impactOccurred('medium');
+        try {
+          const res = await fetch(`${API_URL}/api/invoice?payload=${item}`);
+          const resData = await res.json();
+          if (resData.invoice_link && tg.openInvoice) {
+            tg.openInvoice(resData.invoice_link, (status) => {
+              if (status === 'paid') {
+                alert("Оплата прошла успешно! Буст активирован.");
+                app.loadState();
+              }
+            });
+          }
+        } catch (e) {
+          alert(`Режим демо-покупки: ${item} за ${price} Stars`);
+        }
+      },
+
+      // Починенная реферальная ссылка (без двойных https://)
+      shareRef() {
+        const myId = tg?.initDataUnsafe?.user?.id || MY_ID;
+        const cleanLink = `t.me/atminttagsbot?startapp=ref_${myId}`;
+        const messageText = "Забирай лучшие @username первее всех и строй свою медиа империю!";
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(cleanLink)}&text=${encodeURIComponent(messageText)}`;
+        
+        if (tg && tg.openTelegramLink) {
+          tg.openTelegramLink(shareUrl);
+        } else {
+          window.open(shareUrl, '_blank');
+        }
+      },
+
+      // Починенная ссылка P2P-трейда
+      shareTradeLink() {
+        const myId = tg?.initDataUnsafe?.user?.id || MY_ID;
+        const cleanLink = `t.me/atminttagsbot?startapp=trade_${myId}`;
+        const messageText = "Приглашаю в комнату P2P-трейда в MintTags! Переходи по ссылке для обмена тегами:";
+        const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(cleanLink)}&text=${encodeURIComponent(messageText)}`;
+        
+        if (tg && tg.openTelegramLink) {
+          tg.openTelegramLink(shareUrl);
+        } else {
+          window.open(shareUrl, '_blank');
+        }
       }
     };
 
@@ -357,7 +422,7 @@
         document.getElementById('plateEl').style.boxShadow = `0 10px 40px ${c}66`;
 
         const b = document.getElementById('badgeEl');
-        b.innerText = `${data.rarity} • Продажа: ${data.sell_price.toLocaleString()} GRAM`;
+        b.innerText = `${data.rarity} • Рынок: ${data.sell_price.toLocaleString()} GRAM`;
         b.style.color = c; b.style.background = `${c}22`;
 
         const rBox = document.getElementById('reasonsBox');
@@ -367,7 +432,7 @@
 
       renderHold(tags) {
         const list = document.getElementById('holdList');
-        if(tags.length === 0) { list.innerHTML = "<div style='text-align:center;color:#888;'>Сейф пуст</div>"; return; }
+        if(tags.length === 0) { list.innerHTML = "<div style='text-align:center;color:#8ba89a;padding:20px;'>Сейф пуст. Сминтите первый тег!</div>"; return; }
         
         list.innerHTML = tags.map(t => {
           const c = colors[t.rarity];
