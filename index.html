@@ -1,393 +1,444 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>MintTags</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-main: #0b0e14;
-            --card-bg: rgba(23, 29, 43, 0.7);
-            --border-color: rgba(255, 255, 255, 0.08);
-            --primary: #3b82f6;
-            --primary-glow: rgba(59, 130, 246, 0.4);
-            --mythic: #ff2a5f;
-            --legendary: #ffb703;
-            --epic: #b5179e;
-            --rare: #00b4d8;
-            --common: #64748b;
-            --text-main: #f8fafc;
-            --text-sub: #94a3b8;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MintTags - Полная Версия</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg: #0c0d12;
+      --card-bg: #16181f;
+      --card-border: rgba(255, 255, 255, 0.08);
+      --gold: #f5a623;
+      --green: #2ec4b6;
+      --purple: #9c27b0;
+      --text: #ffffff;
+      --text-muted: #8e95a5;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, sans-serif; user-select: none; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 90px; }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-        }
+    /* Шапка (Уровень, Опыт, Баланс, Удача) */
+    .header { padding: 16px; display: flex; justify-content: space-between; align-items: flex-start; position: sticky; top: 0; background: rgba(12, 13, 18, 0.95); backdrop-filter: blur(10px); z-index: 100; border-bottom: 1px solid var(--card-border); }
+    
+    .level-box { width: 140px; }
+    .level-text { font-size: 14px; font-weight: 800; display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .xp-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden; }
+    .xp-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s ease; }
+    
+    .stats-box { text-align: right; }
+    .balance { font-size: 20px; font-weight: 800; color: #fff; }
+    .income-rate { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+    .luck-badge { display: inline-block; background: rgba(245, 166, 35, 0.15); color: var(--gold); padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; border: 1px solid rgba(245, 166, 35, 0.3); opacity: 0; transition: opacity 0.3s; }
+    .luck-badge.active { opacity: 1; }
 
-        body {
-            background: radial-gradient(circle at top center, #161f30 0%, var(--bg-main) 70%);
-            color: var(--text-main);
-            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-        }
+    /* Контейнер вкладок */
+    .tab-content { display: none; padding: 16px; animation: fadeIn 0.2s ease; }
+    .tab-content.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Верхняя панель */
-        .top-bar {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
+    /* === ВКЛАДКА: МИНТ === */
+    .mint-stage { background: #111318; border: 1px solid var(--card-border); border-radius: 24px; padding: 30px 16px; text-align: center; margin-bottom: 16px; }
+    .plate { background: #fff; color: #000; border-radius: 12px; padding: 20px; margin: 0 auto 16px; max-width: 300px; border: 4px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: all 0.3s ease; }
+    .plate-header { font-size: 10px; font-weight: 900; color: #555; display: flex; justify-content: space-between; margin-bottom: 8px; }
+    .plate-text { font-size: 32px; font-weight: 900; font-family: monospace; letter-spacing: 2px; }
+    
+    .btn-mint { width: 100%; background: var(--green); color: #000; font-size: 16px; font-weight: 800; padding: 16px; border: none; border-radius: 16px; cursor: pointer; transition: 0.1s; }
+    .btn-mint:active { transform: scale(0.97); }
 
-        .member-badge {
-            background: rgba(59, 130, 246, 0.12);
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            color: #60a5fa;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            backdrop-filter: blur(10px);
-        }
+    /* === ВКЛАДКА: ГАРАЖ === */
+    .inventory-list { display: flex; flex-direction: column; gap: 10px; }
+    .item-card { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px 16px; border-radius: 16px; display: flex; justify-content: space-between; align-items: center; }
+    .item-card.Mythic { border-color: #e91e63; box-shadow: inset 0 0 15px rgba(233, 30, 99, 0.1); }
+    .item-card.Legendary { border-color: #ff9800; }
+    .item-tag { font-size: 18px; font-weight: 800; font-family: monospace; }
+    .item-stats { font-size: 12px; color: var(--text-muted); text-align: right; }
 
-        .balance-badge {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 14px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
+    /* === ВКЛАДКА: МАГАЗИН === */
+    .shop-section { font-size: 18px; font-weight: 800; margin: 20px 0 10px; }
+    .shop-item { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 16px; padding: 16px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
+    .shop-item h4 { font-size: 15px; margin-bottom: 4px; }
+    .shop-item p { font-size: 12px; color: var(--text-muted); line-height: 1.3; }
+    .btn-buy { background: #232733; color: var(--gold); border: 1px solid rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 12px; font-weight: 800; font-size: 14px; cursor: pointer; }
 
-        .balance-badge span { color: #facc15; }
+    /* === ВКЛАДКА: ПАСС === */
+    .pass-header { background: linear-gradient(135deg, #4a148c, #311b92); border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
+    .pass-header h2 { font-weight: 900; margin-bottom: 5px; color: #fff; }
+    .pass-level-box { background: var(--card-bg); border: 1px solid var(--card-border); padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; opacity: 0.5; }
+    .pass-level-box.unlocked { opacity: 1; border-color: var(--gold); background: rgba(245, 166, 35, 0.05); }
 
-        /* Главная плашка MintTags */
-        .hero-card {
-            width: 100%;
-            background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 24px;
-            padding: 24px 18px;
-            text-align: center;
-            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
-            backdrop-filter: blur(12px);
-            margin-bottom: 24px;
-        }
-
-        .hero-logo-box {
-            width: 68px;
-            height: 68px;
-            margin: 0 auto 12px auto;
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(181, 23, 158, 0.2));
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 32px;
-            box-shadow: 0 8px 24px var(--primary-glow);
-        }
-
-        .hero-title {
-            font-size: 24px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            background: linear-gradient(90deg, #ffffff, #93c5fd);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 4px;
-        }
-
-        .hero-subtitle {
-            font-size: 13px;
-            color: var(--text-sub);
-            margin-bottom: 20px;
-        }
-
-        .hero-subtitle strong { color: #4ade80; }
-
-        .btn-mint {
-            width: 100%;
-            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
-            border: none;
-            color: #ffffff;
-            padding: 16px;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 8px 20px var(--primary-glow);
-            transition: all 0.15s ease;
-            letter-spacing: 0.3px;
-        }
-
-        .btn-mint:active {
-            transform: scale(0.97);
-            filter: brightness(0.9);
-        }
-
-        .btn-claim {
-            width: 100%;
-            background: rgba(255, 255, 255, 0.04);
-            border: 1px solid var(--border-color);
-            color: var(--text-main);
-            padding: 13px 16px;
-            border-radius: 14px;
-            font-size: 14px;
-            font-weight: 600;
-            margin-top: 12px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            transition: background 0.2s;
-        }
-
-        .btn-claim:active { background: rgba(255, 255, 255, 0.08); }
-
-        /* Заголовок списка */
-        .section-header {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            padding: 0 4px;
-        }
-
-        .section-title {
-            font-size: 13px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-sub);
-        }
-
-        /* Список карточек */
-        .tags-list {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            padding-bottom: 30px;
-        }
-
-        .tag-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 18px;
-            padding: 14px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
-            backdrop-filter: blur(8px);
-        }
-
-        .tag-name {
-            font-size: 17px;
-            font-weight: 700;
-            letter-spacing: -0.3px;
-            margin-bottom: 2px;
-        }
-
-        .tag-income {
-            font-size: 12px;
-            color: #4ade80;
-            font-weight: 600;
-        }
-
-        .rarity-pill {
-            font-size: 10px;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            padding: 5px 10px;
-            border-radius: 10px;
-        }
-
-        .pill-Mythic { background: rgba(255, 42, 95, 0.15); border: 1px solid var(--mythic); color: var(--mythic); }
-        .pill-Legendary { background: rgba(255, 183, 3, 0.15); border: 1px solid var(--legendary); color: var(--legendary); }
-        .pill-Epic { background: rgba(181, 23, 158, 0.15); border: 1px solid var(--epic); color: var(--epic); }
-        .pill-Rare { background: rgba(0, 180, 216, 0.15); border: 1px solid var(--rare); color: var(--rare); }
-        .pill-Common { background: rgba(100, 116, 139, 0.15); border: 1px solid var(--common); color: var(--common); }
-
-        /* Всплывающее красивое уведомление (без ссылки) */
-        .custom-toast {
-            position: fixed;
-            bottom: 25px;
-            left: 50%;
-            transform: translateX(-50%) translateY(100px);
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #fff;
-            padding: 14px 22px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-            opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 999;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        .custom-toast.show {
-            transform: translateX(-50%) translateY(0);
-            opacity: 1;
-        }
-    </style>
+    /* Нижний Таб-бар */
+    .tabbar { position: fixed; bottom: 0; left: 0; right: 0; height: 70px; background: rgba(12, 13, 18, 0.95); backdrop-filter: blur(15px); border-top: 1px solid var(--card-border); display: flex; justify-content: space-around; align-items: center; padding-bottom: 10px; }
+    .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); font-size: 11px; font-weight: 600; cursor: pointer; }
+    .tab-btn.active { color: var(--green); }
+    .tab-btn svg { width: 22px; height: 22px; fill: currentColor; }
+  </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="member-badge" id="memberNumber">Member #...</div>
-        <div class="balance-badge">💰 <span id="balance">0</span> COIN</div>
+  <!-- ГЛОБАЛЬНАЯ ШАПКА -->
+  <div class="header">
+    <div class="level-box">
+      <div class="level-text">
+        <span id="uiLevel">Ур. 1</span>
+        <span id="uiXp">0 / 100 XP</span>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" id="uiXpFill"></div></div>
+    </div>
+    <div class="stats-box">
+      <div class="balance" id="uiCoins">0 🪙</div>
+      <div class="income-rate" id="uiIncome">+0 COIN / сек</div>
+      <div class="luck-badge" id="uiLuck">🍀 Удача x1</div>
+    </div>
+  </div>
+
+  <!-- ВКЛАДКА 1: МИНТ -->
+  <div id="tab-mint" class="tab-content active">
+    <div class="mint-stage">
+      <div class="plate" id="mainPlate">
+        <div class="plate-header">
+          <span>MINTTAGS</span>
+          <span id="plateRarity">COMMON</span>
+        </div>
+        <div class="plate-text" id="plateTag">@TAP_ME</div>
+      </div>
+      <p id="mintResultText" style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">Нажми, чтобы выбить первый тег!</p>
+      
+      <button class="btn-mint" onclick="game.mintTag()">Минт тега (100 🪙)</button>
+    </div>
+    <div style="background: var(--card-bg); padding: 16px; border-radius: 16px; font-size: 13px; color: var(--text-muted); border: 1px solid var(--card-border);">
+      ℹ️ <b>Как играть:</b> Трать монеты на минт. Каждый выбитый тег увеличивает твой пассивный доход в секунду. Опыт дается за каждый минт.
+    </div>
+  </div>
+
+  <!-- ВКЛАДКА 2: ГАРАЖ -->
+  <div id="tab-garage" class="tab-content">
+    <h3 style="margin-bottom: 16px;">Твоя коллекция</h3>
+    <div class="inventory-list" id="inventoryList">
+      <!-- Теги добавляются сюда -->
+      <div style="text-align: center; color: var(--text-muted); padding: 20px;">Пока пусто. Выбей свой первый тег!</div>
+    </div>
+  </div>
+
+  <!-- ВКЛАДКА 3: МАГАЗИН (Демократичные цены) -->
+  <div id="tab-shop" class="tab-content">
+    
+    <div class="shop-section">🍀 Удача</div>
+    <p style="font-size: 11px; color: var(--text-muted); margin-bottom: 12px;">Удача умножает шансы выпадения Epic, Legendary и Mythic.</p>
+    
+    <div class="shop-item">
+      <div>
+        <h4>Удача x2 (1 час)</h4>
+        <p>Идеально для быстрого старта</p>
+      </div>
+      <button class="btn-buy" onclick="game.buyLuck(2, 60, 15, 'luck_x2_1h')">15 ⭐️</button>
+    </div>
+    
+    <div class="shop-item">
+      <div>
+        <h4>Удача x3 (2 часа)</h4>
+        <p>Для серьезных охотников за мификами</p>
+      </div>
+      <button class="btn-buy" onclick="game.buyLuck(3, 120, 25, 'luck_x3_2h')">25 ⭐️</button>
     </div>
 
-    <div class="hero-card">
-        <div class="hero-logo-box">🏷️</div>
-        <div class="hero-title">MintTags</div>
-        <div class="hero-subtitle">Генерация тегов • Доход: <strong id="totalRate">+0.00/сек</strong></div>
+    <div class="shop-section">👑 VIP & Прочее</div>
+    <div class="shop-item">
+      <div>
+        <h4>VIP Статус (30 дней)</h4>
+        <p>Удача x1.5 навсегда, скидка на минт 20%</p>
+      </div>
+      <button class="btn-buy" onclick="game.buyItem('vip_30d', 99)">99 ⭐️</button>
+    </div>
+    <div class="shop-item">
+      <div>
+        <h4>50,000 Монет</h4>
+        <p>Мгновенное пополнение</p>
+      </div>
+      <button class="btn-buy" onclick="game.buyCoins(50000, 10, 'coins_50k')">10 ⭐️</button>
+    </div>
+  </div>
+
+  <!-- ВКЛАДКА 4: ПАСС -->
+  <div id="tab-pass" class="tab-content">
+    <div class="pass-header">
+      <h2>MINT PASS</h2>
+      <p style="font-size: 13px; opacity: 0.8;">Сезон 1: Начало пути</p>
+    </div>
+    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Уровни открываются за полученный опыт (XP).</p>
+    
+    <div id="passList">
+      <!-- Генерируется скриптом -->
+    </div>
+  </div>
+
+  <!-- НАВИГАЦИЯ -->
+  <div class="tabbar">
+    <div class="tab-btn active" onclick="ui.switchTab('mint', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/></svg>
+      Минт
+    </div>
+    <div class="tab-btn" onclick="ui.switchTab('garage', this)">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      Гараж
+    </div>
+    <div class="tab-btn" onclick="ui.switchTab('shop', this)">
+      <svg viewBox="0 0 24 24"><path d="M22 9h-4.7L14 3.6 12.6 5l2.8 4H8.6L11.4 5 10 3.6 6.7 9H2v2h1v9h18v-9h1V9zm-3 9H5v-7h14v7z"/></svg>
+      Магазин
+    </div>
+    <div class="tab-btn" onclick="ui.switchTab('pass', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+      Пасс
+    </div>
+  </div>
+
+  <script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.expand();
+      tg.setHeaderColor('#0c0d12');
+    }
+
+    // --- ИГРОВОЙ ДВИЖОК (State Management) ---
+    const game = {
+      state: {
+        coins: 1000,        // Стартовый баланс
+        xp: 0,
+        level: 1,
+        incomePerSec: 0,
+        luckMulti: 1.0,
+        luckExpiresAt: 0,   // Timestamp
+        tags: [],
+        passClaimed: []
+      },
+      
+      rarities: [
+        { name: "Common", weight: 600, color: "#8b92a5", income: 2 },
+        { name: "Rare", weight: 250, color: "#2196f3", income: 10 },
+        { name: "Epic", weight: 100, color: "#9c27b0", income: 50 },
+        { name: "Legendary", weight: 40, color: "#ff9800", income: 200 },
+        { name: "Mythic", weight: 10, color: "#e91e63", income: 1000 }
+      ],
+
+      // Боевой пропуск
+      passRewards: [
+        { lvl: 2, reward: 500, type: "coins", desc: "500 COIN" },
+        { lvl: 3, reward: 2, type: "luck", desc: "Удача x2 (15 мин)" },
+        { lvl: 5, reward: 5000, type: "coins", desc: "5,000 COIN" },
+      ],
+
+      init() {
+        setInterval(() => this.tick(), 1000);
+        ui.updateAll();
+        ui.renderPass();
+      },
+
+      // Игровой цикл: Пассивный доход и таймеры каждую секунду
+      tick() {
+        if (this.state.incomePerSec > 0) {
+          this.state.coins += this.state.incomePerSec;
+        }
         
-        <button class="btn-mint" onclick="mintUsername()">МИНТ ТЕГА (50 COIN)</button>
+        // Проверка таймера удачи
+        if (this.state.luckMulti > 1 && Date.now() > this.state.luckExpiresAt) {
+          this.state.luckMulti = 1.0;
+          if(tg) tg.showAlert("Действие буста удачи завершено!");
+        }
         
-        <button class="btn-claim" onclick="claimProfit()">
-            <span>Собрать прибыль:</span>
-            <span id="unclaimedDisplay" style="color: #4ade80; font-weight: 700;">+0.00 COIN</span>
-        </button>
-    </div>
+        ui.updateTopBar();
+      },
 
-    <div class="section-header">
-        <div class="section-title">Коллекция тегов</div>
-    </div>
-
-    <div class="tags-list" id="tagList"></div>
-
-    <div class="custom-toast" id="toast"></div>
-
-    <script>
-        const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.ready();
-            tg.expand();
+      // Логика Минта
+      mintTag() {
+        const cost = 100;
+        if (this.state.coins < cost) {
+          if(tg) tg.HapticFeedback.notificationOccurred('error');
+          alert("Не хватает COIN! Фарми пассивно или купи в магазине.");
+          return;
         }
 
-        const userId = tg?.initDataUnsafe?.user?.id || 10001;
-        const userName = tg?.initDataUnsafe?.user?.username || "Pioneer";
+        this.state.coins -= cost;
+        if(tg) tg.HapticFeedback.impactOccurred('medium');
 
-        let currentBalance = 0;
-        let incomeRate = 0;
-        let unclaimedCoins = 0;
+        // Расчет шансов с учетом активной Удачи
+        let totalWeight = 0;
+        const currentWeights = this.rarities.map(r => {
+          let w = r.weight;
+          if (r.name !== "Common" && r.name !== "Rare") {
+            w = w * this.state.luckMulti; // Буст применяется к Epic и выше
+          }
+          totalWeight += w;
+          return { ...r, w };
+        });
 
-        function showMessage(text) {
-            // Нативное окно Telegram без ссылок на сайт
-            if (tg && tg.showAlert) {
-                tg.showAlert(text);
-            } else {
-                const toast = document.getElementById("toast");
-                toast.innerText = text;
-                toast.classList.add("show");
-                setTimeout(() => toast.classList.remove("show"), 2500);
-            }
+        let randomNum = Math.random() * totalWeight;
+        let selected = currentWeights[0];
+        for (let r of currentWeights) {
+          if (randomNum < r.w) { selected = r; break; }
+          randomNum -= r.w;
         }
 
-        async function init() {
-            await fetch(`/api/login`, {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({user_id: userId, username: userName})
-            });
-            await syncState();
-            
-            setInterval(() => {
-                unclaimedCoins += incomeRate;
-                document.getElementById("unclaimedDisplay").innerText = `+${unclaimedCoins.toFixed(2)} COIN`;
-            }, 1000);
+        // Генерация имени
+        const words = ["TON", "MINT", "KING", "PRO", "DUBAI", "ZERO", "VIP"];
+        const tag = `@${words[Math.floor(Math.random()*words.length)]}_${Math.floor(100 + Math.random()*899)}`;
+
+        // Добавление в инвентарь
+        this.state.tags.push({ tag, rarity: selected.name, color: selected.color, income: selected.income });
+        this.state.incomePerSec += selected.income;
+
+        // Опыт
+        this.addXp(25);
+
+        // Обновление UI
+        ui.playMintAnimation(tag, selected);
+        ui.updateTopBar();
+        ui.renderGarage();
+      },
+
+      addXp(amount) {
+        this.state.xp += amount;
+        const nextLevelXp = this.state.level * 100;
+        
+        if (this.state.xp >= nextLevelXp) {
+          this.state.xp -= nextLevelXp;
+          this.state.level += 1;
+          if(tg) tg.HapticFeedback.notificationOccurred('success');
+          ui.renderPass(); // Обновляем пасс при повышении уровня
         }
+      },
 
-        async function syncState() {
-            const res = await fetch(`/api/state/${userId}`);
-            const data = await res.json();
-            
-            document.getElementById("memberNumber").innerText = `Member #${data.member_number}`;
-            document.getElementById("balance").innerText = data.balance;
-            document.getElementById("totalRate").innerText = `+${data.total_rate}/сек`;
-            
-            incomeRate = data.total_rate;
-            unclaimedCoins = data.unclaimed;
-            document.getElementById("unclaimedDisplay").innerText = `+${unclaimedCoins.toFixed(2)} COIN`;
-
-            renderTags(data.tags);
+      // Демократичная Покупка Удачи (Эмуляция / Подготовка к бэку)
+      buyLuck(multi, minutes, stars, payload) {
+        if(tg && tg.openInvoice) {
+          // Здесь будет вызов бэкенда для генерации инвойса, но для UI мы симулируем успех:
+          // fetch(`/api/invoice?payload=${payload}`) ...
         }
+        
+        // Симуляция успешной оплаты
+        this.state.luckMulti = multi;
+        this.state.luckExpiresAt = Date.now() + (minutes * 60 * 1000);
+        if(tg) tg.HapticFeedback.notificationOccurred('success');
+        alert(`Удача x${multi} успешно активирована на ${minutes} минут!`);
+        ui.updateTopBar();
+      },
 
-        function renderTags(tags) {
-            const container = document.getElementById("tagList");
-            container.innerHTML = "";
-            if (tags.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 30px 10px; font-size: 14px;">У вас пока нет тегов.<br>Нажмите «Минт тега» выше!</div>`;
-                return;
-            }
-            tags.forEach(t => {
-                container.innerHTML += `
-                    <div class="tag-card">
-                        <div>
-                            <div class="tag-name">${t.tag}</div>
-                            <div class="tag-income">+${t.income}/сек</div>
-                        </div>
-                        <div class="rarity-pill pill-${t.rarity}">${t.rarity}</div>
-                    </div>
-                `;
-            });
+      buyCoins(amount, stars, payload) {
+        this.state.coins += amount;
+        if(tg) tg.HapticFeedback.notificationOccurred('success');
+        alert(`Баланс пополнен на ${amount.toLocaleString()} COIN!`);
+        ui.updateTopBar();
+      },
+      
+      buyItem(payload, stars) {
+        alert("В разработке: Подключение серверного инвойса на " + stars + " звезд.");
+      }
+    };
+
+    // --- УПРАВЛЕНИЕ ИНТЕРФЕЙСОМ (UI) ---
+    const ui = {
+      switchTab(tabId, btnElement) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+        
+        document.getElementById(`tab-${tabId}`).classList.add('active');
+        btnElement.classList.add('active');
+        if(tg) tg.HapticFeedback.selectionChanged();
+      },
+
+      updateAll() {
+        this.updateTopBar();
+        this.renderGarage();
+      },
+
+      updateTopBar() {
+        document.getElementById('uiCoins').innerText = Math.floor(game.state.coins).toLocaleString() + " 🪙";
+        document.getElementById('uiIncome').innerText = `+${game.state.incomePerSec} COIN / сек`;
+        
+        document.getElementById('uiLevel').innerText = `Ур. ${game.state.level}`;
+        const nextXp = game.state.level * 100;
+        document.getElementById('uiXp').innerText = `${game.state.xp} / ${nextXp}`;
+        document.getElementById('uiXpFill').style.width = `${(game.state.xp / nextXp) * 100}%`;
+
+        // Удача
+        const luckBadge = document.getElementById('uiLuck');
+        if (game.state.luckMulti > 1) {
+          const minsLeft = Math.ceil((game.state.luckExpiresAt - Date.now()) / 60000);
+          luckBadge.innerText = `🍀 x${game.state.luckMulti} (${minsLeft}м)`;
+          luckBadge.classList.add('active');
+        } else {
+          luckBadge.classList.remove('active');
         }
+      },
 
-        async function mintUsername() {
-            try {
-                const res = await fetch(`/api/mint/${userId}`, {method: "POST"});
-                if (!res.ok) {
-                    const err = await res.json();
-                    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("error");
-                    showMessage(`⚠️ ${err.detail}`);
-                    return;
-                }
-                const data = await res.json();
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
-                showMessage(`🎉 Выбит тег: ${data.tag}\nРедкость: ${data.rarity} (+${data.income}/сек)`);
-                syncState();
-            } catch (e) {
-                console.error(e);
-            }
-        }
+      playMintAnimation(tag, selectedData) {
+        const plate = document.getElementById('mainPlate');
+        const plateTag = document.getElementById('plateTag');
+        const plateRarity = document.getElementById('plateRarity');
+        const resultText = document.getElementById('mintResultText');
 
-        async function claimProfit() {
-            try {
-                const res = await fetch(`/api/claim/${userId}`, {method: "POST"});
-                const data = await res.json();
-                if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("medium");
-                unclaimedCoins = 0;
-                syncState();
-            } catch (e) {
-                console.error(e);
-            }
-        }
+        plate.style.transform = 'scale(0.9)';
+        setTimeout(() => {
+          plateTag.innerText = tag;
+          plateRarity.innerText = selectedData.name.toUpperCase();
+          plateRarity.style.color = selectedData.color;
+          plate.style.borderColor = selectedData.color;
+          plate.style.boxShadow = `0 10px 40px ${selectedData.color}66`;
+          
+          resultText.innerHTML = `Выбит <b>${selectedData.name}</b> тег!<br>Пассивный доход: +${selectedData.income} COIN/сек`;
+          resultText.style.color = selectedData.color;
+          
+          plate.style.transform = 'scale(1)';
+        }, 150);
+      },
 
-        init();
-    </script>
+      renderGarage() {
+        const list = document.getElementById('inventoryList');
+        if (game.state.tags.length === 0) return;
+        
+        list.innerHTML = "";
+        // Показываем последние выбитые первыми
+        const reversedTags = [...game.state.tags].reverse();
+        
+        reversedTags.forEach(t => {
+          list.innerHTML += `
+            <div class="item-card ${t.rarity}">
+              <div class="item-tag" style="color: ${t.color}">${t.tag}</div>
+              <div class="item-stats">
+                <div style="font-weight: 700; color: #fff;">${t.rarity}</div>
+                <div>+${t.income} / сек</div>
+              </div>
+            </div>
+          `;
+        });
+      },
+
+      renderPass() {
+        const list = document.getElementById('passList');
+        list.innerHTML = "";
+        
+        game.passRewards.forEach(reward => {
+          const isUnlocked = game.state.level >= reward.lvl;
+          list.innerHTML += `
+            <div class="pass-level-box ${isUnlocked ? 'unlocked' : ''}">
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">Уровень ${reward.lvl}</div>
+                <div style="font-weight: 700; font-size: 14px; color: ${isUnlocked ? 'var(--gold)' : '#fff'}">${reward.desc}</div>
+              </div>
+              <div>
+                ${isUnlocked 
+                  ? '<span style="color: var(--green); font-size: 12px; font-weight: 800;">Доступно</span>' 
+                  : '<span style="color: var(--text-muted); font-size: 12px;">Закрыто</span>'}
+              </div>
+            </div>
+          `;
+        });
+      }
+    };
+
+    // Запуск игры
+    window.onload = () => game.init();
+  </script>
 </body>
 </html>
