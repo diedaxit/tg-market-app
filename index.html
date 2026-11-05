@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Username Vault</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --bg: #0c0f17;
+            --card: #151a24;
+            --accent: #248bfe;
+            --accent-glow: rgba(36, 139, 254, 0.3);
+            --mythic: #ff2a5f;
+            --legendary: #ffaa00;
+            --epic: #a335ee;
+            --rare: #00b4d8;
+            --common: #718096;
+            --text: #ffffff;
+            --subtext: #8e99a8;
+        }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            margin: 0;
+            padding: 16px;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .badge-id {
+            background: rgba(36, 139, 254, 0.12);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-weight: 700;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+        }
+        .balance-box {
+            background: var(--card);
+            padding: 6px 14px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            border: 1px solid #1e2638;
+        }
+        .balance-box span { color: #ffd166; }
+        .hero {
+            width: 100%;
+            background: radial-gradient(circle at 50% 30%, #1e2638 0%, #151a24 100%);
+            border: 1px solid #232c3d;
+            border-radius: 20px;
+            padding: 24px 16px;
+            text-align: center;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            margin-bottom: 20px;
+        }
+        .hero-tag {
+            font-size: 44px;
+            margin-bottom: 4px;
+            filter: drop-shadow(0 0 12px var(--accent-glow));
+        }
+        .rate-info {
+            font-size: 14px;
+            color: var(--subtext);
+            margin-bottom: 16px;
+        }
+        .rate-info strong { color: #00ff88; }
+        .btn-mint {
+            width: 100%;
+            background: linear-gradient(135deg, #248bfe 0%, #0056b3 100%);
+            border: none;
+            color: #fff;
+            padding: 15px;
+            border-radius: 14px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            transition: transform 0.1s;
+        }
+        .btn-mint:active { transform: scale(0.97); }
+        .btn-claim {
+            width: 100%;
+            background: #1c2333;
+            border: 1px solid #2a344d;
+            color: #fff;
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            margin-top: 10px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .section-title {
+            width: 100%;
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 12px;
+            color: var(--subtext);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
+        .card {
+            background: var(--card);
+            border-radius: 14px;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #1e2638;
+        }
+        .card-name { font-size: 16px; font-weight: bold; }
+        .card-income { font-size: 12px; color: #00ff88; margin-top: 2px; }
+        .badge {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+        .rarity-Mythic { border: 1px solid var(--mythic); color: var(--mythic); }
+        .rarity-Legendary { border: 1px solid var(--legendary); color: var(--legendary); }
+        .rarity-Epic { border: 1px solid var(--epic); color: var(--epic); }
+        .rarity-Rare { border: 1px solid var(--rare); color: var(--rare); }
+        .rarity-Common { border: 1px solid var(--common); color: var(--common); }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div class="badge-id" id="memberNumber">Member #...</div>
+        <div class="balance-box">💰 <span id="balance">0</span> COIN</div>
+    </div>
+
+    <div class="hero">
+        <div class="hero-tag">🏷️</div>
+        <h2 style="margin: 0 0 6px 0;">Генератор Юзернеймов</h2>
+        <div class="rate-info">Общий доход: <strong id="totalRate">+0.00/сек</strong></div>
+        <button class="btn-mint" onclick="mintUsername()">МИНТИТЬ ТЕГ (50 COIN)</button>
+        <button class="btn-claim" onclick="claimProfit()">
+            <span>Собрать доход:</span>
+            <span id="unclaimedDisplay" style="color: #00ff88; font-weight: bold;">0.00 COIN</span>
+        </button>
+    </div>
+
+    <div class="section-title">Моя коллекция тегов</div>
+    <div class="list" id="tagList"></div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        const userId = tg?.initDataUnsafe?.user?.id || 10001;
+        const userName = tg?.initDataUnsafe?.user?.username || "Pioneer";
+
+        let currentBalance = 0;
+        let incomeRate = 0;
+        let unclaimedCoins = 0;
+
+        async function init() {
+            await fetch(`/api/login`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({user_id: userId, username: userName})
+            });
+            await syncState();
+            
+            setInterval(() => {
+                unclaimedCoins += incomeRate;
+                document.getElementById("unclaimedDisplay").innerText = `+${unclaimedCoins.toFixed(2)} COIN`;
+            }, 1000);
+        }
+
+        async function syncState() {
+            const res = await fetch(`/api/state/${userId}`);
+            const data = await res.json();
+            
+            document.getElementById("memberNumber").innerText = `Member #${data.member_number}`;
+            document.getElementById("balance").innerText = data.balance;
+            document.getElementById("totalRate").innerText = `+${data.total_rate}/сек`;
+            
+            incomeRate = data.total_rate;
+            unclaimedCoins = data.unclaimed;
+            document.getElementById("unclaimedDisplay").innerText = `+${unclaimedCoins.toFixed(2)} COIN`;
+
+            renderTags(data.tags);
+        }
+
+        function renderTags(tags) {
+            const container = document.getElementById("tagList");
+            container.innerHTML = "";
+            if (tags.length === 0) {
+                container.innerHTML = `<div style="text-align: center; color: var(--subtext); padding: 20px;">У вас пока нет ни одного тега. Нажмите Минт выше!</div>`;
+                return;
+            }
+            tags.forEach(t => {
+                container.innerHTML += `
+                    <div class="card">
+                        <div>
+                            <div class="card-name">${t.tag}</div>
+                            <div class="card-income">+${t.income}/сек</div>
+                        </div>
+                        <div class="badge rarity-${t.rarity}">${t.rarity}</div>
+                    </div>
+                `;
+            });
+        }
+
+        async function mintUsername() {
+            try {
+                const res = await fetch(`/api/mint/${userId}`, {method: "POST"});
+                if (!res.ok) {
+                    const err = await res.json();
+                    alert(err.detail);
+                    return;
+                }
+                const data = await res.json();
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
+                alert(`🎉 Успех! Выбит никнейм: ${data.tag}\nРедкость: ${data.rarity}\nДоход: +${data.income}/сек`);
+                syncState();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        async function claimProfit() {
+            try {
+                const res = await fetch(`/api/claim/${userId}`, {method: "POST"});
+                const data = await res.json();
+                if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred("medium");
+                unclaimedCoins = 0;
+                syncState();
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
