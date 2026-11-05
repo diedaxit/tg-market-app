@@ -4,7 +4,7 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 
 BOT_TOKEN = "9076307904:AAFQs_dohcZxxAUdfGoR5wZeBK9ytk_pF6A"
-WEBAPP_URL = "http://127.0.0.1:8000"
+WEBAPP_URL = "WEBAPP_URL = "https://atminttagsbot.onrender.com"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
