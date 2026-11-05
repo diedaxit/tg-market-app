@@ -3,164 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Username Vault</title>
+    <title>MintTags</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #0c0f17;
-            --card: #151a24;
-            --accent: #248bfe;
-            --accent-glow: rgba(36, 139, 254, 0.3);
+            --bg-main: #0b0e14;
+            --card-bg: rgba(23, 29, 43, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
             --mythic: #ff2a5f;
-            --legendary: #ffaa00;
-            --epic: #a335ee;
+            --legendary: #ffb703;
+            --epic: #b5179e;
             --rare: #00b4d8;
-            --common: #718096;
-            --text: #ffffff;
-            --subtext: #8e99a8;
+            --common: #64748b;
+            --text-main: #f8fafc;
+            --text-sub: #94a3b8;
         }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body {
+
+        * {
+            box-sizing: border-box;
             margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            background: radial-gradient(circle at top center, #161f30 0%, var(--bg-main) 70%);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
             padding: 16px;
-            background: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
         }
-        .header {
+
+        /* Верхняя панель */
+        .top-bar {
             width: 100%;
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 20px;
         }
-        .badge-id {
-            background: rgba(36, 139, 254, 0.12);
-            border: 1px solid var(--accent);
-            color: var(--accent);
+
+        .member-badge {
+            background: rgba(59, 130, 246, 0.12);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #60a5fa;
             padding: 6px 14px;
-            border-radius: 30px;
-            font-weight: 700;
-            font-size: 13px;
-            letter-spacing: 0.5px;
-        }
-        .balance-box {
-            background: var(--card);
-            padding: 6px 14px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: bold;
-            border: 1px solid #1e2638;
-        }
-        .balance-box span { color: #ffd166; }
-        .hero {
-            width: 100%;
-            background: radial-gradient(circle at 50% 30%, #1e2638 0%, #151a24 100%);
-            border: 1px solid #232c3d;
             border-radius: 20px;
-            padding: 24px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(10px);
+        }
+
+        .balance-badge {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .balance-badge span { color: #facc15; }
+
+        /* Главная плашка MintTags */
+        .hero-card {
+            width: 100%;
+            background: linear-gradient(180deg, rgba(30, 41, 59, 0.6) 0%, rgba(15, 23, 42, 0.8) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 24px;
+            padding: 24px 18px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(12px);
+            margin-bottom: 24px;
+        }
+
+        .hero-logo-box {
+            width: 68px;
+            height: 68px;
+            margin: 0 auto 12px auto;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.2), rgba(181, 23, 158, 0.2));
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            box-shadow: 0 8px 24px var(--primary-glow);
+        }
+
+        .hero-title {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            background: linear-gradient(90deg, #ffffff, #93c5fd);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 4px;
+        }
+
+        .hero-subtitle {
+            font-size: 13px;
+            color: var(--text-sub);
             margin-bottom: 20px;
         }
-        .hero-tag {
-            font-size: 44px;
-            margin-bottom: 4px;
-            filter: drop-shadow(0 0 12px var(--accent-glow));
-        }
-        .rate-info {
-            font-size: 14px;
-            color: var(--subtext);
-            margin-bottom: 16px;
-        }
-        .rate-info strong { color: #00ff88; }
+
+        .hero-subtitle strong { color: #4ade80; }
+
         .btn-mint {
             width: 100%;
-            background: linear-gradient(135deg, #248bfe 0%, #0056b3 100%);
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
             border: none;
-            color: #fff;
-            padding: 15px;
-            border-radius: 14px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px var(--accent-glow);
-            transition: transform 0.1s;
-        }
-        .btn-mint:active { transform: scale(0.97); }
-        .btn-claim {
-            width: 100%;
-            background: #1c2333;
-            border: 1px solid #2a344d;
-            color: #fff;
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 14px;
-            margin-top: 10px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .section-title {
-            width: 100%;
+            color: #ffffff;
+            padding: 16px;
+            border-radius: 16px;
             font-size: 16px;
             font-weight: 700;
-            margin-bottom: 12px;
-            color: var(--subtext);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            cursor: pointer;
+            box-shadow: 0 8px 20px var(--primary-glow);
+            transition: all 0.15s ease;
+            letter-spacing: 0.3px;
         }
-        .list { width: 100%; display: flex; flex-direction: column; gap: 8px; }
-        .card {
-            background: var(--card);
+
+        .btn-mint:active {
+            transform: scale(0.97);
+            filter: brightness(0.9);
+        }
+
+        .btn-claim {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            color: var(--text-main);
+            padding: 13px 16px;
             border-radius: 14px;
-            padding: 12px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-top: 12px;
+            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border: 1px solid #1e2638;
+            transition: background 0.2s;
         }
-        .card-name { font-size: 16px; font-weight: bold; }
-        .card-income { font-size: 12px; color: #00ff88; margin-top: 2px; }
-        .badge {
+
+        .btn-claim:active { background: rgba(255, 255, 255, 0.08); }
+
+        /* Заголовок списка */
+        .section-header {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 0 4px;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-sub);
+        }
+
+        /* Список карточек */
+        .tags-list {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            padding-bottom: 30px;
+        }
+
+        .tag-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 14px 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(8px);
+        }
+
+        .tag-name {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: -0.3px;
+            margin-bottom: 2px;
+        }
+
+        .tag-income {
+            font-size: 12px;
+            color: #4ade80;
+            font-weight: 600;
+        }
+
+        .rarity-pill {
             font-size: 10px;
-            padding: 4px 8px;
-            border-radius: 6px;
             font-weight: 800;
             text-transform: uppercase;
+            letter-spacing: 0.6px;
+            padding: 5px 10px;
+            border-radius: 10px;
         }
-        .rarity-Mythic { border: 1px solid var(--mythic); color: var(--mythic); }
-        .rarity-Legendary { border: 1px solid var(--legendary); color: var(--legendary); }
-        .rarity-Epic { border: 1px solid var(--epic); color: var(--epic); }
-        .rarity-Rare { border: 1px solid var(--rare); color: var(--rare); }
-        .rarity-Common { border: 1px solid var(--common); color: var(--common); }
+
+        .pill-Mythic { background: rgba(255, 42, 95, 0.15); border: 1px solid var(--mythic); color: var(--mythic); }
+        .pill-Legendary { background: rgba(255, 183, 3, 0.15); border: 1px solid var(--legendary); color: var(--legendary); }
+        .pill-Epic { background: rgba(181, 23, 158, 0.15); border: 1px solid var(--epic); color: var(--epic); }
+        .pill-Rare { background: rgba(0, 180, 216, 0.15); border: 1px solid var(--rare); color: var(--rare); }
+        .pill-Common { background: rgba(100, 116, 139, 0.15); border: 1px solid var(--common); color: var(--common); }
+
+        /* Всплывающее красивое уведомление (без ссылки) */
+        .custom-toast {
+            position: fixed;
+            bottom: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            padding: 14px 22px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 999;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        .custom-toast.show {
+            transform: translateX(-50%) translateY(0);
+            opacity: 1;
+        }
     </style>
 </head>
 <body>
 
-    <div class="header">
-        <div class="badge-id" id="memberNumber">Member #...</div>
-        <div class="balance-box">💰 <span id="balance">0</span> COIN</div>
+    <div class="top-bar">
+        <div class="member-badge" id="memberNumber">Member #...</div>
+        <div class="balance-badge">💰 <span id="balance">0</span> COIN</div>
     </div>
 
-    <div class="hero">
-        <div class="hero-tag">🏷️</div>
-        <h2 style="margin: 0 0 6px 0;">Генератор Юзернеймов</h2>
-        <div class="rate-info">Общий доход: <strong id="totalRate">+0.00/сек</strong></div>
-        <button class="btn-mint" onclick="mintUsername()">МИНТИТЬ ТЕГ (50 COIN)</button>
+    <div class="hero-card">
+        <div class="hero-logo-box">🏷️</div>
+        <div class="hero-title">MintTags</div>
+        <div class="hero-subtitle">Генерация тегов • Доход: <strong id="totalRate">+0.00/сек</strong></div>
+        
+        <button class="btn-mint" onclick="mintUsername()">МИНТ ТЕГА (50 COIN)</button>
+        
         <button class="btn-claim" onclick="claimProfit()">
-            <span>Собрать доход:</span>
-            <span id="unclaimedDisplay" style="color: #00ff88; font-weight: bold;">0.00 COIN</span>
+            <span>Собрать прибыль:</span>
+            <span id="unclaimedDisplay" style="color: #4ade80; font-weight: 700;">+0.00 COIN</span>
         </button>
     </div>
 
-    <div class="section-title">Моя коллекция тегов</div>
-    <div class="list" id="tagList"></div>
+    <div class="section-header">
+        <div class="section-title">Коллекция тегов</div>
+    </div>
+
+    <div class="tags-list" id="tagList"></div>
+
+    <div class="custom-toast" id="toast"></div>
 
     <script>
         const tg = window.Telegram?.WebApp;
@@ -175,6 +295,18 @@
         let currentBalance = 0;
         let incomeRate = 0;
         let unclaimedCoins = 0;
+
+        function showMessage(text) {
+            // Нативное окно Telegram без ссылок на сайт
+            if (tg && tg.showAlert) {
+                tg.showAlert(text);
+            } else {
+                const toast = document.getElementById("toast");
+                toast.innerText = text;
+                toast.classList.add("show");
+                setTimeout(() => toast.classList.remove("show"), 2500);
+            }
+        }
 
         async function init() {
             await fetch(`/api/login`, {
@@ -209,17 +341,17 @@
             const container = document.getElementById("tagList");
             container.innerHTML = "";
             if (tags.length === 0) {
-                container.innerHTML = `<div style="text-align: center; color: var(--subtext); padding: 20px;">У вас пока нет ни одного тега. Нажмите Минт выше!</div>`;
+                container.innerHTML = `<div style="text-align: center; color: var(--text-sub); padding: 30px 10px; font-size: 14px;">У вас пока нет тегов.<br>Нажмите «Минт тега» выше!</div>`;
                 return;
             }
             tags.forEach(t => {
                 container.innerHTML += `
-                    <div class="card">
+                    <div class="tag-card">
                         <div>
-                            <div class="card-name">${t.tag}</div>
-                            <div class="card-income">+${t.income}/сек</div>
+                            <div class="tag-name">${t.tag}</div>
+                            <div class="tag-income">+${t.income}/сек</div>
                         </div>
-                        <div class="badge rarity-${t.rarity}">${t.rarity}</div>
+                        <div class="rarity-pill pill-${t.rarity}">${t.rarity}</div>
                     </div>
                 `;
             });
@@ -230,12 +362,13 @@
                 const res = await fetch(`/api/mint/${userId}`, {method: "POST"});
                 if (!res.ok) {
                     const err = await res.json();
-                    alert(err.detail);
+                    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("error");
+                    showMessage(`⚠️ ${err.detail}`);
                     return;
                 }
                 const data = await res.json();
                 if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred("success");
-                alert(`🎉 Успех! Выбит никнейм: ${data.tag}\nРедкость: ${data.rarity}\nДоход: +${data.income}/сек`);
+                showMessage(`🎉 Выбит тег: ${data.tag}\nРедкость: ${data.rarity} (+${data.income}/сек)`);
                 syncState();
             } catch (e) {
                 console.error(e);
