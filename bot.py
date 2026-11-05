@@ -7,7 +7,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 BOT_TOKEN = os.getenv("BOT_TOKEN", "9076307904:AAFQs_dohcZxxAUdfGoR5wZeBK9ytk_pF6A")
 
 # Адрес развернутого приложения на Render
-WEBAPP_URL = "https://atminttagsbot.onrender.com"
+WEBAPP_URL = "WEBAPP_URL = "https://atminttagsbot.onrender.com""
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
