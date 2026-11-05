@@ -7,9 +7,9 @@
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #090a10;
-      --card-bg: #13151f;
-      --card-sub: #1b1e2b;
+      --bg: #08090d;
+      --card-bg: #12141c;
+      --card-sub: #191c28;
       --border: rgba(255, 255, 255, 0.08);
       --gold: #f5a623;
       --green: #2ec4b6;
@@ -22,14 +22,14 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: var(--bg); color: var(--text); padding-bottom: 84px; }
 
-    /* Верхний статус-бар */
+    /* Шапка */
     .topbar {
-      position: sticky; top: 0; background: rgba(9, 10, 16, 0.95);
+      position: sticky; top: 0; background: rgba(8, 9, 13, 0.95);
       backdrop-filter: blur(14px); padding: 12px 16px; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center; z-index: 100;
     }
-    .profile-pill { display: flex; align-items: center; gap: 8px; }
-    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #262938; border: 2px solid var(--border); object-fit: cover; }
+    .profile-pill { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .avatar { width: 34px; height: 34px; border-radius: 50%; background: #262938; border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 13px; color: var(--gold); }
     .user-info { display: flex; flex-direction: column; }
     .user-name { font-size: 13px; font-weight: 700; color: #fff; }
     .user-lvl { font-size: 10px; color: var(--green); font-weight: 700; }
@@ -37,52 +37,89 @@
     .coins-val { font-size: 16px; font-weight: 900; color: var(--gold); }
     .income-val { font-size: 10px; color: var(--text-muted); }
 
-    /* Контейнеры вкладок */
     .view { display: none; padding: 14px 16px; }
     .view.active { display: block; animation: fadeIn 0.15s ease-out; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ВКЛАДКА 1: МИНТ */
+    /* Управление минтом */
+    .mint-controls { display: flex; gap: 8px; margin-bottom: 12px; }
+    .mint-mode-btn {
+      flex: 1; background: var(--card-bg); border: 1px solid var(--border);
+      color: var(--text-muted); padding: 8px; border-radius: 12px; font-size: 12px;
+      font-weight: 700; cursor: pointer; text-align: center;
+    }
+    .mint-mode-btn.active { background: #fff; color: #000; border-color: #fff; }
+
     .mint-box {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 24px;
-      padding: 24px 16px; text-align: center; margin-bottom: 14px; position: relative;
+      padding: 20px 16px; text-align: center; margin-bottom: 14px; position: relative;
     }
     .plate {
-      background: #ffffff; color: #111; border-radius: 14px; padding: 18px 12px;
-      max-width: 310px; margin: 0 auto 14px; border: 3px solid #222;
+      background: #ffffff; color: #111; border-radius: 14px; padding: 16px 12px;
+      max-width: 320px; margin: 0 auto 12px; border: 3px solid #222;
       box-shadow: 0 10px 25px rgba(0,0,0,0.6); transition: 0.2s transform;
     }
-    .plate-hdr { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; color: #666; margin-bottom: 6px; }
-    .plate-body { font-size: 28px; font-weight: 900; font-family: monospace; letter-spacing: 1.5px; }
-    .rarity-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-bottom: 14px; }
+    .plate-hdr { display: flex; justify-content: space-between; font-size: 10px; font-weight: 900; color: #666; margin-bottom: 4px; }
+    .plate-body { font-size: 26px; font-weight: 900; font-family: monospace; letter-spacing: 1.5px; }
+    .rarity-badge { display: inline-block; padding: 3px 10px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-bottom: 12px; }
+
+    .multi-spin-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .spin-count-btn {
+      flex: 1; background: var(--card-sub); border: 1px solid var(--border); color: #fff;
+      padding: 8px; border-radius: 12px; font-size: 13px; font-weight: 800; cursor: pointer;
+    }
+    .spin-count-btn.active { border-color: var(--green); color: var(--green); }
+
     .btn-mint {
-      width: 100%; background: var(--green); color: #071e1b; border: none; padding: 16px;
-      border-radius: 18px; font-size: 16px; font-weight: 900; cursor: pointer; transition: 0.1s transform;
+      width: 100%; background: var(--green); color: #071e1b; border: none; padding: 15px;
+      border-radius: 18px; font-size: 15px; font-weight: 900; cursor: pointer;
     }
     .btn-mint:active { transform: scale(0.98); }
+
+    .multi-drop-results {
+      margin-top: 12px; display: flex; flex-direction: column; gap: 6px; max-height: 180px;
+      overflow-y: auto; text-align: left;
+    }
+    .drop-item-row {
+      background: var(--card-sub); border: 1px solid var(--border); border-radius: 10px;
+      padding: 8px 12px; display: flex; justify-content: space-between; font-size: 12px;
+    }
+
     .pity-bars { display: flex; flex-direction: column; gap: 6px; margin-top: 14px; }
     .bar-line { display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); }
     .prog { width: 100%; height: 5px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden; margin-top: 2px; }
     .prog-fill { height: 100%; background: var(--green); width: 0%; transition: width 0.3s; }
 
-    /* ВКЛАДКА 2: КАНАЛЫ (ТАЙКУН) */
+    /* Fragment Блокчейн блок */
+    .fragment-box {
+      background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(18, 20, 28, 0.9));
+      border: 1px solid rgba(33, 150, 243, 0.3); border-radius: 18px; padding: 14px;
+      display: flex; justify-content: space-between; align-items: center; margin-top: 12px;
+    }
+    .btn-fragment {
+      background: #2196f3; color: #fff; border: none; padding: 8px 12px;
+      border-radius: 12px; font-size: 11px; font-weight: 800; cursor: pointer;
+    }
+
+    /* Каналы (Империя) */
     .channel-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px;
       padding: 16px; margin-bottom: 12px;
     }
-    .ch-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .ch-title { font-size: 16px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
-    .ch-subs { font-size: 12px; color: var(--text-muted); }
+    .ch-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .ch-title { font-size: 15px; font-weight: 800; display: flex; align-items: center; gap: 6px; }
+    .ch-meta { font-size: 11px; color: var(--text-muted); }
     .managers-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
     .mgr-btn {
       background: var(--card-sub); border: 1px solid var(--border); border-radius: 14px;
       padding: 10px; text-align: left; cursor: pointer;
     }
+    .mgr-btn:active { transform: scale(0.98); }
     .mgr-name { font-size: 12px; font-weight: 700; color: #fff; }
     .mgr-cost { font-size: 11px; color: var(--gold); margin-top: 2px; }
 
-    /* ВКЛАДКА 3: РЫНОК / АУКЦИОН */
-    .market-tabs { display: flex; gap: 6px; margin-bottom: 14px; }
+    /* Рынок / Аукцион */
+    .market-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
     .m-tab {
       flex: 1; text-align: center; background: var(--card-bg); border: 1px solid var(--border);
       border-radius: 14px; padding: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
@@ -92,23 +129,40 @@
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px;
       padding: 14px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
     }
-    .auc-time { font-size: 11px; color: #ff5252; font-weight: 700; }
+    .auc-time { font-size: 11px; color: #ff5252; font-weight: 700; margin-top: 2px; }
     .btn-bid {
       background: var(--card-sub); border: 1px solid var(--gold); color: var(--gold);
-      border-radius: 12px; padding: 8px 12px; font-size: 12px; font-weight: 800; cursor: pointer;
+      border-radius: 12px; padding: 8px 14px; font-size: 12px; font-weight: 800; cursor: pointer;
     }
 
-    /* ВКЛАДКА 4: РЕФЕРАЛЫ / СИНДИКАТ */
+    /* Рефералы */
     .referral-hero {
-      background: linear-gradient(135deg, #1b2838, #111420); border: 1px solid rgba(46,196,182,0.3);
+      background: linear-gradient(135deg, #182232, #10121a); border: 1px solid rgba(46,196,182,0.3);
       border-radius: 20px; padding: 18px; margin-bottom: 14px; text-align: center;
     }
-    .ref-btn {
-      width: 100%; background: #2ec4b6; color: #000; border: none; padding: 14px;
-      border-radius: 16px; font-weight: 900; font-size: 14px; cursor: pointer; margin-top: 10px;
+    .ref-tier-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .ref-tier-row {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px;
+      padding: 10px 14px; display: flex; justify-content: space-between; font-size: 12px;
     }
 
-    /* ВКЛАДКА 5: МАГАЗИН & ПРОФИЛЬ */
+    /* Профиль */
+    .profile-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 22px;
+      padding: 20px; text-align: center; margin-bottom: 14px;
+    }
+    .profile-avatar-big {
+      width: 70px; height: 70px; border-radius: 50%; background: #1f2333; margin: 0 auto 10px;
+      display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 900;
+      color: var(--gold); border: 2px solid var(--gold);
+    }
+    .vitrine-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px; }
+    .vitrine-slot {
+      background: var(--card-sub); border: 1px dashed var(--border); border-radius: 14px;
+      padding: 12px 6px; font-size: 11px; font-family: monospace; color: var(--text-muted);
+    }
+
+    /* Магазин */
     .shop-card {
       background: var(--card-bg); border: 1px solid var(--border); border-radius: 18px;
       padding: 14px 16px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
@@ -117,15 +171,11 @@
       background: #252329; border: 1px solid rgba(245, 166, 35, 0.4); border-radius: 14px;
       padding: 8px 14px; font-size: 13px; font-weight: 800; color: var(--gold); cursor: pointer;
     }
-    .vip-banner {
-      background: linear-gradient(135deg, #2a1f10, #141318); border: 1px solid rgba(245, 166, 35, 0.4);
-      border-radius: 20px; padding: 16px; margin-bottom: 14px;
-    }
 
     /* Нижний таб-бар */
     .tabbar {
       position: fixed; bottom: 0; left: 0; right: 0; height: 68px;
-      background: rgba(9, 10, 16, 0.95); backdrop-filter: blur(16px);
+      background: rgba(8, 9, 13, 0.95); backdrop-filter: blur(16px);
       border-top: 1px solid var(--border); display: flex; justify-content: space-around; align-items: center;
       z-index: 100;
     }
@@ -141,108 +191,163 @@
 
   <!-- ВЕРХНИЙ СТАТУС-БАР -->
   <div class="topbar">
-    <div class="profile-pill">
-      <div class="avatar" id="uiAvatar" style="display:flex;align-items:center;justify-content:center;font-weight:900;">M</div>
+    <div class="profile-pill" onclick="ui.tab('profile', document.getElementById('tabProfileBtn'))">
+      <div class="avatar" id="uiAvatar">M</div>
       <div class="user-info">
-        <span class="user-name" id="uiName">Player</span>
+        <span class="user-name" id="uiName">Медиамагнат</span>
         <span class="user-lvl" id="uiLvl">Ур. 1 • 0 XP</span>
       </div>
     </div>
     <div class="stats-right">
-      <div class="coins-val" id="uiCoins">1,000 COIN</div>
-      <div class="income-val" id="uiIncome">+0 / сек</div>
+      <div class="coins-val" id="uiCoins">1,000 GRAM</div>
+      <div class="income-val" id="uiIncome">+0 GRAM/сек</div>
     </div>
   </div>
 
   <!-- 1. МИНТ ТЕГОВ -->
   <div id="view-mint" class="view active">
+    <!-- Выбор типа прокрутки -->
+    <div class="mint-controls">
+      <div class="mint-mode-btn active" id="btnModeCommon" onclick="game.setMintMode('common')">
+        Обычный (100 GRAM)
+      </div>
+      <div class="mint-mode-btn" id="btnModeRare" onclick="game.setMintMode('rare')">
+        ⭐ Редкий (500 GRAM)
+      </div>
+    </div>
+
+    <!-- Множитель спинов (1x / 5x) -->
+    <div class="multi-spin-row">
+      <div class="spin-count-btn active" id="btnSpin1" onclick="game.setSpinCount(1)">1 Тег</div>
+      <div class="spin-count-btn" id="btnSpin5" onclick="game.setSpinCount(5)">⚡ Крутить 5 сразу</div>
+    </div>
+
     <div class="mint-box">
       <div class="plate" id="plateEl">
         <div class="plate-hdr">
-          <span>MINTTAGS</span>
+          <span>MINTTAGS ENGINE</span>
           <span id="plateRarity" style="color:#888;">COMMON</span>
         </div>
         <div class="plate-body" id="plateText">@START</div>
       </div>
       <div class="rarity-badge" id="badgeEl" style="background:rgba(255,255,255,0.08);color:#bbb;">
-        Обычный • +1 COIN/сек
+        Обычный • +1 GRAM/сек
       </div>
-      <button class="btn-mint" onclick="game.mint()">Заминтить тег (100 COIN)</button>
+
+      <button class="btn-mint" id="mainMintBtn" onclick="game.mint()">Заминтить (100 GRAM)</button>
+
+      <!-- Результаты мульти-спина -->
+      <div class="multi-drop-results" id="multiDropList" style="display:none;"></div>
 
       <div class="pity-bars">
         <div class="bar-line">
-          <span>До Удачи x2:</span>
+          <span>До Удачи x2 (раз в 50 круток):</span>
           <span id="pity50Text">0 / 50</span>
         </div>
         <div class="prog"><div class="prog-fill" id="pity50Fill"></div></div>
 
         <div class="bar-line" style="margin-top:4px;">
-          <span>Гарант Epic+:</span>
+          <span>Гарант Epic+ (раз в 100):</span>
           <span id="pity100Text">0 / 100</span>
         </div>
         <div class="prog"><div class="prog-fill" id="pity100Fill" style="background:var(--purple);"></div></div>
       </div>
     </div>
 
-    <!-- Зарезервированный рекламный блок -->
-    <div style="border:1px dashed var(--border);border-radius:16px;padding:12px;text-align:center;font-size:10px;color:var(--text-muted);text-transform:uppercase;">
-      Спонсорский блок (Место для рекламы)
+    <!-- Fragment Блокчейн -->
+    <div class="fragment-box">
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#2196f3;">💎 Fragment Registry</div>
+        <div style="font-size:11px;color:var(--text-muted);">Минт последнего тега как TON NFT</div>
+      </div>
+      <button class="btn-fragment" onclick="game.mintOnFragment()">Сминтить в TON</button>
     </div>
   </div>
 
-  <!-- 2. ИМПЕРИЯ КАНАЛОВ (ТАЙКУН) -->
+  <!-- 2. ИМПЕРИЯ КАНАЛОВ -->
   <div id="view-empire" class="view">
-    <h3 style="font-size:16px;margin-bottom:12px;">Твои Telegram-каналы</h3>
-    <div class="channel-card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <h3 style="font-size:16px;">Медиа Империя (<span id="channelCountText">1/2</span> каналов)</h3>
+      <button class="stars-btn" style="padding:4px 10px;font-size:11px;" onclick="game.buyStars('channel_slot', 100)">+ Слот (100 ⭐️)</button>
+    </div>
+
+    <!-- Канал 1 -->
+    <div class="channel-card" id="chCard1">
       <div class="ch-header">
-        <div class="ch-title">
-          <span>📢 Главный канал:</span>
-          <span id="chAssignedTag" style="color:var(--green);font-family:monospace;">@Не привязан</span>
+        <div>
+          <div class="ch-title">📢 <span id="ch1Tag" style="color:var(--green);font-family:monospace;">@Не привязан</span></div>
+          <div class="ch-meta">Возраст: <b id="ch1Age">0 сек</b> • Прирост: <b id="ch1Speed">+1 sub/сек</b></div>
         </div>
-        <span class="ch-subs" id="chSubs">100 подписчиков</span>
+        <div style="text-align:right;">
+          <div style="font-size:15px;font-weight:900;color:var(--gold);" id="ch1Subs">10 subs</div>
+        </div>
       </div>
-      <p style="font-size:12px;color:var(--text-muted);margin-bottom:10px;">
-        Привяжи выбитый тег из коллекции, чтобы усилить приток подписчиков и доход!
-      </p>
       <div class="managers-row">
-        <div class="mgr-btn" onclick="game.upgradeManager('smm')">
-          <div class="mgr-name">📱 СММщик (Ур. <span id="smmLvl">1</span>)</div>
-          <div class="mgr-cost" id="smmCost">250 COIN</div>
+        <div class="mgr-btn" onclick="game.upgradeManager(1, 'smm')">
+          <div class="mgr-name">📱 СММщик (Ур. <span id="ch1SmmLvl">1</span>)</div>
+          <div class="mgr-cost" id="ch1SmmCost">150 GRAM</div>
         </div>
-        <div class="mgr-btn" onclick="game.upgradeManager('buyer')">
-          <div class="mgr-name">📈 Трафик-байер (Ур. <span id="buyerLvl">0</span>)</div>
-          <div class="mgr-cost" id="buyerCost">1,000 COIN</div>
+        <div class="mgr-btn" onclick="game.upgradeManager(1, 'buyer')">
+          <div class="mgr-name">📈 Трафик-байер (Ур. <span id="ch1BuyerLvl">0</span>)</div>
+          <div class="mgr-cost" id="ch1BuyerCost">500 GRAM</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Канал 2 -->
+    <div class="channel-card" id="chCard2">
+      <div class="ch-header">
+        <div>
+          <div class="ch-title">📢 <span id="ch2Tag" style="color:var(--green);font-family:monospace;">@Не привязан</span></div>
+          <div class="ch-meta">Возраст: <b id="ch2Age">0 сек</b> • Прирост: <b id="ch2Speed">+1 sub/сек</b></div>
+        </div>
+        <div style="text-align:right;">
+          <div style="font-size:15px;font-weight:900;color:var(--gold);" id="ch2Subs">0 subs</div>
+        </div>
+      </div>
+      <div class="managers-row">
+        <div class="mgr-btn" onclick="game.upgradeManager(2, 'smm')">
+          <div class="mgr-name">📱 СММщик (Ур. <span id="ch2SmmLvl">0</span>)</div>
+          <div class="mgr-cost" id="ch2SmmCost">250 GRAM</div>
+        </div>
+        <div class="mgr-btn" onclick="game.upgradeManager(2, 'buyer')">
+          <div class="mgr-name">📈 Трафик-байер (Ур. <span id="ch2BuyerLvl">0</span>)</div>
+          <div class="mgr-cost" id="ch2BuyerCost">800 GRAM</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- 3. РЫНОК И АУКЦИОНЫ -->
+  <!-- 3. РЫНОК / АУКЦИОНЫ / P2P -->
   <div id="view-market" class="view">
     <div class="market-tabs">
       <div class="m-tab active" onclick="ui.subTab('auction', this)">🔨 Аукцион</div>
       <div class="m-tab" onclick="ui.subTab('p2p', this)">🤝 P2P Трейд</div>
     </div>
 
+    <!-- Реальный тикающий аукцион -->
     <div id="sub-auction">
       <div class="auction-item">
         <div>
-          <div style="font-size:16px;font-weight:900;font-family:monospace;color:var(--red);">@nike</div>
-          <div style="font-size:11px;color:var(--text-muted);">Лидер: @durov_fan</div>
-          <div class="auc-time">Осталось: 14м 20с</div>
+          <div style="font-size:16px;font-weight:900;font-family:monospace;color:var(--red);" id="aucTag">@litvin</div>
+          <div style="font-size:11px;color:var(--text-muted);">Лидер: <b id="aucLeader">@durov_ton</b></div>
+          <div class="auc-time">Осталось: <span id="aucTimerText">02:45</span></div>
         </div>
         <div style="text-align:right;">
-          <div style="font-size:14px;font-weight:900;color:var(--gold);margin-bottom:4px;">1,500 COIN</div>
-          <button class="btn-bid" onclick="game.bidAuction(150)">Ставка (+10%)</button>
+          <div style="font-size:15px;font-weight:900;color:var(--gold);margin-bottom:4px;" id="aucPrice">3,200 GRAM</div>
+          <button class="btn-bid" onclick="game.bidAuction()">Ставка (+10%)</button>
         </div>
       </div>
     </div>
 
-    <div id="sub-p2p" style="display:none;text-align:center;padding:20px;color:var(--text-muted);font-size:13px;">
-      🔒 <b>Комната прямого P2P обмена</b><br><br>
-      Выберите тег из своего инвентаря и отправьте инвайт-ссылку второму игроку.
-      <button class="btn-mint" style="margin-top:14px;font-size:13px;padding:10px;" onclick="alert('Ссылка скопирована! Отправьте её партнёру по обмену.')">
-        Создать комнату обмена
+    <!-- P2P Трейд -->
+    <div id="sub-p2p" style="display:none;background:var(--card-bg);border:1px solid var(--border);border-radius:20px;padding:16px;text-align:center;">
+      <h4 style="font-size:15px;margin-bottom:6px;">Прямой P2P Обмен тегами</h4>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:14px;line-height:1.4;">
+        Отправь персональную ссылку второму игроку. При переходе он подключится к твоей сессии обмена.
+      </p>
+      <button class="btn-mint" style="padding:12px;font-size:13px;" onclick="game.shareTradeLink()">
+        📤 Отправить инвайт в Telegram
       </button>
     </div>
   </div>
@@ -250,53 +355,109 @@
   <!-- 4. СИНДИКАТ / РЕФЕРАЛЫ -->
   <div id="view-syndicate" class="view">
     <div class="referral-hero">
-      <h2 style="color:#fff;font-size:18px;margin-bottom:6px;">Продюсерский Синдикат</h2>
+      <h2 style="color:#fff;font-size:18px;margin-bottom:6px;">Забирай лучшие @username первее всех!</h2>
       <p style="font-size:12px;color:var(--text-muted);line-height:1.4;">
-        Получай <b>10% пожизненно</b> со всего дохода приглашённых друзей и <b>15% Stars</b> с их покупок в магазине!
+        Строй свою медиа-империю вместе с друзьями. Получай <b>10% GRAM пожизненно</b> со всех их доходов и <b>15% Stars</b> с любых покупок в магазине!
       </p>
-      <button class="ref-btn" onclick="game.shareRef()">Пригласить друга (+1,000 COIN)</button>
+      <button class="btn-mint" style="margin-top:12px;padding:12px;" onclick="game.shareRef()">
+        🚀 Пригласить друга в империю
+      </button>
     </div>
-    <div style="background:var(--card-bg);border:1px solid var(--border);border-radius:18px;padding:14px;">
-      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:8px;">
-        <span>Приглашено друзей:</span>
-        <b id="refCount">0</b>
+
+    <h4 style="font-size:13px;margin:12px 0 8px;">Прогрессивные награды за друзей</h4>
+    <div class="ref-tier-list">
+      <div class="ref-tier-row">
+        <span>👤 1 друг</span>
+        <b style="color:var(--gold);">+1,000 GRAM</b>
       </div>
-      <div style="display:flex;justify-content:space-between;font-size:13px;">
-        <span>Заработано на роялти:</span>
-        <b style="color:var(--gold);" id="refEarned">0 COIN</b>
+      <div class="ref-tier-row">
+        <span>👥 2 друга</span>
+        <b style="color:var(--gold);">+3,000 GRAM</b>
+      </div>
+      <div class="ref-tier-row">
+        <span>🔥 5 друзей</span>
+        <b style="color:var(--gold);">+10,000 GRAM</b>
+      </div>
+      <div class="ref-tier-row">
+        <span>👑 20 друзей</span>
+        <b style="color:var(--gold);">+1,000,000 GRAM</b>
       </div>
     </div>
   </div>
 
-  <!-- 5. МАГАЗИН & ПРОФИЛЬ -->
+  <!-- 5. ПРОФИЛЬ -->
+  <div id="view-profile" class="view">
+    <div class="profile-card">
+      <div class="profile-avatar-big" id="profileBigAvatar">M</div>
+      <h3 style="font-size:18px;margin-bottom:2px;" id="profileBigName">Медиамагнат</h3>
+      <div style="font-size:12px;color:var(--green);font-weight:700;" id="profileRankText">Уровень 1 • Новичок</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:16px;">
+        <div style="background:var(--card-sub);padding:10px;border-radius:12px;">
+          <div style="font-size:10px;color:var(--text-muted);">Всего прокруток</div>
+          <div style="font-size:14px;font-weight:900;" id="profTotalSpins">0</div>
+        </div>
+        <div style="background:var(--card-sub);padding:10px;border-radius:12px;">
+          <div style="font-size:10px;color:var(--text-muted);">Тегов во владении</div>
+          <div style="font-size:14px;font-weight:900;" id="profTotalTags">0</div>
+        </div>
+      </div>
+
+      <h4 style="font-size:13px;text-align:left;margin-top:16px;margin-bottom:6px;">Витрина редких тегов:</h4>
+      <div class="vitrine-grid">
+        <div class="vitrine-slot" id="vitrine1">—</div>
+        <div class="vitrine-slot" id="vitrine2">—</div>
+        <div class="vitrine-slot" id="vitrine3">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. МАГАЗИН (Цены строго синхронизированы со Stars) -->
   <div id="view-shop" class="view">
-    <div class="vip-banner">
-      <h3 style="color:var(--gold);font-size:16px;">👑 VIP СТАТУС</h3>
-      <p style="font-size:12px;color:var(--text-muted);margin:4px 0 10px;">
-        Удача x1.5 навсегда, минт без задержек и 0% комиссии на рынке.
-      </p>
-      <button class="stars-btn" onclick="game.buyStars('vip_30d', 49)">Купить за 49 ⭐️</button>
+    <div class="shop-card" style="background:linear-gradient(135deg, #2a1f10, #141318);border:1px solid rgba(245, 166, 35, 0.4);">
+      <div>
+        <div style="font-size:15px;font-weight:800;color:var(--gold);">👑 VIP Статус (30 дней)</div>
+        <div style="font-size:11px;color:var(--text-muted);">Удача x1.5 навсегда, минт без кулдауна</div>
+      </div>
+      <button class="stars-btn" onclick="game.buyStars('vip_30d', 89)">89 ⭐️</button>
     </div>
 
-    <h4 style="font-size:14px;margin-bottom:10px;">Бусты удачи (Демократичные цены)</h4>
+    <h4 style="font-size:13px;margin:12px 0 8px;">Бусты удачи</h4>
     <div class="shop-card">
       <div>
         <div style="font-size:14px;font-weight:700;">🍀 Удача x2 (1 час)</div>
-        <div style="font-size:11px;color:var(--text-muted);">Вдвое больше шансов на редкие теги</div>
+        <div style="font-size:11px;color:var(--text-muted);">Удвоение шансов на Rare, Epic и Mythic</div>
       </div>
-      <button class="stars-btn" onclick="game.buyStars('luck_x2_1h', 9)">9 ⭐️</button>
+      <button class="stars-btn" onclick="game.buyStars('luck_x2_1h', 19)">19 ⭐️</button>
     </div>
 
     <div class="shop-card">
       <div>
         <div style="font-size:14px;font-weight:700;">🔥 Удача x3 (2 часа)</div>
-        <div style="font-size:11px;color:var(--text-muted);">Для охоты за Epic и Mythic</div>
+        <div style="font-size:11px;color:var(--text-muted);">Максимальный шанс на бренды и блогеров</div>
       </div>
-      <button class="stars-btn" onclick="game.buyStars('luck_x3_2h', 19)">19 ⭐️</button>
+      <button class="stars-btn" onclick="game.buyStars('luck_x3_2h', 39)">39 ⭐️</button>
+    </div>
+
+    <h4 style="font-size:13px;margin:12px 0 8px;">Пакеты GRAM</h4>
+    <div class="shop-card">
+      <div>
+        <div style="font-size:14px;font-weight:700;">🪙 50,000 GRAM</div>
+        <div style="font-size:11px;color:var(--text-muted);">Быстрый старт медиа-сети</div>
+      </div>
+      <button class="stars-btn" onclick="game.buyStars('coins_50k', 15)">15 ⭐️</button>
+    </div>
+
+    <div class="shop-card">
+      <div>
+        <div style="font-size:14px;font-weight:700;">💰 200,000 GRAM</div>
+        <div style="font-size:11px;color:var(--text-muted);">Для масштабной прокачки каналов</div>
+      </div>
+      <button class="stars-btn" onclick="game.buyStars('coins_200k', 49)">49 ⭐️</button>
     </div>
   </div>
 
-  <!-- НИЖНЯЯ ПАНЕЛЬ НАВИГАЦИИ -->
+  <!-- НАВИГАЦИОННАЯ ПАНЕЛЬ -->
   <div class="tabbar">
     <div class="tab-btn active" onclick="ui.tab('mint', this)">
       <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/></svg>
@@ -314,6 +475,10 @@
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
       <span>Синдикат</span>
     </div>
+    <div class="tab-btn" id="tabProfileBtn" onclick="ui.tab('profile', this)">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      <span>Профиль</span>
+    </div>
     <div class="tab-btn" onclick="ui.tab('shop', this)">
       <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg>
       <span>Магазин</span>
@@ -324,8 +489,8 @@
     const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.expand();
-      tg.setHeaderColor('#090a10');
-      tg.setBackgroundColor('#090a10');
+      tg.setHeaderColor('#08090d');
+      tg.setBackgroundColor('#08090d');
     }
 
     // Игровой движок
@@ -339,11 +504,27 @@
         pity100: 0,
         luckMulti: 1.0,
         incomeSec: 0,
-        smmLvl: 1,
-        buyerLvl: 0,
-        recentRoots: [], // Буфер анти-повторов корней
-        tags: []
+        mintMode: 'common', // 'common' (100) или 'rare' (500)
+        spinCount: 1,       // 1 или 5
+        recentRoots: [],
+        tags: [],
+        channels: [
+          { tag: "@Не привязан", subs: 10, age: 0, smmLvl: 1, buyerLvl: 0 },
+          { tag: "@Не привязан", subs: 0, age: 0, smmLvl: 0, buyerLvl: 0 }
+        ],
+        auction: {
+          tag: "@litvin",
+          price: 3200,
+          leader: "@durov_ton",
+          timeLeft: 165
+        }
       },
+
+      // База с блогерами и инфлюенсерами
+      influencers: [
+        "litvin", "mellstroy", "mrbeast", "khaby", "subo", "karna.val", 
+        "danya_milokhin", "baskov", "morgen", "wylsa", "hasbulla", "buster"
+      ],
 
       roots: [
         "apex", "ghost", "crypto", "ton", "king", "prime", "zero", "boss", "shadow", 
@@ -351,13 +532,13 @@
       ],
 
       rarities: [
-        { name: "Common", weight: 70000, color: "#848c9e", inc: 1 },
-        { name: "Uncommon", weight: 20000, color: "#2ec4b6", inc: 4 },
-        { name: "Rare", weight: 7000, color: "#2196f3", inc: 15 },
-        { name: "Epic", weight: 2200, color: "#9c27b0", inc: 60 },
-        { name: "Legendary", weight: 600, color: "#f5a623", inc: 250 },
-        { name: "Mythic", weight: 150, color: "#e91e63", inc: 1000 },
-        { name: "Ultra-Mythic", weight: 50, color: "#ff0033", inc: 5000 }
+        { name: "Common", weight: 70000, color: "#848c9e", inc: 1, xp: 5 },
+        { name: "Uncommon", weight: 20000, color: "#2ec4b6", inc: 4, xp: 15 },
+        { name: "Rare", weight: 7000, color: "#2196f3", inc: 15, xp: 40 },
+        { name: "Epic", weight: 2200, color: "#9c27b0", inc: 60, xp: 100 },
+        { name: "Legendary", weight: 600, color: "#f5a623", inc: 250, xp: 300 },
+        { name: "Mythic", weight: 150, color: "#e91e63", inc: 1000, xp: 800 },
+        { name: "Ultra-Mythic", weight: 50, color: "#ff0033", inc: 5000, xp: 2500 }
       ],
 
       init() {
@@ -367,118 +548,217 @@
       },
 
       tick() {
+        // Пассивный доход
         if (this.data.incomeSec > 0) {
           this.data.coins += this.data.incomeSec;
-          ui.update();
         }
+
+        // Тикер каналов (возраст и подписчики)
+        this.data.channels.forEach((ch, idx) => {
+          if (ch.tag !== "@Не привязан") {
+            ch.age++;
+            const growthRate = (ch.smmLvl * 1) + (ch.buyerLvl * 4) + Math.floor(ch.age / 120);
+            ch.subs += growthRate;
+          }
+        });
+
+        // Тикер аукциона
+        if (this.data.auction.timeLeft > 0) {
+          this.data.auction.timeLeft--;
+          // Имитация конкурентной ставки бота
+          if (this.data.auction.timeLeft === 45 && this.data.auction.leader !== "@bot_whale") {
+            this.data.auction.price = Math.floor(this.data.auction.price * 1.15);
+            this.data.auction.leader = "@bot_whale";
+            this.data.auction.timeLeft += 30; // Анти-снайп
+          }
+        }
+
+        ui.update();
+      },
+
+      setMintMode(mode) {
+        this.data.mintMode = mode;
+        document.getElementById('btnModeCommon').classList.toggle('active', mode === 'common');
+        document.getElementById('btnModeRare').classList.toggle('active', mode === 'rare');
+        ui.updateMintBtnText();
+      },
+
+      setSpinCount(cnt) {
+        this.data.spinCount = cnt;
+        document.getElementById('btnSpin1').classList.toggle('active', cnt === 1);
+        document.getElementById('btnSpin5').classList.toggle('active', cnt === 5);
+        ui.updateMintBtnText();
       },
 
       mint() {
-        if (this.data.coins < 100) {
+        const baseCost = this.data.mintMode === 'common' ? 100 : 500;
+        const totalCost = baseCost * this.data.spinCount;
+
+        if (this.data.coins < totalCost) {
           if (tg) tg.HapticFeedback.notificationOccurred('error');
-          alert("Недостаточно COIN!");
+          alert(`Недостаточно GRAM! Требуется ${totalCost.toLocaleString()} GRAM`);
           return;
         }
 
-        this.data.coins -= 100;
-        this.data.totalSpins++;
-        this.data.pity50++;
-        this.data.pity100++;
-        this.addXp(20);
-
+        this.data.coins -= totalCost;
         if (tg) tg.HapticFeedback.impactOccurred('medium');
 
-        // Проверка гаранта
-        let isEpicGuaranteed = false;
-        if (this.data.pity100 >= 100) {
-          isEpicGuaranteed = true;
-          this.data.pity100 = 0;
-        }
+        const multiResults = [];
 
-        let currentLuck = this.data.luckMulti;
-        if (this.data.pity50 >= 50) {
-          currentLuck *= 2;
-          this.data.pity50 = 0;
-        }
+        for (let i = 0; i < this.data.spinCount; i++) {
+          this.data.totalSpins++;
+          this.data.pity50++;
+          this.data.pity100++;
 
-        // Выбор случайного корня БЕЗ повтора последних 5
-        let availableRoots = this.roots.filter(r => !this.data.recentRoots.includes(r));
-        if (availableRoots.length === 0) availableRoots = this.roots;
-        const selectedRoot = availableRoots[Math.floor(Math.random() * availableRoots.length)];
-
-        this.data.recentRoots.push(selectedRoot);
-        if (this.data.recentRoots.length > 5) this.data.recentRoots.shift();
-
-        // Расчет шансов с бустом
-        let totalW = 0;
-        let pool = this.rarities.map(r => {
-          let w = r.weight;
-          if (["Rare", "Epic", "Legendary", "Mythic", "Ultra-Mythic"].includes(r.name)) {
-            w = Math.floor(w * currentLuck);
+          let isEpicGuaranteed = false;
+          if (this.data.pity100 >= 100) {
+            isEpicGuaranteed = true;
+            this.data.pity100 = 0;
           }
-          if (isEpicGuaranteed && ["Common", "Uncommon", "Rare"].includes(r.name)) {
-            w = 0;
-          }
-          totalW += w;
-          return { ...r, w };
-        });
 
-        let rnd = Math.random() * totalW;
-        let picked = pool[0];
-        for (let r of pool) {
-          if (rnd < r.w) { picked = r; break; }
-          rnd -= r.w;
+          let currentLuck = this.data.luckMulti;
+          if (this.data.mintMode === 'rare') currentLuck *= 2.5;
+          if (this.data.pity50 >= 50) {
+            currentLuck *= 2.0;
+            this.data.pity50 = 0;
+          }
+
+          // Выбор корня (с защитой от повторов последних 5)
+          const allRoots = [...this.roots, ...this.influencers];
+          let availableRoots = allRoots.filter(r => !this.data.recentRoots.includes(r));
+          if (availableRoots.length === 0) availableRoots = allRoots;
+          const selectedRoot = availableRoots[Math.floor(Math.random() * availableRoots.length)];
+
+          this.data.recentRoots.push(selectedRoot);
+          if (this.data.recentRoots.length > 5) this.data.recentRoots.shift();
+
+          // Определение редкости
+          let totalW = 0;
+          let pool = this.rarities.map(r => {
+            let w = r.weight;
+            if (["Rare", "Epic", "Legendary", "Mythic", "Ultra-Mythic"].includes(r.name)) {
+              w = Math.floor(w * currentLuck);
+            }
+            if (isEpicGuaranteed && ["Common", "Uncommon", "Rare"].includes(r.name)) {
+              w = 0;
+            }
+            totalW += w;
+            return { ...r, w };
+          });
+
+          let rnd = Math.random() * totalW;
+          let picked = pool[0];
+          for (let r of pool) {
+            if (rnd < r.w) { picked = r; break; }
+            rnd -= r.w;
+          }
+
+          // Если выпал блогер — гарантируем ранг не ниже Legendary
+          if (this.influencers.includes(selectedRoot)) {
+            picked = this.rarities.find(r => r.name === "Legendary");
+          }
+
+          const tag = `@${selectedRoot}`;
+          this.data.tags.push({ tag, rarity: picked.name, color: picked.color, inc: picked.inc });
+          this.data.incomeSec += picked.inc;
+          this.addXp(picked.xp);
+
+          multiResults.push({ tag, rarity: picked });
+
+          // Автоматическая привязка к первому каналу, если он пуст
+          if (this.data.channels[0].tag === "@Не привязан") {
+            this.data.channels[0].tag = tag;
+          }
         }
 
-        const tag = `@${selectedRoot}_${Math.floor(10 + Math.random() * 89)}`;
-        this.data.tags.push({ tag, rarity: picked.name, color: picked.color, inc: picked.inc });
-        this.data.incomeSec += picked.inc;
+        // Отрисовка результатов
+        const last = multiResults[multiResults.length - 1];
+        ui.renderPlate(last.tag, last.rarity);
 
-        // Привязываем к каналу первый выбитый тег
-        document.getElementById('chAssignedTag').innerText = tag;
-        document.getElementById('chAssignedTag').style.color = picked.color;
+        const listEl = document.getElementById('multiDropList');
+        if (this.data.spinCount > 1) {
+          listEl.style.display = 'flex';
+          listEl.innerHTML = multiResults.map(m => `
+            <div class="drop-item-row">
+              <span style="font-family:monospace;font-weight:700;color:${m.rarity.color}">${m.tag}</span>
+              <span style="color:${m.rarity.color}">${m.rarity.name} (+${m.rarity.xp} XP)</span>
+            </div>
+          `).join('');
+        } else {
+          listEl.style.display = 'none';
+        }
 
-        ui.renderPlate(tag, picked);
         this.save();
         ui.update();
       },
 
       addXp(amount) {
         this.data.xp += amount;
-        if (this.data.xp >= this.data.lvl * 100) {
-          this.data.xp -= this.data.lvl * 100;
+        while (this.data.xp >= this.data.lvl * 150) {
+          this.data.xp -= this.data.lvl * 150;
           this.data.lvl++;
           if (tg) tg.HapticFeedback.notificationOccurred('success');
         }
       },
 
-      upgradeManager(type) {
+      upgradeManager(chIdx, type) {
+        const ch = this.data.channels[chIdx - 1];
+        if (!ch) return;
+
         if (type === 'smm') {
-          const cost = this.data.smmLvl * 250;
+          const cost = (ch.smmLvl + 1) * 150;
           if (this.data.coins >= cost) {
             this.data.coins -= cost;
-            this.data.smmLvl++;
-            this.data.incomeSec += 5;
-            document.getElementById('smmLvl').innerText = this.data.smmLvl;
-            document.getElementById('smmCost').innerText = (this.data.smmLvl * 250) + " COIN";
-          }
+            ch.smmLvl++;
+            this.data.incomeSec += 3;
+          } else alert("Не хватает GRAM!");
+        } else if (type === 'buyer') {
+          const cost = (ch.buyerLvl + 1) * 500;
+          if (this.data.coins >= cost) {
+            this.data.coins -= cost;
+            ch.buyerLvl++;
+            this.data.incomeSec += 12;
+          } else alert("Не хватает GRAM!");
         }
+
         this.save();
         ui.update();
       },
 
-      bidAuction(amount) {
-        if (this.data.coins >= amount) {
-          this.data.coins -= amount;
-          alert("Ставка принята! Вы лидер аукциона.");
+      bidAuction() {
+        const stepCost = Math.floor(this.data.auction.price * 1.1);
+        if (this.data.coins >= stepCost) {
+          this.data.coins -= stepCost;
+          this.data.auction.price = stepCost;
+          this.data.auction.leader = tg?.initDataUnsafe?.user?.username ? `@${tg.initDataUnsafe.user.username}` : "@Ты";
+          this.data.auction.timeLeft += 60; // Анти-снайп
+          alert("Ставка принята! Вы новый лидер лота.");
+          this.save();
           ui.update();
         } else {
-          alert("Не хватает COIN для ставки!");
+          alert("Не хватает GRAM для ставки!");
         }
       },
 
+      mintOnFragment() {
+        if (this.data.tags.length === 0) {
+          alert("Сначала выбейте хотя бы один тег!");
+          return;
+        }
+        const lastTag = this.data.tags[this.data.tags.length - 1];
+        const fakeHash = "0x" + Array.from({length: 16}, () => Math.floor(Math.random()*16).toString(16)).join('');
+        alert(`Тег ${lastTag.tag} успешно зафиксирован в блокчейне TON!\nХэш транзакции: ${fakeHash}\nВладелец: Твой Telegram ID`);
+      },
+
       shareRef() {
-        const url = `https://t.me/share/url?url=https://t.me/atminttagsbot/app&text=Залетай%20в%20MintTags,%20строй%20медиа-империю!`;
+        const url = `https://t.me/share/url?url=https://t.me/atminttagsbot/app&text=Забирай%20лучшие%20@username%20первее%20всех%20и%20строй%20свою%20медиа%20империю!`;
+        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+        else window.open(url, '_blank');
+      },
+
+      shareTradeLink() {
+        const myId = tg?.initDataUnsafe?.user?.id || "demo";
+        const url = `https://t.me/share/url?url=https://t.me/atminttagsbot/app?startapp=trade_${myId}&text=Приглашаю%20в%20комнату%20P2P%20трейда%20тегами!`;
         if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
         else window.open(url, '_blank');
       },
@@ -492,21 +772,23 @@
             tg.openInvoice(resData.invoice_link, (status) => {
               if (status === 'paid') {
                 alert("Оплата прошла успешно! Буст активирован.");
-                game.data.luckMulti = 2.0;
+                if (item === 'coins_50k') game.data.coins += 50000;
+                if (item === 'coins_200k') game.data.coins += 200000;
+                if (item.includes('luck')) game.data.luckMulti = 2.0;
                 ui.update();
               }
             });
           }
         } catch (e) {
-          alert(`Режим демо-покупки: ${item} (${stars} Stars)`);
+          alert(`Режим демо-покупки: ${item} за ${stars} Stars`);
         }
       },
 
       save() {
-        localStorage.setItem('minttags_save', JSON.stringify(this.data));
+        localStorage.setItem('minttags_v2_save', JSON.stringify(this.data));
       },
       load() {
-        const s = localStorage.getItem('minttags_save');
+        const s = localStorage.getItem('minttags_v2_save');
         if (s) {
           try { this.data = Object.assign(this.data, JSON.parse(s)); } catch(e){}
         }
@@ -519,7 +801,7 @@
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`view-${name}`).classList.add('active');
-        el.classList.add('active');
+        if (el) el.classList.add('active');
         if (tg) tg.HapticFeedback.selectionChanged();
       },
 
@@ -530,10 +812,29 @@
         document.getElementById('sub-p2p').style.display = name === 'p2p' ? 'block' : 'none';
       },
 
+      updateMintBtnText() {
+        const cost = (game.data.mintMode === 'common' ? 100 : 500) * game.data.spinCount;
+        document.getElementById('mainMintBtn').innerText = `Заминтить ${game.data.spinCount > 1 ? '(' + game.data.spinCount + ' тегов)' : ''} (${cost.toLocaleString()} GRAM)`;
+      },
+
+      formatTime(sec) {
+        const m = Math.floor(sec / 60);
+        const s = sec % 60;
+        return `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
+      },
+
+      formatAge(sec) {
+        if (sec < 60) return `${sec} сек`;
+        const m = Math.floor(sec / 60);
+        if (m < 60) return `${m}м ${sec % 60}с`;
+        const h = Math.floor(m / 60);
+        return `${h}ч ${m % 60}м`;
+      },
+
       update() {
-        document.getElementById('uiCoins').innerText = Math.floor(game.data.coins).toLocaleString() + " COIN";
-        document.getElementById('uiIncome').innerText = `+${game.data.incomeSec} / сек`;
-        document.getElementById('uiLvl').innerText = `Ур. ${game.data.lvl} • ${game.data.xp}/${game.data.lvl * 100} XP`;
+        document.getElementById('uiCoins').innerText = Math.floor(game.data.coins).toLocaleString() + " GRAM";
+        document.getElementById('uiIncome').innerText = `+${game.data.incomeSec} GRAM/сек`;
+        document.getElementById('uiLvl').innerText = `Ур. ${game.data.lvl} • ${game.data.xp}/${game.data.lvl * 150} XP`;
 
         document.getElementById('pity50Text').innerText = `${game.data.pity50} / 50`;
         document.getElementById('pity50Fill').style.width = `${(game.data.pity50 / 50) * 100}%`;
@@ -541,9 +842,53 @@
         document.getElementById('pity100Text').innerText = `${game.data.pity100} / 100`;
         document.getElementById('pity100Fill').style.width = `${(game.data.pity100 / 100) * 100}%`;
 
+        // Данные пользователя Telegram
         if (tg?.initDataUnsafe?.user) {
-          document.getElementById('uiName').innerText = tg.initDataUnsafe.user.first_name;
+          const u = tg.initDataUnsafe.user;
+          document.getElementById('uiName').innerText = u.first_name;
+          document.getElementById('profileBigName').innerText = u.first_name;
+          if (u.first_name) {
+            document.getElementById('uiAvatar').innerText = u.first_name[0];
+            document.getElementById('profileBigAvatar').innerText = u.first_name[0];
+          }
         }
+
+        // Обновление каналов
+        const ch1 = game.data.channels[0];
+        document.getElementById('ch1Tag').innerText = ch1.tag;
+        document.getElementById('ch1Subs').innerText = ch1.subs.toLocaleString() + " subs";
+        document.getElementById('ch1Age').innerText = this.formatAge(ch1.age);
+        document.getElementById('ch1SmmLvl').innerText = ch1.smmLvl;
+        document.getElementById('ch1SmmCost').innerText = ((ch1.smmLvl + 1) * 150) + " GRAM";
+        document.getElementById('ch1BuyerLvl').innerText = ch1.buyerLvl;
+        document.getElementById('ch1BuyerCost').innerText = ((ch1.buyerLvl + 1) * 500) + " GRAM";
+
+        const ch2 = game.data.channels[1];
+        document.getElementById('ch2Tag').innerText = ch2.tag;
+        document.getElementById('ch2Subs').innerText = ch2.subs.toLocaleString() + " subs";
+        document.getElementById('ch2Age').innerText = this.formatAge(ch2.age);
+        document.getElementById('ch2SmmLvl').innerText = ch2.smmLvl;
+        document.getElementById('ch2SmmCost').innerText = ((ch2.smmLvl + 1) * 250) + " GRAM";
+        document.getElementById('ch2BuyerLvl').innerText = ch2.buyerLvl;
+        document.getElementById('ch2BuyerCost').innerText = ((ch2.buyerLvl + 1) * 800) + " GRAM";
+
+        // Обновление аукциона
+        document.getElementById('aucTag').innerText = game.data.auction.tag;
+        document.getElementById('aucPrice').innerText = game.data.auction.price.toLocaleString() + " GRAM";
+        document.getElementById('aucLeader').innerText = game.data.auction.leader;
+        document.getElementById('aucTimerText').innerText = this.formatTime(game.data.auction.timeLeft);
+
+        // Профиль
+        document.getElementById('profTotalSpins').innerText = game.data.totalSpins;
+        document.getElementById('profTotalTags').innerText = game.data.tags.length;
+        document.getElementById('profileRankText').innerText = `Уровень ${game.data.lvl} • Медиамагнат`;
+
+        const v1 = game.data.tags[game.data.tags.length - 1];
+        const v2 = game.data.tags[game.data.tags.length - 2];
+        const v3 = game.data.tags[game.data.tags.length - 3];
+        if (v1) document.getElementById('vitrine1').innerText = v1.tag;
+        if (v2) document.getElementById('vitrine2').innerText = v2.tag;
+        if (v3) document.getElementById('vitrine3').innerText = v3.tag;
       },
 
       renderPlate(tag, r) {
@@ -554,7 +899,7 @@
         p.style.borderColor = r.color;
 
         const badge = document.getElementById('badgeEl');
-        badge.innerText = `${r.name} • +${r.inc} COIN/сек`;
+        badge.innerText = `${r.name} • +${r.inc} GRAM/сек (+${r.xp} XP)`;
         badge.style.color = r.color;
         badge.style.background = `${r.color}22`;
       }
