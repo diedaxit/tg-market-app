@@ -8,327 +8,388 @@
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     :root {
-      /* Глубокая благородная темная палитра Obsidian Emerald */
-      --bg: #070b09;
-      --bg-elev: #0e1612;
-      --card: #121c17;
-      --card-hover: #18261f;
-      --border: rgba(255, 255, 255, 0.08);
-      --accent: #10b981;
-      --accent-soft: rgba(16, 185, 129, 0.14);
+      /* Контрастная современная темная тема (не болотная, а чистое угольное стекло + яркие акценты) */
+      --bg: #090b10;
+      --bg-elev: #11151f;
+      --card: #161b26;
+      --card-sub: #1e2534;
+      --border: rgba(255, 255, 255, 0.09);
+      --emerald: #10b981;
+      --emerald-glow: rgba(16, 185, 129, 0.18);
       --gold: #f59e0b;
-      --gold-soft: rgba(245, 158, 11, 0.15);
-      --text: #f3f7f5;
-      --muted: #7e9689;
-      --danger: #ef4444;
-      --plate-bg: linear-gradient(180deg, #ffffff 0%, #e5ebe8 100%);
+      --gold-glow: rgba(245, 158, 11, 0.18);
+      --blue: #3b82f6;
+      --purple: #8b5cf6;
+      --ruby: #ef4444;
+      --text: #f8fafc;
+      --muted: #8b9bb4;
     }
 
-    /* Светлая зелено-белая тема (переключается в Настройках) */
     body.light-theme {
-      --bg: #f2f7f4;
+      --bg: #f1f5f9;
       --bg-elev: #ffffff;
       --card: #ffffff;
-      --card-hover: #e6f2ec;
-      --border: rgba(16, 185, 129, 0.22);
-      --accent: #059669;
-      --accent-soft: rgba(5, 150, 105, 0.12);
+      --card-sub: #e2e8f0;
+      --border: rgba(15, 23, 42, 0.1);
+      --emerald: #059669;
+      --emerald-glow: rgba(5, 150, 105, 0.12);
       --gold: #d97706;
-      --gold-soft: rgba(217, 119, 6, 0.12);
-      --text: #091e14;
-      --muted: #527061;
+      --gold-glow: rgba(217, 119, 6, 0.12);
+      --text: #0f172a;
+      --muted: #64748b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 84px; overflow-x: hidden; transition: background 0.25s, color 0.25s; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 88px; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
 
     /* ПРЕЛОАДЕР */
     #preloader {
-      position: fixed; inset: 0; z-index: 99999; background: #060a08;
+      position: fixed; inset: 0; z-index: 99999; background: #090b10;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      transition: opacity 0.4s ease, visibility 0.4s ease;
+      transition: opacity 0.35s ease, visibility 0.35s ease;
     }
     #preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .loader-logo { width: 72px; height: 72px; border-radius: 22px; background: rgba(16,185,129,0.12); border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; font-size: 34px; margin-bottom: 14px; box-shadow: 0 0 30px rgba(16,185,129,0.3); }
+    .loader-orb { width: 76px; height: 76px; border-radius: 24px; background: linear-gradient(135deg, rgba(16,185,129,0.2), rgba(245,158,11,0.2)); border: 2px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 36px; box-shadow: 0 0 40px rgba(245,158,11,0.3); margin-bottom: 14px; }
 
-    /* TOAST УВЕДОМЛЕНИЯ */
-    .toast-wrap { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 10005; width: 92%; max-width: 360px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
-    .toast { background: var(--bg-elev); border: 1px solid var(--accent); color: var(--text); padding: 12px 16px; border-radius: 14px; font-size: 13px; font-weight: 800; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.65); }
+    /* TOAST & FLASH */
+    .toast-wrap { position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 10010; width: 92%; max-width: 370px; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+    .toast { background: var(--bg-elev); border: 1px solid var(--gold); color: var(--text); padding: 13px 16px; border-radius: 16px; font-size: 13px; font-weight: 800; text-align: center; box-shadow: 0 12px 32px rgba(0,0,0,0.7); }
 
-    /* ВЕРХНЯЯ ПАНЕЛЬ */
+    #screenFlash { position: fixed; inset: 0; pointer-events: none; z-index: 9998; opacity: 0; transition: opacity 0.45s ease; }
+
+    /* TOPBAR */
     .topbar {
-      position: sticky; top: 0; z-index: 90; background: var(--bg-elev);
-      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 90; background: rgba(17, 21, 31, 0.92);
+      backdrop-filter: blur(16px); padding: 10px 14px; border-bottom: 1px solid var(--border);
       display: flex; justify-content: space-between; align-items: center;
     }
-    .top-left { display: flex; align-items: center; gap: 8px; }
-    .pill-badge { background: var(--card); border: 1px solid var(--border); padding: 6px 11px; border-radius: 18px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 6px; cursor: pointer; }
-    .bal-label { font-size: 10px; color: var(--muted); text-align: right; font-weight: 700; }
-    .bal-num { font-size: 17px; font-weight: 900; color: var(--text); text-align: right; }
+    body.light-theme .topbar { background: rgba(255, 255, 255, 0.92); }
+    .top-pills { display: flex; align-items: center; gap: 8px; }
+    .top-pill { background: var(--card); border: 1px solid var(--border); padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 800; display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .bal-sub { font-size: 10px; color: var(--muted); text-align: right; font-weight: 700; }
+    .bal-main { font-size: 18px; font-weight: 900; color: var(--text); text-align: right; letter-spacing: -0.3px; }
 
-    /* ПЕРЕКЛЮЧАТЕЛЬ КАТЕГОРИЙ И БЫСТРЫЕ КНОПКИ */
-    .switch-bar { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-    .seg-group { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 3px; flex: 1; }
-    .seg-btn { flex: 1; padding: 8px 6px; text-align: center; font-size: 12px; font-weight: 800; border-radius: 11px; color: var(--muted); cursor: pointer; transition: 0.15s; }
-    .seg-btn.active { background: var(--bg-elev); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
-    .btn-shop-top { background: var(--gold); color: #111; border: none; padding: 9px 13px; border-radius: 14px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+    /* ПЕРЕКЛЮЧАТЕЛИ ВВЕРХУ ГЛАВНОЙ */
+    .switch-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    .seg-bar { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 3px; flex: 1; }
+    .seg-item { flex: 1; padding: 8px 6px; text-align: center; font-size: 12px; font-weight: 800; border-radius: 11px; color: var(--muted); cursor: pointer; transition: 0.15s; }
+    .seg-item.active { background: var(--card-sub); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.3); }
+    .btn-gold-top { background: linear-gradient(135deg, #fbbf24, #d97706); color: #090b10; border: none; padding: 9px 14px; border-radius: 14px; font-size: 12px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 5px; box-shadow: 0 4px 14px rgba(245,158,11,0.3); }
 
-    /* БАННЕРЫ АКЦИЙ НА ГЛАВНОЙ */
-    .promo-stack { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
-    .promo-row { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .promo-row:active { transform: scale(0.99); }
-
-    /* НОМЕРНОЙ ЗНАК (ТАБЛИЧКА) */
-    .stage-box { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 14px; text-align: center; margin-bottom: 12px; }
-    .status-dots { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); margin-bottom: 10px; padding: 0 4px; }
-    .plate {
-      background: var(--plate-bg); color: #0b1410; border-radius: 14px; padding: 14px 12px;
-      border: 3px solid #1e2923; box-shadow: 0 8px 24px rgba(0,0,0,0.45);
-      display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+    /* БАННЕРЫ УДАЧИ И АУКЦИОНА */
+    .banners-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .banner-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+      padding: 11px 14px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+      transition: transform 0.12s;
     }
-    .plate-left { border-right: 2px solid #9ca8a1; padding-right: 10px; text-align: center; min-width: 64px; }
-    .plate-left-top { font-size: 11px; font-weight: 900; letter-spacing: 0.5px; color: #111; }
-    .plate-left-sub { font-size: 9px; font-weight: 800; color: #444; margin-top: 2px; }
-    .plate-main { flex: 1; font-size: 24px; font-weight: 900; font-family: "Courier New", monospace; letter-spacing: 1px; text-align: center; word-break: break-all; padding-left: 8px; }
+    .banner-card:active { transform: scale(0.98); }
+    .banner-luck { background: linear-gradient(90deg, rgba(245,158,11,0.16) 0%, var(--card) 100%); border-color: rgba(245,158,11,0.4); }
+    .banner-auc { background: linear-gradient(90deg, rgba(59,130,246,0.14) 0%, var(--card) 100%); border-color: rgba(59,130,246,0.35); }
 
-    /* СЕЛЕКТОРЫ ПРОКРУТКИ ВНИЗУ ГЛАВНОЙ */
-    .selector-bar { display: flex; gap: 8px; margin-bottom: 10px; }
-    .sel-pill { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; font-size: 12px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .spin-mult-pill { background: var(--accent-soft); border: 1px solid var(--accent); color: var(--accent); border-radius: 14px; padding: 10px 14px; font-size: 13px; font-weight: 900; cursor: pointer; }
-
-    .btn-spin-big {
-      width: 100%; background: var(--accent); color: #04120c; border: none; padding: 16px;
-      border-radius: 18px; font-size: 16px; font-weight: 900; cursor: pointer;
-      display: flex; justify-content: center; align-items: center; gap: 10px;
-      box-shadow: 0 4px 18px rgba(16, 185, 129, 0.28);
+    /* ЦЕНТРАЛЬНАЯ СЦЕНА И НОМЕРНОЙ ЗНАК */
+    .stage-card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 22px;
+      padding: 16px 14px; text-align: center; margin-bottom: 14px; position: relative; overflow: hidden;
+      transition: box-shadow 0.3s, border-color 0.3s;
     }
-    .btn-spin-big.lack { background: var(--card); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
-    .price-chip { background: rgba(0,0,0,0.25); padding: 4px 10px; border-radius: 10px; font-size: 13px; }
+    .stage-card.celebrate-leg { animation: pulseGlowLeg 0.9s infinite alternate; }
+    @keyframes pulseGlowLeg {
+      0% { box-shadow: 0 0 15px rgba(245,158,11,0.3); border-color: #f59e0b; }
+      100% { box-shadow: 0 0 42px rgba(245,158,11,0.75); border-color: #fde047; }
+    }
 
-    /* ЭКРАНЫ (VIEWS) */
+    .pity-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
+    .pity-pills { display: flex; gap: 6px; }
+    .pity-tag { background: var(--card-sub); padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; color: var(--text); border: 1px solid var(--border); }
+
+    .plate-frame {
+      background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%); color: #0f172a;
+      border-radius: 16px; padding: 14px 12px; border: 4px solid #1e293b;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.5); display: flex; align-items: center;
+      justify-content: space-between; margin-bottom: 10px; transition: transform 0.2s, border-color 0.2s;
+    }
+    .plate-side { border-right: 2px solid #94a3b8; padding-right: 12px; text-align: center; min-width: 68px; }
+    .plate-side-top { font-size: 12px; font-weight: 900; color: #0f172a; letter-spacing: 0.5px; }
+    .plate-side-bot { font-size: 9px; font-weight: 800; color: #475569; margin-top: 2px; }
+    .plate-code { flex: 1; font-size: 25px; font-weight: 900; font-family: "Courier New", monospace; letter-spacing: 1.5px; text-align: center; padding-left: 8px; word-break: break-all; }
+
+    /* СЕЛЕКТОРЫ ВНИЗУ СЦЕНЫ */
+    .selectors-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .sel-box { flex: 1; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 11px 12px; font-size: 12px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .mult-box { background: var(--emerald-glow); border: 1px solid var(--emerald); color: var(--emerald); border-radius: 14px; padding: 11px 14px; font-size: 13px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 4px; }
+
+    .btn-spin-main {
+      width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #04130d;
+      border: none; padding: 16px; border-radius: 18px; font-size: 16px; font-weight: 900;
+      cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px;
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.32); transition: transform 0.1s;
+    }
+    .btn-spin-main:active { transform: scale(0.98); }
+    .btn-spin-main.lack { background: var(--card); color: var(--text); border: 1px solid var(--border); box-shadow: none; }
+    .cost-badge { background: rgba(0,0,0,0.25); color: #fff; padding: 4px 10px; border-radius: 10px; font-size: 13px; }
+
+    /* VIEWS */
     .view { display: none; padding: 12px 14px; }
-    .view.active { display: block; animation: fadeUp 0.18s ease; }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .view.active { display: block; animation: viewIn 0.18s ease; }
+    @keyframes viewIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* МЕНЮ «ЕЩЁ» (СЕТКА ИНСТРУМЕНТОВ) */
-    .hub-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
-    .hub-tile { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; text-align: center; cursor: pointer; position: relative; }
-    .hub-icon { width: 42px; height: 42px; border-radius: 13px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-    .hub-tile span { font-size: 11px; font-weight: 800; display: block; }
+    /* МЕНЮ «ЕЩЁ» (ДАШБОРД) */
+    .tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 12px 0; }
+    .tool-tile { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px 6px; text-align: center; cursor: pointer; transition: 0.15s; }
+    .tool-tile:active { transform: scale(0.96); }
+    .tool-ico { width: 44px; height: 44px; border-radius: 14px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 21px; }
+    .tool-tile span { font-size: 11px; font-weight: 800; display: block; }
 
-    .shop-banner {
-      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: #111;
-      border-radius: 20px; padding: 16px; margin: 14px 0; cursor: pointer;
-    }
+    /* КОЛЕСО ФОРТУНЫ (ДЕТАЛИЗИРОВАННЫЙ CANVAS + СПИСОК) */
+    .wheel-stage { position: relative; width: 270px; height: 270px; margin: 12px auto 16px; }
+    .wheel-pin { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 6; font-size: 28px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.7)); }
+    #wheelCanvas { width: 270px; height: 270px; border-radius: 50%; border: 5px solid var(--card-sub); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: transform 3.8s cubic-bezier(0.14, 0.86, 0.24, 1); }
+    .wheel-hub { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 52px; height: 52px; border-radius: 50%; background: var(--bg-elev); border: 3px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 22px; z-index: 5; }
+    .prize-table { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-top: 14px; }
+    .prize-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 800; }
+    .prize-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-    /* КАРТОЧКИ СПИСКОВ И ФИЛЬТРЫ РЫНКА */
-    .chips-scroll { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 10px; scrollbar-width: none; }
-    .chips-scroll::-webkit-scrollbar { display: none; }
-    .chip { background: var(--card); border: 1px solid var(--border); color: var(--muted); padding: 7px 12px; border-radius: 14px; font-size: 11px; font-weight: 800; white-space: nowrap; cursor: pointer; }
-    .chip.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+    /* КАРТОЧКИ И МОДАЛЬНЫЕ ШТОРКИ */
+    .card-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 9px; }
+    .btn-em { background: var(--emerald); color: #04130d; border: none; padding: 8px 14px; border-radius: 11px; font-size: 12px; font-weight: 900; cursor: pointer; }
+    .btn-ghost { background: var(--card-sub); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 11px; font-size: 12px; font-weight: 800; cursor: pointer; }
 
-    .item-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 9px; }
-    .btn-green { background: var(--accent); color: #04120c; border: none; padding: 8px 14px; border-radius: 12px; font-size: 12px; font-weight: 900; cursor: pointer; }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; cursor: pointer; }
+    .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(6px); z-index: 10000; display: none; align-items: flex-end; justify-content: center; }
+    .sheet-panel { background: var(--bg-elev); border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 18px 16px 30px; max-height: 84vh; overflow-y: auto; }
+    .sheet-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .sheet-item.active { border-color: var(--emerald); background: var(--emerald-glow); }
 
-    /* КОЛЕСО ФОРТУНЫ */
-    .wheel-wrap { position: relative; width: 250px; height: 250px; margin: 16px auto; }
-    .wheel-pointer { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); z-index: 5; font-size: 26px; filter: drop-shadow(0 3px 6px rgba(0,0,0,0.6)); }
-    .wheel-disc {
-      width: 100%; height: 100%; border-radius: 50%; border: 5px solid var(--border);
-      background: conic-gradient(
-        #10b981 0deg 45deg, #3b82f6 45deg 90deg, #f59e0b 90deg 135deg, #8b5cf6 135deg 180deg,
-        #ec4899 180deg 225deg, #14b8a6 225deg 270deg, #eab308 270deg 315deg, #ef4444 315deg 360deg
-      );
-      transition: transform 3.6s cubic-bezier(0.15, 0.85, 0.25, 1);
-      display: flex; align-items: center; justify-content: center;
-    }
-    .wheel-center { width: 54px; height: 54px; border-radius: 50%; background: var(--bg-elev); border: 3px solid var(--gold); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    /* НАСТРОЙКИ И ПОМОЩЬ */
+    .set-group-title { font-size: 12px; font-weight: 800; color: var(--muted); margin: 14px 4px 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    .set-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; margin-bottom: 10px; }
+    .set-row { padding: 13px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .set-row:last-child { border-bottom: none; }
+    .toggle { width: 46px; height: 26px; background: rgba(255,255,255,0.16); border-radius: 14px; position: relative; transition: 0.2s; flex-shrink: 0; }
+    .toggle.on { background: var(--emerald); }
+    .toggle::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: 0.2s; }
+    .toggle.on::after { transform: translateX(20px); }
 
-    /* МОДАЛЬНОЕ ОКНО ВЫБОРА ТИРА ПРОКРУТКИ (BOTTOM SHEET) */
-    .sheet-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.75); backdrop-filter: blur(5px); z-index: 10000; display: none; align-items: flex-end; justify-content: center; }
-    .sheet-box { background: var(--bg-elev); border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 18px 16px 28px; max-height: 82vh; overflow-y: auto; }
-    .tier-row { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .tier-row.active { border-color: var(--accent); background: var(--accent-soft); }
-
-    /* ПЕРЕКЛЮЧАТЕЛИ НАСТРОЕК (TOGGLES) */
-    .setting-row { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 13px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-    .switch { width: 46px; height: 26px; background: rgba(255,255,255,0.15); border-radius: 14px; position: relative; cursor: pointer; transition: 0.2s; }
-    .switch.on { background: var(--accent); }
-    .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: 0.2s; }
-    .switch.on::after { transform: translateX(20px); }
-
-    /* НИЖНЯЯ НАВИГАЦИЯ (5 ВКЛАДОК) */
+    /* ТАББАР */
     .tabbar {
       position: fixed; bottom: 0; left: 0; right: 0; height: 70px; z-index: 100;
       background: var(--bg-elev); border-top: 1px solid var(--border);
       display: flex; justify-content: space-around; align-items: center; padding-bottom: env(safe-area-inset-bottom);
     }
-    .tab-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 10px; font-weight: 800; cursor: pointer; padding: 6px 12px; border-radius: 14px; }
-    .tab-item.active { color: var(--accent); background: var(--accent-soft); }
-    .tab-item svg { width: 21px; height: 21px; fill: currentColor; }
+    .tab-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--muted); font-size: 10px; font-weight: 800; cursor: pointer; padding: 6px 12px; border-radius: 14px; }
+    .tab-btn.active { color: var(--emerald); background: var(--emerald-glow); }
+    .tab-btn svg { width: 21px; height: 21px; fill: currentColor; }
   </style>
 </head>
 <body>
 
-  <!-- ПРЕЛОАДЕР -->
   <div id="preloader">
-    <div class="loader-logo">👑</div>
-    <div style="font-size:20px;font-weight:900;letter-spacing:1px;">MINTTAGS EMPIRE</div>
-    <div style="font-size:12px;color:#7e9689;margin-top:4px;">Загрузка блокчейн-реестра @username & +888...</div>
+    <div class="loader-orb">👑</div>
+    <div style="font-size:21px;font-weight:900;letter-spacing:0.8px;">MINTTAGS EMPIRE</div>
+    <div style="font-size:12px;color:#8b9bb4;margin-top:4px;">Загрузка крипто-реестра @username и +888...</div>
   </div>
 
+  <div id="screenFlash"></div>
   <div class="toast-wrap" id="toastWrap"></div>
 
-  <!-- МОДАЛЬНАЯ ТАБЛИЦА ВЫБОРА РЕДКОСТИ ПРОКРУТА -->
-  <div class="sheet-overlay" id="tierSheet" onclick="if(event.target===this)this.style.display='none'">
-    <div class="sheet-box">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="font-size:16px;font-weight:900;">Таблица выбора прокрута</h3>
-        <button class="btn-outline" style="padding:4px 10px;" onclick="document.getElementById('tierSheet').style.display='none'">✕</button>
+  <!-- МОДАЛКА ВЫБОРА РЕДКОСТИ ПРОКРУТА -->
+  <div class="sheet-bg" id="tierSheet" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 style="font-size:16px;font-weight:900;">Выбор редкости прокрута</h3>
+        <button class="btn-ghost" onclick="document.getElementById('tierSheet').style.display='none'">✕</button>
       </div>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Чем выше выбранный тир, тем больше базовых редкостей отсекается из пула рулетки:</p>
-      <div id="tierTableList"></div>
+      <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Отсекает дешевые редкости и повышает шанс выбить эксклюзив:</p>
+      <div id="tierSheetList"></div>
     </div>
   </div>
 
-  <!-- ШАПКА -->
+  <!-- МОДАЛКА ВЫБОРА КОЛИЧЕСТВА ПРОКРУТОВ (1x, 5x, 10x за 150⭐️, 25x за 219⭐️) -->
+  <div class="sheet-bg" id="multSheet" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <h3 style="font-size:16px;font-weight:900;">Количество прокрутов за раз</h3>
+        <button class="btn-ghost" onclick="document.getElementById('multSheet').style.display='none'">✕</button>
+      </div>
+      <div class="sheet-item" onclick="app.selectSpinCount(1)">
+        <div><div style="font-size:14px;font-weight:900;">1× Одиночный прокрут</div><div style="font-size:11px;color:var(--muted);">Посимвольная рулетка со звуком</div></div>
+        <b style="color:var(--emerald);">За GRAM</b>
+      </div>
+      <div class="sheet-item" onclick="app.selectSpinCount(5)">
+        <div><div style="font-size:14px;font-weight:900;">5× Мульти-прокрут</div><div style="font-size:11px;color:var(--muted);">5 предметов сразу за GRAM</div></div>
+        <b style="color:var(--emerald);">×5 GRAM</b>
+      </div>
+      <div class="sheet-item" style="border-color:var(--gold);" onclick="app.buyBulkSpins('spin_10_stars')">
+        <div><div style="font-size:14px;font-weight:900;color:var(--gold);">⚡ 10× Прокрутов сразу (Rare+)</div><div style="font-size:11px;color:var(--muted);">Все 10 сразу летят в Хранилище!</div></div>
+        <b style="background:var(--gold);color:#111;padding:5px 10px;border-radius:10px;font-size:12px;">150 ⭐️</b>
+      </div>
+      <div class="sheet-item" style="border-color:var(--purple);" onclick="app.buyBulkSpins('spin_25_stars')">
+        <div><div style="font-size:14px;font-weight:900;color:#c084fc;">🔥 25× Мега-пак сразу (Epic+)</div><div style="font-size:11px;color:var(--muted);">25 элитных предметов сразу в Хранилище!</div></div>
+        <b style="background:var(--gold);color:#111;padding:5px 10px;border-radius:10px;font-size:12px;">219 ⭐️</b>
+      </div>
+    </div>
+  </div>
+
+  <!-- ИНФОРМАЦИОННАЯ МОДАЛКА (ДЛЯ ПУНКТОВ НАСТРОЕК / ПОМОЩИ) -->
+  <div class="sheet-bg" id="infoSheet" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="font-size:16px;font-weight:900;" id="infoModalTitle">Информация</h3>
+        <button class="btn-ghost" onclick="document.getElementById('infoSheet').style.display='none'">✕</button>
+      </div>
+      <div id="infoModalBody" style="font-size:12px;color:var(--muted);line-height:1.55;"></div>
+    </div>
+  </div>
+
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
   <div class="topbar">
-    <div class="top-left">
-      <div class="pill-badge" onclick="ui.nav('more')">
+    <div class="top-pills">
+      <div class="top-pill" onclick="ui.nav('more')">
         <span>Ур. <b id="topLvl">1</b></span>
       </div>
-      <div class="pill-badge" onclick="ui.openSubView('donate')">
-        <span>🍀 <b id="topLuck">x1</b></span>
+      <div class="top-pill" style="border-color:rgba(245,158,11,0.4);" onclick="ui.openDonateAndBuy()">
+        <span>🍀 <b id="topLuck" style="color:var(--gold);">×1</b></span>
       </div>
     </div>
     <div>
-      <div class="bal-label">Баланс (<span id="topInc">+0/с</span>)</div>
-      <div class="bal-num" id="topBal">2 500 GRAM</div>
+      <div class="bal-sub">Баланс (<span id="topInc" style="color:var(--emerald);">+0/с</span>)</div>
+      <div class="bal-main" id="topBal">5 000 GRAM</div>
     </div>
   </div>
 
-  <!-- ================= 1. ИГРАТЬ (ГЛАВНАЯ) ================= -->
+  <!-- ================= 1. ИГРАТЬ ================= -->
   <div id="view-play" class="view active">
-    <div class="switch-bar">
-      <div class="seg-group">
-        <div class="seg-btn active" id="seg-username" onclick="app.setItemType('username')">@Юзернеймы</div>
-        <div class="seg-btn" id="seg-number" onclick="app.setItemType('number')">📞 +888 Номера</div>
+    <div class="switch-row">
+      <div class="seg-bar">
+        <div class="seg-item active" id="seg-u" onclick="app.setItemType('username')">@Юзернеймы</div>
+        <div class="seg-item" id="seg-n" onclick="app.setItemType('number')">📞 +888 Номера</div>
       </div>
-      <button class="btn-shop-top" onclick="ui.openSubView('donate')">⭐ Магазин</button>
+      <button class="btn-gold-top" onclick="ui.openDonateAndBuy()">⭐ Магазин</button>
     </div>
 
-    <!-- Промо-плашки событий -->
-    <div class="promo-stack">
-      <div class="promo-row" style="border-color:rgba(16,185,129,0.35);" onclick="ui.openSubView('wheel')">
+    <!-- Плашки акций (Удача х2 ведет сразу в Донат!) -->
+    <div class="banners-grid">
+      <div class="banner-card banner-luck" onclick="ui.openDonateAndBuy('luck_x2_1h')">
         <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">🎡</span>
+          <span style="font-size:22px;">🍀</span>
           <div>
-            <div style="font-size:12px;font-weight:900;">Колесо фортуны • <span style="color:var(--gold);">Джекпот 100K</span></div>
-            <div style="font-size:10px;color:var(--muted);" id="promoWheelTxt">Бесплатный прокрут каждые 30 минут</div>
+            <div style="font-size:13px;font-weight:900;color:var(--gold);">Удача ×2 и ×5 в Магазине</div>
+            <div style="font-size:11px;color:var(--muted);">Повысь шанс на Legendary, Exclusive и +888 0XXX</div>
+          </div>
+        </div>
+        <span style="font-size:12px;font-weight:900;color:var(--gold);">19 ⭐️ ›</span>
+      </div>
+
+      <div class="banner-card banner-auc" onclick="ui.nav('market')">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">🔨</span>
+          <div>
+            <div style="font-size:13px;font-weight:900;">Звёздный аукцион • <span style="color:#60a5fa;">+888 0777</span></div>
+            <div style="font-size:11px;color:var(--muted);">Живые ставки игроков • SIM-Шлюз ×15.0 к каналам</div>
           </div>
         </div>
         <span style="color:var(--muted);">›</span>
       </div>
-
-      <div class="promo-row" style="border-color:rgba(245,158,11,0.35);" onclick="ui.nav('market')">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:20px;">🔨</span>
-          <div>
-            <div style="font-size:12px;font-weight:900;">Биржевой аукцион • <span style="color:var(--gold);">+888 0777</span></div>
-            <div style="font-size:10px;color:var(--muted);">Живые торги с возвратом перебитых ставок</div>
-          </div>
-        </div>
-        <span style="color:var(--muted);">›</span>
-      </div>
     </div>
 
-    <!-- Центральная сцена номера/тега -->
-    <div class="stage-box">
-      <div class="status-dots">
-        <span id="stageStatusTxt">Готов к минту</span>
-        <span>Гарант Epic+: <b id="pityTxt" style="color:var(--accent);">0/100</b></span>
+    <!-- Сцена генерации -->
+    <div class="stage-card" id="stageCard">
+      <div class="pity-header">
+        <span id="stageSubStatus">Готов к игре</span>
+        <div class="pity-pills">
+          <span class="pity-tag" title="Выбирается самый дорогой из 5 номеров">Удача ×5: <b id="p100Val" style="color:var(--emerald);">0/100</b></span>
+          <span class="pity-tag" title="Выбирается самый дорогой из 50 номеров">Удача ×50: <b id="p500Val" style="color:var(--gold);">0/500</b></span>
+        </div>
       </div>
 
       <div id="singleStage">
-        <div class="plate" id="plateEl">
-          <div class="plate-left">
-            <div class="plate-left-top" id="plateRegion">TON</div>
-            <div class="plate-left-sub" id="plateSub">NFT ID</div>
+        <div class="plate-frame" id="plateFrame">
+          <div class="plate-side">
+            <div class="plate-side-top" id="plateRegion">TON</div>
+            <div class="plate-side-bot" id="plateSub">ID</div>
           </div>
-          <div class="plate-main" id="plateText">@MINTTAGS</div>
+          <div class="plate-code" id="plateCode">@MINTTAGS</div>
         </div>
-        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;" id="plateMeta">Ожидание броска...</div>
-        <div id="plateReasons" style="display:none;background:rgba(0,0,0,0.25);padding:10px;border-radius:12px;text-align:left;font-size:11px;color:var(--muted);margin-bottom:10px;"></div>
-        <div id="singleActions" style="display:none;gap:8px;margin-bottom:6px;"></div>
+        <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;" id="plateMeta">Нажми «Крутить» для запуска слота</div>
+        <div id="plateReasons" style="display:none;background:rgba(0,0,0,0.3);padding:10px 12px;border-radius:12px;text-align:left;font-size:11px;color:var(--muted);margin-bottom:10px;"></div>
+        <div id="singleActions" style="display:none;gap:8px;margin-bottom:4px;"></div>
       </div>
 
       <div id="multiStage" style="display:none;flex-direction:column;gap:8px;text-align:left;"></div>
     </div>
 
-    <div style="text-align:center;font-size:11px;color:var(--muted);margin-bottom:8px;">Выбери режим или открой таблицу редкости прокрута</div>
-
-    <!-- Селекторы над кнопкой броска -->
-    <div class="selector-bar">
-      <div class="sel-pill" onclick="app.toggleItemType()">
-        <span id="selTypeLabel">💎 TON Юзернеймы</span>
+    <!-- Селекторы прокрутки -->
+    <div class="selectors-row">
+      <div class="sel-box" onclick="app.toggleItemType()">
+        <span id="selTypeTxt">💎 @Юзернеймы</span>
         <span style="color:var(--muted);">⌄</span>
       </div>
-      <div class="sel-pill" onclick="ui.openTierSheet()">
-        <span id="selTierLabel" style="color:var(--gold);">⚡ Обычный+</span>
+      <div class="sel-box" onclick="ui.openTierSheet()">
+        <span id="selTierTxt" style="color:var(--gold);">⚡ Обычный+</span>
         <span style="color:var(--muted);">⌄</span>
       </div>
-      <div class="spin-mult-pill" id="spinMultBtn" onclick="app.toggleSpinMult()">1×</div>
+      <div class="mult-box" onclick="document.getElementById('multSheet').style.display='flex'">
+        <span id="selMultTxt">1×</span><span>⌄</span>
+      </div>
     </div>
 
-    <button class="btn-spin-big" id="mainSpinBtn" onclick="app.mint()">
-      <span id="spinBtnTitle">Крутить</span>
-      <span class="price-chip" id="spinBtnPrice">100 GRAM</span>
+    <button class="btn-spin-main" id="mainSpinBtn" onclick="app.mint()">
+      <span id="spinBtnText">Крутить</span>
+      <span class="cost-badge" id="spinBtnCost">100 GRAM</span>
     </button>
   </div>
 
-  <!-- ================= 2. ХРАНИЛИЩЕ (СЕЙФ + КАНАЛЫ) ================= -->
+  <!-- ================= 2. ХРАНИЛИЩЕ (СЕЙФ + КАНАЛЫ И SIM-ШЛЮЗ) ================= -->
   <div id="view-storage" class="view">
-    <div class="switch-bar">
-      <div class="seg-group">
-        <div class="seg-btn active" id="st-seg-hold" onclick="ui.storageTab('hold')">💼 Сейф ХОЛД (<span id="holdCnt">0</span>/<span id="holdMax">100</span>)</div>
-        <div class="seg-btn" id="st-seg-chan" onclick="ui.storageTab('chan')">📢 Каналы и Слоты</div>
+    <div class="switch-row">
+      <div class="seg-bar">
+        <div class="seg-item active" id="st-hold-tab" onclick="ui.storageSub('hold')">💼 Сейф (<span id="holdCnt">0</span>/<span id="holdMax">100</span>)</div>
+        <div class="seg-item" id="st-chan-tab" onclick="ui.storageSub('chan')">📢 Каналы и +888 Шлюз</div>
       </div>
     </div>
 
-    <div id="storage-hold-box">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-        <span style="font-size:11px;color:var(--muted);">Сохраненные @username и +888 номера:</span>
-        <button class="btn-outline" style="padding:5px 10px;font-size:11px;border-color:var(--gold);color:var(--gold);" onclick="ui.openSubView('donate')">+50 мест в ХОЛД</button>
+    <div id="st-hold-body">
+      <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;border-color:rgba(245,158,11,0.35);">
+        <div>
+          <div style="font-size:13px;font-weight:900;">Вместимость Хранилища</div>
+          <div style="font-size:11px;color:var(--muted);">Нужно больше места под коллекцию?</div>
+        </div>
+        <button class="btn-gold-top" onclick="ui.openDonateAndBuy('hold_plus_50')">+50 слотов (45 ⭐️)</button>
       </div>
-      <div id="holdContainer"></div>
+      <div id="holdList"></div>
     </div>
 
-    <div id="storage-chan-box" style="display:none;">
-      <div class="item-card" style="border-color:var(--accent);">
+    <div id="st-chan-body" style="display:none;">
+      <!-- Уникальный слот SIM-Шлюза для номеров +888 -->
+      <div class="card-box" style="border-color:var(--gold);background:linear-gradient(135deg, rgba(245,158,11,0.14), var(--card));">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div>
-            <div style="font-size:14px;font-weight:900;">Империя Telegram-каналов</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Ставь сохраненные айди или +888 на слоты для пассивного дохода</div>
+            <span style="font-size:10px;font-weight:900;color:var(--gold);letter-spacing:0.6px;">📡 АНОНИМНЫЙ SIM-ШЛЮЗ (+888)</span>
+            <div style="font-family:monospace;font-size:18px;font-weight:900;margin-top:2px;" id="simSlotTag">Не установлен</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">Номер +888 умножает прибыль <b>всех твоих каналов</b> в <b id="simSlotMult" style="color:var(--gold);">×1.0</b> раз!</div>
           </div>
-          <button class="btn-green" onclick="ui.openSubView('donate')">+ Слот</button>
         </div>
+      </div>
+
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:12px 2px 8px;">
+        <span style="font-size:13px;font-weight:900;">Слоты Telegram-каналов (@username)</span>
+        <button class="btn-em" onclick="ui.openDonateAndBuy('channel_slot')">+ Слот (59 ⭐️)</button>
       </div>
       <div id="channelsList"></div>
 
-      <div class="item-card">
-        <div style="font-size:13px;font-weight:900;margin-bottom:8px;">Штат менеджеров канала</div>
+      <div class="card-box">
+        <div style="font-size:13px;font-weight:900;margin-bottom:8px;">Команда продвижения каналов</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-          <div class="promo-row" onclick="app.upgradeMgr('smm')">
+          <div class="banner-card" onclick="app.upgradeMgr('smm')">
             <div>
               <div style="font-size:12px;font-weight:800;">📱 СММщик (Ур. <span id="smmLvl">1</span>)</div>
-              <div style="font-size:11px;color:var(--gold);font-weight:900;margin-top:2px;" id="smmCost">250 G</div>
+              <div style="font-size:11px;color:var(--gold);font-weight:900;margin-top:2px;" id="smmCost">500 G</div>
             </div>
           </div>
-          <div class="promo-row" onclick="app.upgradeMgr('buyer')">
+          <div class="banner-card" onclick="app.upgradeMgr('buyer')">
             <div>
-              <div style="font-size:12px;font-weight:800;">📈 Байер (Ур. <span id="buyerLvl">0</span>)</div>
-              <div style="font-size:11px;color:var(--gold);font-weight:900;margin-top:2px;" id="buyerCost">1 000 G</div>
+              <div style="font-size:12px;font-weight:800;">📈 Закупщик (Ур. <span id="buyerLvl">0</span>)</div>
+              <div style="font-size:11px;color:var(--gold);font-weight:900;margin-top:2px;" id="buyerCost">2 000 G</div>
             </div>
           </div>
         </div>
@@ -336,294 +397,301 @@
     </div>
   </div>
 
-  <!-- ================= 3. РЫНОК И АУКЦИОН ================= -->
+  <!-- ================= 3. РЫНОК ================= -->
   <div id="view-market" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-      <h2 style="font-size:18px;font-weight:900;">Рынок и Аукционы</h2>
-      <button class="btn-green" onclick="ui.openSubView('sell_lot')">+ Выставить лот</button>
+      <h2 style="font-size:18px;font-weight:900;">Биржа и Аукционы</h2>
+      <button class="btn-em" onclick="ui.openSub('sell_lot')">+ Выставить</button>
     </div>
-
     <input type="text" id="mktSearch" placeholder="🔍 Поиск: +888, 777, durov..." oninput="ui.renderMarket()"
            style="width:100%;background:var(--card);border:1px solid var(--border);color:var(--text);padding:11px 14px;border-radius:14px;font-size:13px;margin-bottom:10px;outline:none;">
-
-    <div class="chips-scroll">
-      <div class="chip active" onclick="app.setMktFilter('all', this)">Все лоты</div>
-      <div class="chip" onclick="app.setMktFilter('auction', this)">🔨 Аукционы</div>
-      <div class="chip" onclick="app.setMktFilter('number', this)">📞 Номера +888</div>
-      <div class="chip" onclick="app.setMktFilter('username', this)">@ Юзернеймы</div>
-      <div class="chip" onclick="app.setMktFilter('my', this)">Мои лоты</div>
+    <div style="display:flex;gap:6px;overflow-x:auto;padding-bottom:6px;margin-bottom:10px;">
+      <button class="btn-ghost" onclick="app.setMktFilter('all')">Все</button>
+      <button class="btn-ghost" onclick="app.setMktFilter('auction')">🔨 Аукцион</button>
+      <button class="btn-ghost" onclick="app.setMktFilter('number')">📞 Номера +888</button>
+      <button class="btn-ghost" onclick="app.setMktFilter('username')">@ Юзеры</button>
+      <button class="btn-ghost" onclick="app.setMktFilter('my')">Мои лоты</button>
     </div>
-
     <div id="marketList"></div>
   </div>
 
-  <!-- ================= 4. ДРУЗЬЯ (РЕФЕРАЛКА) ================= -->
+  <!-- ================= 4. ДРУЗЬЯ ================= -->
   <div id="view-friends" class="view">
-    <div class="item-card" style="border-color:var(--gold);background:linear-gradient(145deg, var(--card), rgba(245,158,11,0.08));text-align:center;padding:20px 14px;">
-      <div style="font-size:11px;font-weight:900;color:var(--gold);letter-spacing:1px;">ПАРТНЕРСКАЯ СЕТЬ</div>
-      <h2 style="font-size:20px;font-weight:900;margin:6px 0 12px;">Зови друзей — <span style="color:var(--gold);">получай миллионы GRAM</span></h2>
-
-      <div class="plate" style="max-width:260px;margin:0 auto 12px;padding:10px;">
-        <div class="plate-left"><div class="plate-left-top">+888</div><div class="plate-left-sub">VIP</div></div>
-        <div class="plate-main" style="font-size:20px;">0777</div>
-      </div>
-
-      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.4;">
-        Отправляй приглашение со встроенной скрытой ссылкой на <b>MintTags</b>. Приглашено друзей: <b id="friendsCnt" style="color:var(--text);">0</b>
-      </p>
-
-      <button class="btn-spin-big" style="background:var(--gold);color:#111;margin-bottom:8px;" onclick="app.shareReferral('ref')">
-        📤 Отправить другу
-      </button>
+    <div class="card-box" style="border-color:var(--gold);text-align:center;padding:20px 14px;">
+      <div style="font-size:11px;font-weight:900;color:var(--gold);">РЕФЕРАЛЬНАЯ ПРОГРАММА</div>
+      <h2 style="font-size:20px;font-weight:900;margin:6px 0 12px;">Зови друзей — <span style="color:var(--gold);">забирай до 1,000,000 G</span></h2>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Друг получает <b>5,000 GRAM</b> на старт, а ты — бонусы за каждого приглашенного. Приглашено: <b id="refCnt" style="color:var(--text);">0</b></p>
+      <button class="btn-spin-main" style="background:var(--gold);color:#111;margin-bottom:8px;" onclick="app.shareRef('ref')">📤 Отправить приглашение другу</button>
       <div style="display:flex;gap:8px;">
-        <button class="btn-outline" style="flex:1;" onclick="app.copyCleanRef()">Скопировать чистую ссылку</button>
-        <button class="btn-outline" style="flex:1;" onclick="app.shareReferral('trade')">P2P Обмен</button>
+        <button class="btn-ghost" style="flex:1;" onclick="app.copyRef()">Скопировать ссылку</button>
+        <button class="btn-ghost" style="flex:1;" onclick="app.shareRef('trade')">🤝 P2P Обмен</button>
       </div>
-      <div style="font-size:11px;color:var(--muted);margin-top:10px;font-family:monospace;" id="cleanRefDisplay">t.me/MintTagsBot?startapp=ref_...</div>
-    </div>
-
-    <div class="item-card">
-      <div style="font-size:14px;font-weight:900;margin-bottom:8px;">Этапы наград за друзей</div>
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>1 друг</span><b style="color:var(--gold);">+1 000 GRAM</b></div>
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>2 друга</span><b style="color:var(--gold);">+3 000 GRAM</b></div>
-      <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;"><span>5 друзей</span><b style="color:var(--gold);">+10 000 GRAM</b></div>
-      <div style="display:flex;justify-content:space-between;padding:7px 0;font-size:12px;"><span>20 друзей</span><b style="color:var(--gold);">+1 000 000 GRAM</b></div>
     </div>
   </div>
 
-  <!-- ================= 5. МЕНЮ «ЕЩЁ» (ВСЕ ИНСТРУМЕНТЫ) ================= -->
+  <!-- ================= 5. ЕЩЁ (ХАБ ВСЕХ ИНСТРУМЕНТОВ) ================= -->
   <div id="view-more" class="view">
-    <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
+    <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
       <div style="display:flex;align-items:center;gap:12px;">
-        <div class="pill-badge" style="width:44px;height:44px;justify-content:center;font-size:16px;border-color:var(--gold);" id="moreLvlCircle">1</div>
+        <div class="top-pill" style="width:44px;height:44px;justify-content:center;font-size:16px;border-color:var(--gold);" id="moreLvl">1</div>
         <div>
-          <div style="font-size:15px;font-weight:900;" id="moreUserName">Игрок</div>
-          <div style="font-size:11px;color:var(--muted);">ID участника: <b id="moreMemNum">#1</b> • Опыт: <span id="moreXpTxt">0/150</span></div>
+          <div style="font-size:15px;font-weight:900;" id="moreName">Игрок</div>
+          <div style="font-size:11px;color:var(--muted);">Участник <b id="moreMem">#1</b> • Опыт: <span id="moreXp">0/150</span></div>
         </div>
       </div>
-      <button class="btn-outline" onclick="ui.openSubView('settings')">⚙️ Тема</button>
+      <button class="btn-ghost" onclick="ui.openSub('settings')">⚙️ Настройки</button>
     </div>
 
-    <!-- Сетка мини-иконок инструментов как на скрине 4 -->
-    <div class="hub-grid">
-      <div class="hub-tile" onclick="ui.openSubView('quests')">
-        <div class="hub-icon" style="background:rgba(16,185,129,0.18);color:#10b981;">📋</div>
+    <div class="tools-grid">
+      <div class="tool-tile" onclick="ui.openSub('quests')">
+        <div class="tool-ico" style="background:rgba(16,185,129,0.18);color:#10b981;">📋</div>
         <span>Задания</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('wheel')">
-        <div class="hub-icon" style="background:rgba(245,158,11,0.18);color:#f59e0b;">🎡</div>
+      <div class="tool-tile" onclick="ui.openSub('wheel')">
+        <div class="tool-ico" style="background:rgba(245,158,11,0.18);color:#f59e0b;">🎡</div>
         <span>Колесо</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('daily')">
-        <div class="hub-icon" style="background:rgba(239,68,68,0.18);color:#ef4444;">🎁</div>
+      <div class="tool-tile" onclick="ui.openSub('daily')">
+        <div class="tool-ico" style="background:rgba(239,68,68,0.18);color:#ef4444;">🎁</div>
         <span>Подарок</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('craft')">
-        <div class="hub-icon" style="background:rgba(139,92,246,0.18);color:#8b5cf6;">⚗️</div>
-        <span>Крафт 5в1</span>
+      <div class="tool-tile" onclick="ui.openSub('craft')">
+        <div class="tool-ico" style="background:rgba(139,92,246,0.18);color:#8b5cf6;">⚗️</div>
+        <span>Крафты</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('pass')">
-        <div class="hub-icon" style="background:rgba(59,130,246,0.18);color:#3b82f6;">🎫</div>
+      <div class="tool-tile" onclick="ui.openSub('pass')">
+        <div class="tool-ico" style="background:rgba(59,130,246,0.18);color:#3b82f6;">🎫</div>
         <span>Сезон Пасс</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('ach')">
-        <div class="hub-icon" style="background:rgba(236,72,153,0.18);color:#ec4899;">🏅</div>
+      <div class="tool-tile" onclick="ui.openSub('ach')">
+        <div class="tool-ico" style="background:rgba(236,72,153,0.18);color:#ec4899;">🏅</div>
         <span>Достижения</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('leaders')">
-        <div class="hub-icon" style="background:rgba(234,179,8,0.18);color:#eab308;">🏆</div>
+      <div class="tool-tile" onclick="ui.openSub('leaders')">
+        <div class="tool-ico" style="background:rgba(234,179,8,0.18);color:#eab308;">🏆</div>
         <span>Рейтинг</span>
       </div>
-      <div class="hub-tile" onclick="ui.openSubView('clans')">
-        <div class="hub-icon" style="background:rgba(20,184,166,0.18);color:#14b8a6;">🛡️</div>
+      <div class="tool-tile" onclick="ui.openSub('clans')">
+        <div class="tool-ico" style="background:rgba(20,184,166,0.18);color:#14b8a6;">🛡️</div>
         <span>Кланы</span>
       </div>
     </div>
 
-    <!-- Золотой баннер Магазина -->
-    <div class="shop-banner" onclick="ui.openSubView('donate')">
+    <div class="card-box" style="background:linear-gradient(135deg, #f59e0b, #d97706);color:#090b10;cursor:pointer;" onclick="ui.openDonateAndBuy()">
       <div style="display:flex;justify-content:space-between;align-items:center;">
         <div>
-          <div style="font-size:18px;font-weight:900;">⭐ Магазин и Донат</div>
-          <div style="font-size:12px;opacity:0.85;margin-top:2px;">VIP-пасс, слоты Хранилища, Удача и +888 боксы</div>
+          <div style="font-size:18px;font-weight:900;">⭐ Магазин и Усиления</div>
+          <div style="font-size:12px;font-weight:700;opacity:0.85;">VIP, Удача ×5, Пакеты 10×/25× и Слоты Хранилища</div>
         </div>
-        <div style="background:#111;color:#fff;padding:8px 14px;border-radius:12px;font-size:12px;font-weight:900;">Открыть</div>
+        <div style="background:#090b10;color:#fff;padding:8px 14px;border-radius:12px;font-size:12px;font-weight:900;">Открыть</div>
       </div>
     </div>
   </div>
 
-  <!-- ================= ВНУТРЕННИЕ ЭКРАНЫ ИНСТРУМЕНТОВ ================= -->
+  <!-- ================= ПОДЭКРАНЫ ИНСТРУМЕНТОВ ================= -->
 
-  <!-- КОЛЕСО ФОРТУНЫ -->
+  <!-- КОЛЕСО ФОРТУНЫ (С CANVAS И СПИСКОМ СЕКТОРОВ КАК НА СКРИНЕ) -->
   <div id="view-wheel" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Колесо фортуны</h3>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
+      <h3 style="font-size:18px;font-weight:900;">Колесо фортуны</h3>
     </div>
-    <p style="font-size:12px;color:var(--muted);text-align:center;">Бесплатное вращение каждые 30 минут. Выиграй до 100,000 GRAM или номер +888!</p>
-    <div class="wheel-wrap">
-      <div class="wheel-pointer">🔻</div>
-      <div class="wheel-disc" id="wheelDisc"><div class="wheel-center">🎡</div></div>
+    <p style="font-size:12px;color:var(--muted);text-align:center;">Бесплатно раз в 30 мин. Награды зачисляются мгновенно!</p>
+
+    <div class="wheel-stage">
+      <div class="wheel-pin">🔻</div>
+      <canvas id="wheelCanvas" width="540" height="540"></canvas>
+      <div class="wheel-hub">🎡</div>
     </div>
-    <button class="btn-spin-big" id="wheelBtn" onclick="app.spinWheel()">Крутить бесплатно</button>
+
+    <button class="btn-spin-main" id="wheelSpinBtn" onclick="app.spinWheel()">Крутить бесплатно</button>
+
+    <div class="prize-table">
+      <div class="prize-row"><span class="prize-dot" style="background:#10b981;"></span><span>2 500 GRAM</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#3b82f6;"></span><span>10 000 GRAM</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#a855f7;"></span><span>🍀 Удача ×2 на 1 час</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#f59e0b;"></span><span>25 000 GRAM</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#ec4899;"></span><span>📦 Редкий @username</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#14b8a6;"></span><span>50 000 GRAM</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#eab308;"></span><span>📞 Анонимный номер +888 (Epic)</span></div>
+      <div class="prize-row"><span class="prize-dot" style="background:#ef4444;"></span><span>💎 ДЖЕКПОТ 250 000 GRAM</span></div>
+    </div>
   </div>
 
-  <!-- ЗАДАНИЯ ДНЯ -->
-  <div id="view-quests" class="view">
+  <!-- КРАФТЫ -->
+  <div id="view-craft" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Задания дня</h3>
+      <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
+      <h3 style="font-size:18px;font-weight:900;">Крафты</h3>
     </div>
+    <div class="card-box" style="border-color:var(--ruby);">
+      <div style="font-size:13px;font-weight:900;color:var(--gold);">⚗️ Слияние 5 предметов в следующую редкость</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Шанс успеха — 75%. При перегреве (25%) все 5 предметов сгорают!</div>
+    </div>
+    <div id="craftList"></div>
+  </div>
+
+  <!-- ПОЛЬЗОВАТЕЛЬСКИЕ КЛАНЫ + MINTGENERAL -->
+  <div id="view-clans" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
+        <h3 style="font-size:18px;font-weight:900;">Кланы</h3>
+      </div>
+      <button class="btn-Ruby" id="leaveClanBtn" style="display:none;background:var(--ruby);color:#fff;border:none;padding:7px 12px;border-radius:10px;font-size:11px;font-weight:900;" onclick="app.leaveClan()">Покинуть клан</button>
+    </div>
+
+    <div class="card-box" style="border-color:var(--gold);">
+      <div style="font-size:13px;font-weight:900;color:var(--gold);">Создать собственный Клан (1,000,000 GRAM)</div>
+      <div style="font-size:11px;color:var(--muted);margin:4px 0 10px;">Чем больше людей в клане и выше уровень казны — тем выше бонус к прибыли всех каналов!</div>
+      <div style="display:flex;gap:8px;">
+        <input type="text" id="newClanName" maxlength="16" placeholder="Название (3-16 симв.)" style="flex:1;background:var(--bg-elev);border:1px solid var(--border);color:var(--text);padding:10px;border-radius:11px;font-size:12px;">
+        <button class="btn-em" onclick="app.createClan()">Создать (1M)</button>
+      </div>
+    </div>
+
+    <div id="clansList"></div>
+  </div>
+
+  <!-- ЗАДАНИЯ, ДОСТИЖЕНИЯ, ПАСС, ПОДАРОК, РЕЙТИНГ, ВЫСТАВЛЕНИЕ ЛОТА, МАГАЗИН -->
+  <div id="view-quests" class="view">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:18px;font-weight:900;">Задания дня</h3></div>
     <div id="questsList"></div>
   </div>
 
-  <!-- ДОСТИЖЕНИЯ -->
   <div id="view-ach" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Таблица достижений</h3>
-    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:18px;font-weight:900;">Достижения</h3></div>
     <div id="achList"></div>
   </div>
 
-  <!-- СЕЗОННЫЙ ПРОПУСК (50 УРОВНЕЙ) -->
   <div id="view-pass" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Сезонный пропуск (50 ур.)</h3>
-    </div>
-    <div class="item-card" style="border-color:var(--accent);">
-      <div style="font-size:13px;font-weight:900;">Очки сезона: <span id="passXpVal" style="color:var(--gold);">0 XP</span></div>
-      <div style="font-size:11px;color:var(--muted);margin-top:2px;">+2 XP за каждый бросок • +15 XP за крафт • +50 XP за задания</div>
-    </div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:18px;font-weight:900;">Сезонный пропуск (50 ур.)</h3></div>
+    <div class="card-box"><b id="passHeaderTxt" style="color:var(--gold);">Очки сезона: 0 XP</b></div>
     <div id="passList"></div>
   </div>
 
-  <!-- КРАФТ 5 В 1 -->
-  <div id="view-craft" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Плавильня (Крафт 5 в 1)</h3>
-    </div>
-    <div class="item-card" style="border-color:var(--danger);">
-      <div style="font-size:13px;font-weight:900;color:var(--gold);">⚠️ Внимание: риск сгорания 25%</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Выбери 5 предметов одной редкости. При успехе (75%) ты получишь предмет следующего тира, но при неудаче все 5 сгорят!</div>
-    </div>
-    <div id="craftGroups"></div>
-  </div>
-
-  <!-- ЕЖЕДНЕВНЫЙ ПОДАРОК (7 ДНЕЙ) -->
   <div id="view-daily" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Ежедневный подарок</h3>
-    </div>
-    <div id="dailyGrid"></div>
-    <button class="btn-spin-big" style="margin-top:12px;" onclick="app.claimDaily()">Забрать награду дня</button>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:18px;font-weight:900;">Ежедневный подарок</h3></div>
+    <div id="dailyList"></div>
+    <button class="btn-spin-main" style="margin-top:10px;" onclick="app.claimDaily()">Забрать подарок дня</button>
   </div>
 
-  <!-- ВЫСТАВЛЕНИЕ ЛОТА НА РЫНОК / АУКЦИОН -->
+  <div id="view-leaders" class="view">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:18px;font-weight:900;">Рейтинг игроков</h3></div>
+    <div id="leadersList"></div>
+  </div>
+
   <div id="view-sell_lot" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('market')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Выставить предмет на Рынок</h3>
-    </div>
-    <div class="item-card">
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">1. Выбери предмет из Хранилища:</div>
-      <select id="lotTagSelect" style="width:100%;padding:10px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:12px;"></select>
-
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">2. Тип сделки:</div>
-      <select id="lotTypeSelect" style="width:100%;padding:10px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:12px;">
-        <option value="1">🔨 Аукцион на время (перебитие ставок)</option>
-        <option value="0">💰 Фиксированная продажа</option>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('market')">‹ Назад</button><h3 style="font-size:18px;font-weight:900;">Выставить на Рынок</h3></div>
+    <div class="card-box">
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Предмет из Сейфа:</div>
+      <select id="lotItemSel" style="width:100%;padding:10px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:10px;"></select>
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Формат:</div>
+      <select id="lotModeSel" style="width:100%;padding:10px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:10px;">
+        <option value="1">🔨 Аукцион (ставки с возвратом)</option>
+        <option value="0">💰 Фиксированная цена</option>
       </select>
-
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">3. Начальная цена (GRAM):</div>
-      <input type="number" id="lotPriceInp" value="1000" style="width:100%;padding:10px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:12px;">
-
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">4. Длительность торгов:</div>
-      <select id="lotHoursSelect" style="width:100%;padding:10px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:14px;">
-        <option value="1">1 час</option>
-        <option value="3" selected>3 часа</option>
-        <option value="6">6 часов</option>
-        <option value="12">12 часов</option>
-        <option value="24">24 часа</option>
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Цена / Старт (GRAM):</div>
+      <input type="number" id="lotPriceVal" value="5000" style="width:100%;padding:10px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:10px;">
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Время торгов:</div>
+      <select id="lotHoursVal" style="width:100%;padding:10px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:14px;">
+        <option value="1">1 час</option><option value="3" selected>3 часа</option><option value="6">6 часов</option><option value="12">12 часов</option><option value="24">24 часа</option>
       </select>
-
-      <button class="btn-spin-big" onclick="app.createMarketLot()">Опубликовать лот на Рынке</button>
+      <button class="btn-spin-main" onclick="app.createLot()">Опубликовать на Бирже</button>
     </div>
   </div>
 
-  <!-- МАГАЗИН / ДОНАТ -->
+  <!-- МАГАЗИН ДОНАТА -->
   <div id="view-donate" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;color:var(--gold);">⭐ Магазин Telegram Stars</h3>
+      <button class="btn-ghost" onclick="ui.nav('play')">‹ Назад</button>
+      <h3 style="font-size:18px;font-weight:900;color:var(--gold);">⭐ Магазин Telegram Stars</h3>
     </div>
-    <div id="donateCatalog"></div>
+    <div id="donateList"></div>
   </div>
 
-  <!-- РЕЙТИНГ И КЛАНЫ -->
-  <div id="view-leaders" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Мировой Рейтинг</h3>
-    </div>
-    <div id="leadersBox"></div>
-  </div>
-
-  <div id="view-clans" class="view">
-    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Кланы (+15% к доходу)</h3>
-    </div>
-    <div id="clansBox"></div>
-  </div>
-
-  <!-- НАСТРОЙКИ И ТЕМА -->
+  <!-- ПОЛНЫЕ НАСТРОЙКИ И ПОМОЩЬ (КАК НА СКРИНАХ 15 И 16) -->
   <div id="view-settings" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-outline" onclick="ui.nav('more')">‹ Назад</button>
-      <h3 style="font-size:17px;font-weight:900;">Настройки оформления</h3>
+      <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
+      <h3 style="font-size:18px;font-weight:900;">Настройки</h3>
     </div>
-    <div class="setting-row" onclick="ui.toggleTheme()">
-      <div>
-        <div style="font-size:14px;font-weight:800;">Светлая зелено-белая тема</div>
-        <div style="font-size:11px;color:var(--muted);">Переключить между Темным Изумрудом и Светлой темой</div>
+
+    <div class="set-group-title">Игра</div>
+    <div class="set-card">
+      <div class="set-row" onclick="ui.toggleSetting('sound')">
+        <div><div style="font-size:14px;font-weight:800;">Звук прокрутки</div><div style="font-size:11px;color:var(--muted);">Тактильные щелчки слота и аккорд редких дропов</div></div>
+        <div class="toggle on" id="tgl-sound"></div>
       </div>
-      <div class="switch" id="themeSwitch"></div>
+      <div class="set-row" onclick="ui.toggleSetting('vibro')">
+        <div><div style="font-size:14px;font-weight:800;">Вибрация</div><div style="font-size:11px;color:var(--muted);">Отклик при выбивании номеров и тегов</div></div>
+        <div class="toggle on" id="tgl-vibro"></div>
+      </div>
+      <div class="set-row" onclick="ui.toggleSetting('fast')">
+        <div><div style="font-size:14px;font-weight:800;">Быстрая прокрутка</div><div style="font-size:11px;color:var(--muted);">Номер и юзернейм открываются сразу, без посимвольной анимации</div></div>
+        <div class="toggle" id="tgl-fast"></div>
+      </div>
+      <div class="set-row" onclick="ui.toggleSetting('autosave')">
+        <div><div style="font-size:14px;font-weight:800;">Сами едут в Хранилище</div><div style="font-size:11px;color:var(--muted);">Мифические и дороже сразу сохраняются в Сейф</div></div>
+        <div class="toggle on" id="tgl-autosave"></div>
+      </div>
+      <div class="set-row" onclick="ui.toggleSetting('shine')">
+        <div><div style="font-size:14px;font-weight:800;">Блеск редких номеров</div><div style="font-size:11px;color:var(--muted);">Праздничное свечение и салют у легендарных и круче</div></div>
+        <div class="toggle on" id="tgl-shine"></div>
+      </div>
+      <div class="set-row" onclick="ui.toggleTheme()">
+        <div><div style="font-size:14px;font-weight:800;">Светлая тема оформления</div><div style="font-size:11px;color:var(--muted);">Переключить на бело-изумрудный дизайн</div></div>
+        <div class="toggle" id="tgl-theme"></div>
+      </div>
     </div>
-    <div class="setting-row" onclick="ui.toggleVibro()">
-      <div>
-        <div style="font-size:14px;font-weight:800;">Тактильная вибрация</div>
-        <div style="font-size:11px;color:var(--muted);">Отклик при выбивании редких номеров и тегов</div>
+
+    <div class="set-group-title">Помощь и Правила</div>
+    <div class="set-card">
+      <div class="set-row" onclick="ui.showInfoModal('how')">
+        <div><div style="font-size:14px;font-weight:800;">Как играть</div><div style="font-size:11px;color:var(--muted);">Обучение по @username, +888 номерам и SIM-шлюзу</div></div>
+        <span style="color:var(--muted);">›</span>
       </div>
-      <div class="switch on" id="vibroSwitch"></div>
+      <div class="set-row" onclick="ui.showInfoModal('multi')">
+        <div><div style="font-size:14px;font-weight:800;">За что дают × (Таблица ценности)</div><div style="font-size:11px;color:var(--muted);">Все сочетания букв, цифр +888 и их множители</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
+      <div class="set-row" onclick="window.open('https://t.me/MintTagsBot','_blank')">
+        <div><div style="font-size:14px;font-weight:800;">Написать в поддержку</div><div style="font-size:11px;color:var(--muted);">@MintTagsBot • вопросы, баги и предложения</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
+      <div class="set-row" onclick="ui.showInfoModal('terms')">
+        <div><div style="font-size:14px;font-weight:800;">Пользовательское соглашение</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
+      <div class="set-row" onclick="ui.showInfoModal('privacy')">
+        <div><div style="font-size:14px;font-weight:800;">Политика конфиденциальности</div></div>
+        <span style="color:var(--muted);">›</span>
+      </div>
     </div>
   </div>
 
-  <!-- НИЖНИЙ ТАББАР (5 КНОПОК КАК НА СКРИНШОТАХ) -->
+  <!-- ТАББАР -->
   <div class="tabbar">
-    <div class="tab-item active" id="tab-play" onclick="ui.nav('play')">
+    <div class="tab-btn active" id="tab-play" onclick="ui.nav('play')">
       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Играть</span>
     </div>
-    <div class="tab-item" id="tab-storage" onclick="ui.nav('storage')">
+    <div class="tab-btn" id="tab-storage" onclick="ui.nav('storage')">
       <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg><span>Хранилище</span>
     </div>
-    <div class="tab-item" id="tab-market" onclick="ui.nav('market')">
+    <div class="tab-btn" id="tab-market" onclick="ui.nav('market')">
       <svg viewBox="0 0 24 24"><path d="M20 4H4v2h16V4zm1 10v-2l-1-5H4l-1 5v2h1v6h10v-6h4v6h2v-6h1zm-9 4H6v-4h6v4z"/></svg><span>Рынок</span>
     </div>
-    <div class="tab-item" id="tab-friends" onclick="ui.nav('friends')">
+    <div class="tab-btn" id="tab-friends" onclick="ui.nav('friends')">
       <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg><span>Друзья</span>
     </div>
-    <div class="tab-item" id="tab-more" onclick="ui.nav('more')">
+    <div class="tab-btn" id="tab-more" onclick="ui.nav('more')">
       <svg viewBox="0 0 24 24"><path d="M6 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm12 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-6 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"/></svg><span>Ещё</span>
     </div>
   </div>
 
   <script>
     const tg = window.Telegram?.WebApp;
-    if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#070b09'); tg.setBackgroundColor('#070b09'); }
+    if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#090b10'); tg.setBackgroundColor('#090b10'); }
 
     const BOT_USERNAME = "MintTagsBot";
     const API = window.location.origin.includes("http") ? window.location.origin : "https://atminttagsbot.onrender.com";
@@ -634,36 +702,81 @@
     const COLORS = {
       "Common": "#94a3b8", "Uncommon": "#22c55e", "Rare": "#3b82f6", "Epic": "#a855f7",
       "Legendary": "#f59e0b", "Mythic": "#ec4899", "Luxury": "#06b6d4",
-      "Ultra-Mythic": "#ef4444", "Exclusive": "#d946ef", "Divine": "#eab308"
+      "Ultra-Mythic": "#ef4444", "Exclusive": "#d946ef", "Divine": "#fde047"
     };
 
     const TIERS = {
-      tier_0: { title: "⚡ Обычный+",    base: 100,    desc: "Все 10 редкостей в пуле" },
-      tier_1: { title: "🟢 Необычный+",  base: 300,    desc: "Без обычного мусора" },
-      tier_2: { title: "🔵 Редкий+",     base: 1000,   desc: "Гарантия Rare и выше" },
-      tier_3: { title: "🟣 Эпический+",  base: 3500,   desc: "Только Epic, Блогеры и выше" },
-      tier_4: { title: "🟠 Легендарный+",base: 12000,  desc: "Гарантия Legendary и выше" },
-      tier_5: { title: "🔴 Мифический+", base: 35000,  desc: "Охота за 3-4 буквами и хитами +888" },
-      tier_6: { title: "💎 Luxury+",     base: 100000, desc: "Элита: Luxury, Exclusive и Divine" }
+      tier_0: { title: "⚡ Обычный+",     u: 100,    n: 25000,    desc: "Все редкости в пуле" },
+      tier_1: { title: "🟢 Необычный+",   u: 300,    n: 75000,    desc: "Отсекает Common" },
+      tier_2: { title: "🔵 Редкий+",      u: 1000,   n: 250000,   desc: "Гарантия Rare и выше" },
+      tier_3: { title: "🟣 Эпический+",   u: 3500,   n: 850000,   desc: "Только Epic и выше" },
+      tier_4: { title: "🟠 Легендарный+", u: 12000,  n: 2500000,  desc: "Гарантия Legendary+" },
+      tier_5: { title: "🔴 Мифический+",  u: 35000,  n: 7500000,  desc: "Охота за хитами Mythic+" },
+      tier_6: { title: "💎 Luxury+",      u: 100000, n: 20000000, desc: "Только Luxury, Exclusive, Divine" }
     };
 
-    const DONATE_ITEMS = [
-      { key: "vip_pass",     title: "👑 VIP Game Pass (30 дн.)", desc: "Доход x2, Удача x1.5, +50 мест в Хранилище и +25K GRAM", stars: 89 },
-      { key: "hold_plus_50", title: "💼 +50 слотов в Хранилище", desc: "Расширяет вместимость сейфа ХОЛД навсегда", stars: 45 },
-      { key: "channel_slot", title: "📢 Новый слот Канала",      desc: "Дополнительный слот для пассивного заработка", stars: 59 },
-      { key: "num_888_box",  title: "📞 Бокс номера +888",       desc: "Гарантированный Legendary номер +888 в сейф", stars: 75 },
-      { key: "luck_x2_1h",   title: "🍀 Удача ×2 на 1 час",      desc: "Удваивает шансы на редкие комбинации", stars: 19 },
-      { key: "luck_x3_2h",   title: "🔥 Удача ×3 на 2 часа",     desc: "Максимальный буст на Exclusive и Divine", stars: 39 },
-      { key: "coins_50k",    title: "🪙 50 000 GRAM",            desc: "Быстрое пополнение баланса", stars: 15 },
-      { key: "coins_250k",   title: "💰 250 000 GRAM",           desc: "Капитал для дорогих прокруток и аукционов", stars: 49 }
+    const DONATE_CATALOG = [
+      { key: "spin_10_stars", title: "⚡ 10× Прокрутов сразу (Rare+)",  desc: "Мгновенное открытие 10 предметов выбранного типа в Сейф", stars: 150 },
+      { key: "spin_25_stars", title: "🔥 25× Мега-Прокрутов (Epic+)",  desc: "25 элитных предметов сразу в Хранилище без ожидания", stars: 219 },
+      { key: "hold_plus_50",  title: "💼 +50 слотов в Хранилище",      desc: "Навсегда расширяет вместимость твоего сейфа", stars: 45 },
+      { key: "luck_x2_1h",    title: "🍀 Буст Удачи ×2 (1 час)",       desc: "Удваивает шанс на выпадение редких комбинаций", stars: 19 },
+      { key: "luck_x5_2h",    title: "🔥 Мега Удача ×5 (2 часа)",      desc: "В 5 раз выше шанс выбить Divine и +888 0XXX", stars: 49 },
+      { key: "vip_pass",      title: "👑 VIP Game Pass (30 дней)",     desc: "Доход каналов ×2, Удача ×1.5, +50 слотов и +50K GRAM", stars: 89 },
+      { key: "channel_slot",  title: "📢 Новый слот Канала",           desc: "Позволяет поставить еще один @username на фарм", stars: 59 },
+      { key: "num_888_box",   title: "📞 Секретный Бокс +888 (Mythic)",desc: "Гарантированный Mythic номер +888 с SIM-множителем ×5.5", stars: 99 },
+      { key: "coins_100k",    title: "🪙 100 000 GRAM",                desc: "Пополнение баланса", stars: 25 },
+      { key: "coins_500k",    title: "💰 500 000 GRAM Магната",        desc: "Капитал для круток +888 номеров", stars: 75 }
     ];
 
+    /* ================= СИНТЕЗАТОР ДОФАМИНОВЫХ ЗВУКОВ СЛОТА (WEB AUDIO API) ================= */
+    const sfx = {
+      ctx: null,
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) this.ctx = new AudioCtx();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
+      },
+      tick(pitch = 520) {
+        if (!app.cfg.sound) return;
+        this.init();
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(pitch, this.ctx.currentTime);
+        gain.gain.setValueAtTime(0.08, this.ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.045);
+        osc.connect(gain); gain.connect(this.ctx.destination);
+        osc.start(); osc.stop(this.ctx.currentTime + 0.05);
+      },
+      win(rarIdx) {
+        if (!app.cfg.sound) return;
+        this.init();
+        if (!this.ctx) return;
+        const notes = rarIdx >= 4 ? [523.25, 659.25, 783.99, 1046.5] : [440, 554.37, 659.25];
+        notes.forEach((freq, i) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = rarIdx >= 4 ? 'sine' : 'triangle';
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime + i * 0.07);
+          gain.gain.setValueAtTime(0.14, this.ctx.currentTime + i * 0.07);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + i * 0.07 + 0.28);
+          osc.connect(gain); gain.connect(this.ctx.destination);
+          osc.start(this.ctx.currentTime + i * 0.07);
+          osc.stop(this.ctx.currentTime + i * 0.07 + 0.3);
+        });
+      }
+    };
+
     const app = {
-      s: null, itemType: 'username', tier: 'tier_0', spinMult: 1, mktFilter: 'all', vibro: true, wheelDeg: 0,
+      s: null, itemType: 'username', tier: 'tier_0', spinMult: 1, mktFilter: 'all', wheelAngle: 0,
+      cfg: { sound: true, vibro: true, fast: false, autosave: true, shine: true },
 
       async init() {
         if (localStorage.getItem('mt_theme') === 'light') ui.toggleTheme(true);
-        document.getElementById('cleanRefDisplay').innerText = `t.me/${BOT_USERNAME}?startapp=ref_${UID}`;
+        ui.drawWheelCanvas();
         try {
           await fetch(`${API}/api/login`, {
             method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -684,29 +797,43 @@
 
       tick() {
         if (!this.s) return;
-        const eq = this.s.tags.filter(t => t.eq === 1);
-        if (eq.length > 0) {
-          let inc = eq.reduce((a, b) => a + b.inc, 0) + (this.s.smm * 2) + (this.s.buyer * 10);
-          if (this.s.is_vip) inc *= 2;
-          if (this.s.clan_id) inc *= 1.15;
-          this.s.balance += inc;
-          ui.updateBalanceBar();
+        const rate = this.calcPassiveRate();
+        if (rate > 0) {
+          this.s.balance += rate;
+          ui.updateBalanceUI();
         }
       },
 
+      calcPassiveRate() {
+        if (!this.s) return 0;
+        const chTags = this.s.tags.filter(t => t.eq === 1 && t.slot < 90);
+        const simTag = this.s.tags.find(t => t.eq === 1 && t.slot === 99);
+        const chSum = chTags.reduce((a, b) => a + b.inc, 0);
+        const simMult = simTag ? (simTag.sim || 1.25) : 1.0;
+        const simDirect = simTag ? simTag.inc : 0;
+        let total = (chSum > 0 ? (chSum + this.s.smm * 5 + this.s.buyer * 25) * simMult : 0) + simDirect;
+        if (this.s.is_vip) total *= 2;
+        if (this.s.clan_id) {
+          const cl = this.s.clans.find(c => c.id === this.s.clan_id);
+          if (cl) total *= (1 + cl.bonus / 100);
+        }
+        return total;
+      },
+
       getSpinCost() {
-        const mult = this.itemType === 'number' ? 5 : 1;
-        return TIERS[this.tier].base * mult * this.spinMult;
+        const t = TIERS[this.tier];
+        const unit = this.itemType === 'number' ? t.n : t.u;
+        return unit * this.spinMult;
       },
 
       setItemType(t) {
         this.itemType = t;
-        document.getElementById('seg-username').classList.toggle('active', t === 'username');
-        document.getElementById('seg-number').classList.toggle('active', t === 'number');
-        document.getElementById('selTypeLabel').innerText = t === 'number' ? '📞 +888 Номера (x5)' : '💎 TON Юзернеймы';
+        document.getElementById('seg-u').classList.toggle('active', t === 'username');
+        document.getElementById('seg-n').classList.toggle('active', t === 'number');
+        document.getElementById('selTypeTxt').innerText = t === 'number' ? '📞 +888 Номера' : '💎 @Юзернеймы';
         document.getElementById('plateRegion').innerText = t === 'number' ? '+888' : 'TON';
-        document.getElementById('plateSub').innerText = t === 'number' ? 'ANON' : 'ID';
-        document.getElementById('plateText').innerText = t === 'number' ? '+888 0777' : '@MINTTAGS';
+        document.getElementById('plateSub').innerText = t === 'number' ? 'SIM' : 'ID';
+        document.getElementById('plateCode').innerText = t === 'number' ? '+888 0777' : '@MINTTAGS';
         ui.updateSpinBtn();
       },
 
@@ -714,17 +841,44 @@
         this.setItemType(this.itemType === 'username' ? 'number' : 'username');
       },
 
-      setTier(tk) {
+      selectTier(tk) {
         this.tier = tk;
-        document.getElementById('selTierLabel').innerText = TIERS[tk].title;
+        document.getElementById('selTierTxt').innerText = TIERS[tk].title;
         document.getElementById('tierSheet').style.display = 'none';
         ui.updateSpinBtn();
       },
 
-      toggleSpinMult() {
-        this.spinMult = this.spinMult === 1 ? 5 : 1;
-        document.getElementById('spinMultBtn').innerText = `${this.spinMult}×`;
+      selectSpinCount(cnt) {
+        this.spinMult = cnt;
+        document.getElementById('selMultTxt').innerText = `${cnt}×`;
+        document.getElementById('multSheet').style.display = 'none';
         ui.updateSpinBtn();
+      },
+
+      async animateRevealText(targetStr, rarIdx) {
+        const el = document.getElementById('plateCode');
+        if (this.cfg.fast) {
+          el.innerText = targetStr;
+          sfx.win(rarIdx);
+          return;
+        }
+        const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        const len = targetStr.length;
+        for (let pos = 1; pos <= len; pos++) {
+          for (let scramble = 0; scramble < 2; scramble++) {
+            let s = targetStr.slice(0, pos - 1);
+            for (let k = pos - 1; k < len; k++) {
+              const ch = targetStr[k];
+              s += (ch === ' ' || ch === '@' || ch === '+') ? ch : chars[Math.floor(Math.random() * chars.length)];
+            }
+            el.innerText = s;
+            await new Promise(r => setTimeout(r, 22));
+          }
+          sfx.tick(420 + pos * 45);
+          if (this.cfg.vibro && tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
+        }
+        el.innerText = targetStr;
+        sfx.win(rarIdx);
       },
 
       async mint() {
@@ -735,66 +889,93 @@
         }
         const btn = document.getElementById('mainSpinBtn');
         btn.disabled = true;
+        document.getElementById('stageCard').classList.remove('celebrate-leg');
 
         try {
           const r = await fetch(`${API}/api/mint`, {
             method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({ user_id: UID, item_type: this.itemType, tier: this.tier, spin_count: this.spinMult })
+            body: JSON.stringify({
+              user_id: UID, item_type: this.itemType, tier: this.tier,
+              spin_count: this.spinMult, auto_save_mythic: this.cfg.autosave
+            })
           });
           if (!r.ok) {
             ui.toast((await r.json()).detail, true);
           } else {
             const d = await r.json();
-            if (d.auto_sold > 0) ui.toast(`Несохраненный дроп продан за +${d.auto_sold.toLocaleString()} G`);
-            if (this.vibro && tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('heavy');
-
-            const sBox = document.getElementById('singleStage');
-            const mBox = document.getElementById('multiStage');
-
-            if (this.spinMult === 1) {
-              sBox.style.display = 'block'; mBox.style.display = 'none';
-              const item = d.drops[0];
-              const c = COLORS[item.rarity] || '#fff';
-              document.getElementById('plateRegion').innerText = item.type === 'number' ? '+888' : 'TON';
-              document.getElementById('plateSub').innerText = item.rarity.slice(0, 4).toUpperCase();
-              document.getElementById('plateText').innerText = item.tag;
-              document.getElementById('plateEl').style.borderColor = c;
-              document.getElementById('plateMeta').innerHTML = `<b style="color:${c};">${item.rarity}</b> • Рынок: <b>${item.sell.toLocaleString()} G</b> (+${item.inc}/с)`;
-
-              const rEl = document.getElementById('plateReasons');
-              rEl.style.display = 'block';
-              rEl.innerHTML = item.reasons.map(x => `<div>${x}</div>`).join('');
-
-              const act = document.getElementById('singleActions');
-              act.style.display = 'flex';
-              act.innerHTML = `
-                <button class="btn-green" style="flex:1;padding:11px;" onclick="app.itemAction('${item.tag}','save',1,this)">📥 В Хранилище</button>
-                <button class="btn-outline" style="flex:1;padding:11px;border-color:var(--gold);color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">Продать +${item.sell.toLocaleString()}</button>
-              `;
-              if (Object.keys(COLORS).indexOf(item.rarity) >= 4) {
-                confetti({ particleCount: 95, spread: 70, origin: { y: 0.55 }, colors: [c, '#ffffff'] });
-              }
-            } else {
-              sBox.style.display = 'none'; mBox.style.display = 'flex';
-              mBox.innerHTML = d.drops.map(item => {
-                const c = COLORS[item.rarity] || '#fff';
-                return `
-                  <div class="item-card" style="margin:0;padding:10px;display:flex;justify-content:space-between;align-items:center;border-left:4px solid ${c};">
-                    <div>
-                      <div style="font-family:monospace;font-size:15px;font-weight:900;color:${c};">${item.tag}</div>
-                      <div style="font-size:10px;color:var(--muted);">${item.rarity} • +${item.inc}/с</div>
-                    </div>
-                    <div style="display:flex;gap:6px;">
-                      <button class="btn-green" style="padding:6px 10px;" onclick="app.itemAction('${item.tag}','save',1,this)">В Сейф</button>
-                      <button class="btn-outline" style="padding:6px 10px;color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">+${item.sell}</button>
-                    </div>
-                  </div>`;
-              }).join('');
-            }
+            if (d.auto_sold > 0) ui.toast(`Прошлый несохраненный дроп продан за +${d.auto_sold.toLocaleString()} G`);
+            await this.displayDropsResult(d.drops);
             await this.sync();
           }
         } catch (e) { ui.toast("Ошибка соединения", true); }
         btn.disabled = false;
+      },
+
+      async displayDropsResult(drops) {
+        const sBox = document.getElementById('singleStage');
+        const mBox = document.getElementById('multiStage');
+
+        if (drops.length === 1) {
+          sBox.style.display = 'block'; mBox.style.display = 'none';
+          const item = drops[0];
+          const c = COLORS[item.rarity] || '#fff';
+          document.getElementById('plateRegion').innerText = item.type === 'number' ? '+888' : 'TON';
+          document.getElementById('plateSub').innerText = item.rarity.slice(0, 4).toUpperCase();
+          document.getElementById('singleActions').style.display = 'none';
+
+          await this.animateRevealText(item.tag, item.rar_idx || 0);
+
+          document.getElementById('plateFrame').style.borderColor = c;
+          document.getElementById('plateMeta').innerHTML = `<b style="color:${c};">${item.rarity}</b> • Оценка: <b>${item.sell.toLocaleString()} G</b> (+${item.inc}/с)`;
+
+          const rEl = document.getElementById('plateReasons');
+          rEl.style.display = 'block';
+          rEl.innerHTML = item.reasons.map(x => `<div>${x}</div>`).join('');
+
+          const act = document.getElementById('singleActions');
+          act.style.display = 'flex';
+          if (item.auto_saved) {
+            act.innerHTML = `<div style="width:100%;padding:10px;background:var(--emerald-glow);border:1px solid var(--emerald);border-radius:12px;color:var(--emerald);font-weight:900;font-size:12px;">✅ Автоматически отправлен в Хранилище!</div>`;
+          } else {
+            act.innerHTML = `
+              <button class="btn-em" style="flex:1;padding:12px;" onclick="app.itemAction('${item.tag}','save',1,this)">📥 В Хранилище</button>
+              <button class="btn-ghost" style="flex:1;padding:12px;border-color:var(--gold);color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">Продать +${item.sell.toLocaleString()}</button>
+            `;
+          }
+
+          if (this.cfg.shine && (item.rar_idx >= 4 || Object.keys(COLORS).indexOf(item.rarity) >= 4)) {
+            document.getElementById('stageCard').classList.add('celebrate-leg');
+            const fl = document.getElementById('screenFlash');
+            fl.style.background = c; fl.style.opacity = '0.28';
+            setTimeout(() => fl.style.opacity = '0', 400);
+            confetti({ particleCount: 110, spread: 80, origin: { y: 0.55 }, colors: [c, '#ffffff'] });
+            if (this.cfg.vibro && tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+          }
+        } else {
+          sBox.style.display = 'none'; mBox.style.display = 'flex';
+          sfx.win(4);
+          mBox.innerHTML = drops.map(item => {
+            const c = COLORS[item.rarity] || '#fff';
+            return `
+              <div class="card-box" style="margin:0;padding:10px;display:flex;justify-content:space-between;align-items:center;border-left:4px solid ${c};">
+                <div>
+                  <div style="font-family:monospace;font-size:15px;font-weight:900;color:${c};">${item.tag}</div>
+                  <div style="font-size:10px;color:var(--muted);">${item.rarity} • +${item.inc}/с</div>
+                </div>
+                <div style="display:flex;gap:6px;">
+                  ${item.auto_saved ? `<span style="font-size:11px;color:var(--emerald);font-weight:900;">В Сейфе ✓</span>` : `
+                    <button class="btn-em" style="padding:6px 10px;" onclick="app.itemAction('${item.tag}','save',1,this)">В Сейф</button>
+                    <button class="btn-ghost" style="padding:6px 10px;color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">+${item.sell.toLocaleString()}</button>
+                  `}
+                </div>
+              </div>`;
+          }).join('');
+        }
+      },
+
+      async buyBulkSpins(packKey) {
+        document.getElementById('multSheet').style.display = 'none';
+        await this.buyStars(packKey);
       },
 
       async itemAction(tag, type, slot = 1, btn = null) {
@@ -804,24 +985,63 @@
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
         if (btn) { btn.disabled = true; btn.innerText = "✓"; }
-        ui.toast(type === 'save' ? 'Сохранено в Хранилище!' : (type === 'sell' ? 'Продано!' : 'Обновлено!'));
+        ui.toast(type === 'save' ? 'Сохранено в Сейф!' : (type === 'sell' ? 'Продано!' : 'Слот обновлен!'));
+        await this.sync();
+      },
+
+      async createClan() {
+        const name = document.getElementById('newClanName').value;
+        const r = await fetch(`${API}/api/clan/create`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, name })
+        });
+        if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
+        ui.toast(`Клан «${name}» успешно создан!`);
+        document.getElementById('newClanName').value = '';
+        await this.sync();
+      },
+
+      async joinClan(cid) {
+        const r = await fetch(`${API}/api/clan/join`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, clan_id: cid })
+        });
+        if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
+        ui.toast("Вы вступили в клан!");
+        await this.sync();
+      },
+
+      async leaveClan() {
+        const r = await fetch(`${API}/api/clan/leave`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID })
+        });
+        if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
+        ui.toast("Вы покинули клан");
+        await this.sync();
+      },
+
+      async donateClan(cid) {
+        const r = await fetch(`${API}/api/clan/donate`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, clan_id: cid, amount: 25000 })
+        });
+        if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
+        ui.toast("Взнос +25,000 GRAM отправлен на прокачку клана!");
         await this.sync();
       },
 
       async craftGroup(rarity) {
-        const candidates = this.s.tags.filter(t => t.rarity === rarity && t.eq === 0).slice(0, 5).map(t => t.tag);
-        if (candidates.length < 5) { ui.toast("Нужно 5 свободных предметов этой редкости в Сейфе!", true); return; }
+        const items = this.s.tags.filter(t => t.rarity === rarity && t.eq === 0).slice(0, 5).map(t => t.tag);
+        if (items.length < 5) { ui.toast("Нужно 5 свободных предметов этой редкости!", true); return; }
         const r = await fetch(`${API}/api/craft`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ user_id: UID, tags: candidates })
+          body: JSON.stringify({ user_id: UID, tags: items })
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
         const d = await r.json();
         if (d.burned) ui.toast(d.message, true);
-        else {
-          ui.toast(`Успешный крафт: ${d.item.tag} (${d.item.rarity})!`);
-          confetti({ particleCount: 90, spread: 70, origin: { y: 0.6 } });
-        }
+        else { ui.toast(`Успех: создан ${d.item.tag} (${d.item.rarity})!`); confetti({ particleCount: 90, spread: 70 }); }
         await this.sync();
       },
 
@@ -832,12 +1052,15 @@
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
         const d = await r.json();
-        this.wheelDeg += 1440 + (360 - d.prize_idx * 45);
-        document.getElementById('wheelDisc').style.transform = `rotate(${this.wheelDeg}deg)`;
+        const segAngle = 360 / 8;
+        const targetDeg = 1800 + (360 - (d.prize_idx * segAngle + segAngle / 2));
+        this.wheelAngle += targetDeg;
+        document.getElementById('wheelCanvas').style.transform = `rotate(${this.wheelAngle}deg)`;
         setTimeout(async () => {
+          sfx.win(4);
           ui.toast(`🎉 Выигрыш: ${d.title}!`);
           await this.sync();
-        }, 3600);
+        }, 3800);
       },
 
       async claimDaily() {
@@ -847,7 +1070,7 @@
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
         const d = await r.json();
-        ui.toast(`🎁 День ${d.day}: получено +${d.reward.toLocaleString()} GRAM!`);
+        ui.toast(`🎁 День ${d.day}: +${d.reward.toLocaleString()} GRAM!`);
         await this.sync();
       },
 
@@ -862,28 +1085,21 @@
         await this.sync();
       },
 
-      setMktFilter(f, el) {
-        this.mktFilter = f;
-        el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        el.classList.add('active');
-        ui.renderMarket();
-      },
+      setMktFilter(f) { this.mktFilter = f; ui.renderMarket(); },
 
-      async createMarketLot() {
-        const tag = document.getElementById('lotTagSelect').value;
-        const is_auction = parseInt(document.getElementById('lotTypeSelect').value);
-        const price = parseFloat(document.getElementById('lotPriceInp').value);
-        const hours = parseInt(document.getElementById('lotHoursSelect').value);
+      async createLot() {
+        const tag = document.getElementById('lotItemSel').value;
+        const is_auction = parseInt(document.getElementById('lotModeSel').value);
+        const price = parseFloat(document.getElementById('lotPriceVal').value);
+        const hours = parseInt(document.getElementById('lotHoursVal').value);
         if (!tag) { ui.toast("Выберите предмет!", true); return; }
-
         const r = await fetch(`${API}/api/market/create`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ user_id: UID, username: UNAME, tag, is_auction, price, hours })
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
-        ui.toast("Лот выставлен на Рынок!");
-        await this.sync();
-        ui.nav('market');
+        ui.toast("Лот опубликован!");
+        await this.sync(); ui.nav('market');
       },
 
       async interactLot(lot_id, act) {
@@ -892,17 +1108,16 @@
           body: JSON.stringify({ user_id: UID, username: UNAME, lot_id, act })
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
-        const d = await r.json();
-        ui.toast(d.status === 'bought' ? `Вы приобрели ${d.tag}!` : `Ставка принята! Предыдущему лидеру возвращены средства.`);
+        ui.toast("Сделка / Ставка выполнена!");
         await this.sync();
       },
 
-      async upgradeMgr(mgr_type) {
+      async upgradeMgr(k) {
         const r = await fetch(`${API}/api/upgrade_mgr`, {
           method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ user_id: UID, mgr_type })
+          body: JSON.stringify({ user_id: UID, key: k })
         });
-        if (r.ok) { ui.toast("Персонал улучшен!"); await this.sync(); }
+        if (r.ok) { ui.toast("Уровень повышен!"); await this.sync(); }
         else ui.toast((await r.json()).detail, true);
       },
 
@@ -913,40 +1128,39 @@
           if (d.invoice_link && tg?.openInvoice) {
             tg.openInvoice(d.invoice_link, async (st) => {
               if (st === 'paid') {
-                await fetch(`${API}/api/activate_donate`, {
+                const actKey = (key === 'spin_10_stars' || key === 'spin_25_stars') ? `${key}:${this.itemType}` : key;
+                const res = await fetch(`${API}/api/activate_donate`, {
                   method: 'POST', headers: {'Content-Type': 'application/json'},
-                  body: JSON.stringify({ user_id: UID, key })
+                  body: JSON.stringify({ user_id: UID, key: actKey })
                 });
-                ui.toast("Покупка успешно активирована!");
+                const actData = await res.json();
+                ui.toast("Оплата подтверждена! Бонусы выданы.");
+                if (actData.drops && actData.drops.length > 0) {
+                  ui.nav('play');
+                  await this.displayDropsResult(actData.drops);
+                }
                 await this.sync();
               }
             });
-          } else ui.toast("Откройте в Telegram для оплаты Stars", true);
-        } catch (e) { ui.toast("Ошибка платежного шлюза", true); }
+          } else ui.toast("Оплата Stars доступна внутри Telegram", true);
+        } catch (e) { ui.toast("Ошибка создания инвойса", true); }
       },
 
-      async shareReferral(mode = 'ref') {
-        // Сначала пробуем отправить подготовленное сообщение со скрытой HTML-гиперссылкой (без https://)
+      async shareRef(mode = 'ref') {
         try {
           const r = await fetch(`${API}/api/prepare_share?user_id=${UID}&mode=${mode}`);
           const d = await r.json();
-          if (d.prepared_id && tg?.shareMessage) {
-            tg.shareMessage(d.prepared_id);
-            return;
-          }
+          if (d.prepared_id && tg?.shareMessage) { tg.shareMessage(d.prepared_id); return; }
         } catch (e) {}
-        // Фолбэк без https:// протокола
         const clean = `t.me/${BOT_USERNAME}?startapp=${mode}_${UID}`;
-        const txt = "Забирай эксклюзивные @username и анонимные номера +888 в MintTags!";
+        const txt = "Забирай эксклюзивные @username и номера +888 в MintTags!";
         const url = `https://t.me/share/url?url=${encodeURIComponent(clean)}&text=${encodeURIComponent(txt)}`;
-        if (tg?.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, '_blank');
+        if (tg?.openTelegramLink) tg.openTelegramLink(url); else window.open(url, '_blank');
       },
 
-      copyCleanRef() {
-        const clean = `t.me/${BOT_USERNAME}?startapp=ref_${UID}`;
-        navigator.clipboard?.writeText(clean);
-        ui.toast("Чистая ссылка скопирована!");
+      copyRef() {
+        navigator.clipboard?.writeText(`t.me/${BOT_USERNAME}?startapp=ref_${UID}`);
+        ui.toast("Ссылка скопирована!");
       }
     };
 
@@ -955,7 +1169,7 @@
         const w = document.getElementById('toastWrap');
         const el = document.createElement('div');
         el.className = 'toast';
-        if (err) el.style.borderColor = 'var(--danger)';
+        if (err) el.style.borderColor = 'var(--ruby)';
         el.innerText = m;
         w.appendChild(el);
         setTimeout(() => el.remove(), 2600);
@@ -963,38 +1177,93 @@
 
       nav(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('view-' + id).classList.add('active');
         const tb = document.getElementById('tab-' + id);
         if (tb) tb.classList.add('active');
       },
 
-      openSubView(id) {
+      openSub(id) {
         document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
         document.getElementById('view-' + id).classList.add('active');
         if (id === 'sell_lot' && app.s) {
-          document.getElementById('lotTagSelect').innerHTML = app.s.tags.filter(t => !t.eq).map(t => `<option value="${t.tag}">${t.tag} (${t.rarity})</option>`).join('');
+          document.getElementById('lotItemSel').innerHTML = app.s.tags.filter(t => !t.eq).map(t => `<option value="${t.tag}">${t.tag} (${t.rarity})</option>`).join('');
         }
       },
 
-      storageTab(sub) {
-        document.getElementById('st-seg-hold').classList.toggle('active', sub === 'hold');
-        document.getElementById('st-seg-chan').classList.toggle('active', sub === 'chan');
-        document.getElementById('storage-hold-box').style.display = sub === 'hold' ? 'block' : 'none';
-        document.getElementById('storage-chan-box').style.display = sub === 'chan' ? 'block' : 'none';
+      openDonateAndBuy(autoBuyKey = null) {
+        this.openSub('donate');
+        if (autoBuyKey) {
+          setTimeout(() => app.buyStars(autoBuyKey), 180);
+        }
+      },
+
+      storageSub(sub) {
+        document.getElementById('st-hold-tab').classList.toggle('active', sub === 'hold');
+        document.getElementById('st-chan-tab').classList.toggle('active', sub === 'chan');
+        document.getElementById('st-hold-body').style.display = sub === 'hold' ? 'block' : 'none';
+        document.getElementById('st-chan-body').style.display = sub === 'chan' ? 'block' : 'none';
       },
 
       openTierSheet() {
-        const mult = app.itemType === 'number' ? 5 : 1;
-        document.getElementById('tierTableList').innerHTML = Object.entries(TIERS).map(([k, v]) => `
-          <div class="tier-row ${app.tier === k ? 'active' : ''}" onclick="app.setTier('${k}')">
-            <div>
-              <div style="font-size:13px;font-weight:900;">${v.title}</div>
-              <div style="font-size:11px;color:var(--muted);">${v.desc}</div>
-            </div>
-            <b style="color:var(--gold);font-size:13px;">${(v.base * mult).toLocaleString()} G</b>
-          </div>`).join('');
+        const isNum = app.itemType === 'number';
+        document.getElementById('tierSheetList').innerHTML = Object.entries(TIERS).map(([k, v]) => {
+          const price = isNum ? v.n : v.u;
+          return `
+            <div class="sheet-item ${app.tier === k ? 'active' : ''}" onclick="app.selectTier('${k}')">
+              <div><div style="font-size:14px;font-weight:900;">${v.title}</div><div style="font-size:11px;color:var(--muted);">${v.desc}</div></div>
+              <b style="color:var(--gold);font-size:13px;">${price.toLocaleString()} G</b>
+            </div>`;
+        }).join('');
         document.getElementById('tierSheet').style.display = 'flex';
+      },
+
+      drawWheelCanvas() {
+        const canvas = document.getElementById('wheelCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const cx = 270, cy = 270, r = 260;
+        const segments = [
+          { label: "2.5K G", color: "#10b981" },
+          { label: "10K G",  color: "#3b82f6" },
+          { label: "🍀 ×2",  color: "#9333ea" },
+          { label: "25K G",  color: "#f59e0b" },
+          { label: "📦 ТЕГ", color: "#ec4899" },
+          { label: "50K G",  color: "#14b8a6" },
+          { label: "+888",   color: "#eab308" },
+          { label: "250K 💎",color: "#ef4444" }
+        ];
+        const arc = (2 * Math.PI) / segments.length;
+        ctx.clearRect(0, 0, 540, 540);
+        segments.forEach((seg, i) => {
+          const start = i * arc - Math.PI / 2;
+          const end = start + arc;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, r, start, end);
+          ctx.closePath();
+          ctx.fillStyle = seg.color;
+          ctx.fill();
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = "rgba(0,0,0,0.35)";
+          ctx.stroke();
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(start + arc / 2);
+          ctx.textAlign = "right";
+          ctx.fillStyle = "#ffffff";
+          ctx.font = "900 24px -apple-system, sans-serif";
+          ctx.shadowColor = "rgba(0,0,0,0.6)";
+          ctx.shadowBlur = 6;
+          ctx.fillText(seg.label, r - 28, 8);
+          ctx.restore();
+        });
+      },
+
+      toggleSetting(key) {
+        app.cfg[key] = !app.cfg[key];
+        document.getElementById('tgl-' + key).classList.toggle('on', app.cfg[key]);
       },
 
       toggleTheme(forceLight = false) {
@@ -1003,15 +1272,28 @@
         else b.classList.toggle('light-theme');
         const isL = b.classList.contains('light-theme');
         localStorage.setItem('mt_theme', isL ? 'light' : 'dark');
-        document.getElementById('themeSwitch').classList.toggle('on', isL);
+        document.getElementById('tgl-theme').classList.toggle('on', isL);
       },
 
-      toggleVibro() {
-        app.vibro = !app.vibro;
-        document.getElementById('vibroSwitch').classList.toggle('on', app.vibro);
+      showInfoModal(type) {
+        const titles = {
+          how: "Как играть в MintTags",
+          multi: "За что дают × (Таблица ценностей)",
+          terms: "Пользовательское соглашение",
+          privacy: "Политика конфиденциальности"
+        };
+        const bodies = {
+          how: "<b>1. Выбивай @username и +888 номера:</b><br>Крути рулетку и сохраняй ценные находки в Сейф.<br><br><b>2. Зачем нужны +888 номера:</b><br>В отличие от обычных юзернеймов, номера +888 устанавливаются в <b>SIM-Шлюз</b> и умножают прибыль ВСЕХ твоих каналов сразу до ×15.0!<br><br><b>3. Кланы и Биржа:</b><br>Вступай в клан MintGeneral или создай свой за 1 млн GRAM, чтобы получать до +100% к доходу.",
+          multi: "<b>Таблица ценности @username и +888:</b><br>• <b>Common (Обычный):</b> +2 G/с | SIM ×1.25<br>• <b>Uncommon (Необычный):</b> +8 G/с | SIM ×1.5<br>• <b>Rare (Редкий):</b> +25 G/с | SIM ×2.0<br>• <b>Epic (Эпический):</b> +90 G/с | SIM ×2.75<br>• <b>Legendary (5 букв / лесенка):</b> +350 G/с | SIM ×4.0<br>• <b>Mythic (4 буквы / 777):</b> +900 G/с | SIM ×5.5<br>• <b>Luxury (Дубай, Деньги):</b> +2,800 G/с | SIM ×7.5<br>• <b>Ultra-Mythic (3 буквы / квадра):</b> +8,500 G/с | SIM ×10.0<br>• <b>Exclusive (Durov, TON, моно-репит):</b> +35,000 G/с | SIM ×12.5<br>• <b>Divine (2 буквы / +888 0XXX):</b> +150,000 G/с | SIM ×15.0",
+          terms: "Приложение MintTags: Media Empire является развлекательным игровым симулятором в Telegram. Все внутриигровые активы (GRAM, виртуальные теги и номера) используются исключительно внутри игрового процесса.",
+          privacy: "Мы храним только ваш публичный Telegram ID и игровое имя для синхронизации сейфа, лидерборда и начисления покупок Telegram Stars. Данные не передаются третьим лицам."
+        };
+        document.getElementById('infoModalTitle').innerText = titles[type];
+        document.getElementById('infoModalBody').innerHTML = bodies[type];
+        document.getElementById('infoSheet').style.display = 'flex';
       },
 
-      updateBalanceBar() {
+      updateBalanceUI() {
         if (!app.s) return;
         document.getElementById('topBal').innerText = Math.floor(app.s.balance).toLocaleString() + " GRAM";
         this.updateSpinBtn();
@@ -1022,184 +1304,160 @@
         const btn = document.getElementById('mainSpinBtn');
         const lack = app.s && app.s.balance < cost;
         btn.classList.toggle('lack', lack);
-        document.getElementById('spinBtnTitle').innerText = lack ? "Не хватает на ставку" : "Крутить";
-        document.getElementById('spinBtnPrice').innerText = cost.toLocaleString() + " GRAM";
+        document.getElementById('spinBtnText').innerText = lack ? "Не хватает на ставку" : "Крутить";
+        document.getElementById('spinBtnCost').innerText = cost.toLocaleString() + " GRAM";
       },
 
       renderAll() {
         const s = app.s;
         if (!s) return;
-        this.updateBalanceBar();
+        this.updateBalanceUI();
         document.getElementById('topLvl').innerText = s.level;
         document.getElementById('topLuck').innerText = `×${s.luck_multi}`;
-        document.getElementById('pityTxt').innerText = `${s.pity_100}/100`;
+        document.getElementById('p100Val').innerText = `${s.pity_100}/100`;
+        document.getElementById('p500Val').innerText = `${s.pity_500}/500`;
+        document.getElementById('topInc').innerText = `+${Math.floor(app.calcPassiveRate()).toLocaleString()}/с`;
 
-        const eq = s.tags.filter(t => t.eq === 1);
-        let inc = eq.reduce((a, b) => a + b.inc, 0);
-        if (inc > 0) inc += (s.smm * 2) + (s.buyer * 10);
-        if (s.is_vip) inc *= 2;
-        if (s.clan_id) inc *= 1.15;
-        document.getElementById('topInc').innerText = `+${Math.floor(inc).toLocaleString()}/с`;
-
-        // Хранилище (Сейф)
+        // Сейф
         document.getElementById('holdCnt').innerText = s.tags.length;
         document.getElementById('holdMax').innerText = s.max_hold;
-        document.getElementById('holdContainer').innerHTML = s.tags.map(t => {
+        document.getElementById('holdList').innerHTML = s.tags.map(t => {
           const c = COLORS[t.rarity] || '#fff';
+          const isNum = t.type === 'number';
           return `
-            <div class="item-card" style="border-left:4px solid ${c};display:flex;justify-content:space-between;align-items:center;">
+            <div class="card-box" style="border-left:4px solid ${c};display:flex;justify-content:space-between;align-items:center;">
               <div>
                 <div style="font-family:monospace;font-size:17px;font-weight:900;color:${c};">${t.tag}</div>
-                <div style="font-size:11px;color:var(--muted);">${t.rarity} • <b style="color:var(--accent);">+${t.inc}/с</b></div>
+                <div style="font-size:11px;color:var(--muted);">${t.rarity} • <b style="color:var(--emerald);">+${t.inc.toLocaleString()}/с</b> ${isNum ? `<b style="color:var(--gold);">• SIM ×${t.sim}</b>` : ''}</div>
                 <div style="font-size:10px;color:var(--muted);margin-top:2px;">${t.reasons.join(' • ')}</div>
               </div>
               <div style="display:flex;flex-direction:column;gap:5px;">
-                ${t.eq ? `<button class="btn-outline" style="padding:5px 8px;font-size:10px;" onclick="app.itemAction('${t.tag}','unequip')">Снять #${t.slot}</button>`
-                       : `<button class="btn-green" style="padding:5px 8px;font-size:10px;" onclick="app.itemAction('${t.tag}','equip',1)">На канал</button>`}
-                <button class="btn-outline" style="padding:5px 8px;font-size:10px;color:var(--gold);" onclick="app.itemAction('${t.tag}','sell')">Продать ${t.sell.toLocaleString()}</button>
+                ${t.eq ? `<button class="btn-ghost" style="padding:5px 8px;font-size:10px;" onclick="app.itemAction('${t.tag}','unequip')">Снять</button>`
+                       : `<button class="btn-em" style="padding:5px 8px;font-size:10px;" onclick="app.itemAction('${t.tag}','equip',1)">${isNum ? 'В SIM-Шлюз' : 'На канал'}</button>`}
+                <button class="btn-ghost" style="padding:5px 8px;font-size:10px;color:var(--gold);" onclick="app.itemAction('${t.tag}','sell')">Продать ${t.sell.toLocaleString()}</button>
               </div>
             </div>`;
-        }).join('') || `<div class="item-card" style="text-align:center;color:var(--muted);">Хранилище пусто</div>`;
+        }).join('') || `<div class="card-box" style="text-align:center;color:var(--muted);">Хранилище пусто</div>`;
 
-        // Каналы
+        // SIM-Шлюз и Каналы
+        const simItem = s.tags.find(t => t.eq === 1 && t.slot === 99);
+        document.getElementById('simSlotTag').innerText = simItem ? simItem.tag : "Не установлен (Выбери +888 в Сейфе)";
+        document.getElementById('simSlotTag').style.color = simItem ? COLORS[simItem.rarity] : 'var(--muted)';
+        document.getElementById('simSlotMult').innerText = `×${simItem ? simItem.sim : '1.0'}`;
+
         let chHtml = "";
         for (let i = 1; i <= s.max_channels; i++) {
           const item = s.tags.find(t => t.eq === 1 && t.slot === i);
           chHtml += `
-            <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
               <div>
-                <span style="font-size:10px;color:var(--muted);font-weight:800;">КАНАЛ / СЛОТ #${i}</span>
-                <div style="font-family:monospace;font-size:16px;font-weight:900;color:${item ? COLORS[item.rarity] : 'var(--muted)'};">${item ? item.tag : 'Свободный слот'}</div>
+                <span style="font-size:10px;color:var(--muted);font-weight:800;">КАНАЛ #${i}</span>
+                <div style="font-family:monospace;font-size:16px;font-weight:900;color:${item ? COLORS[item.rarity] : 'var(--muted)'};">${item ? item.tag : '@Свободный_слот'}</div>
               </div>
-              <b style="color:var(--gold);">${item ? '+' + item.inc + ' G/с' : '0 G/с'}</b>
+              <b style="color:var(--gold);">${item ? '+' + item.inc.toLocaleString() + ' G/с' : '0 G/с'}</b>
             </div>`;
         }
         document.getElementById('channelsList').innerHTML = chHtml;
         document.getElementById('smmLvl').innerText = s.smm;
-        document.getElementById('smmCost').innerText = (s.smm * 250).toLocaleString() + " G";
+        document.getElementById('smmCost').innerText = (s.smm * 500).toLocaleString() + " G";
         document.getElementById('buyerLvl').innerText = s.buyer;
-        document.getElementById('buyerCost').innerText = ((s.buyer + 1) * 1000).toLocaleString() + " G";
+        document.getElementById('buyerCost').innerText = ((s.buyer + 1) * 2000).toLocaleString() + " G";
 
-        // Рынок
         this.renderMarket();
 
-        // Друзья и Ещё
-        document.getElementById('friendsCnt').innerText = s.refs_count;
-        document.getElementById('moreLvlCircle').innerText = s.level;
-        document.getElementById('moreUserName').innerText = UNAME;
-        document.getElementById('moreMemNum').innerText = `#${s.member_number}`;
-        document.getElementById('moreXpTxt').innerText = `${s.xp}/${s.level * 150}`;
+        document.getElementById('refCnt').innerText = s.refs_count;
+        document.getElementById('moreLvl').innerText = s.level;
+        document.getElementById('moreName').innerText = UNAME;
+        document.getElementById('moreMem').innerText = `#${s.member_number}`;
+        document.getElementById('moreXp').innerText = `${s.xp}/${s.level * 150}`;
 
-        // Задания
-        const q = s.quests;
-        const qItems = [
-          { key: 'q1', title: 'ЛЁГКОЕ: Сделай 15 бросков', cur: q.spins, max: 15, rew: '3 000 GRAM + 50 XP Пасса' },
-          { key: 'q2', title: 'СРЕДНЕЕ: Выбей 5 редких или лучше', cur: q.rare, max: 5, rew: '7 500 GRAM + 50 XP Пасса' },
-          { key: 'q3', title: 'СЛОЖНОЕ: Проведи 1 крафт в Плавильне', cur: q.crafts, max: 1, rew: '5 000 GRAM + 50 XP Пасса' },
-          { key: 'q_all', title: '🎁 БОНУС: Выполни все 3 задания дня', cur: ['q1','q2','q3'].filter(x=>q.claimed.includes(x)).length, max: 3, rew: '25 000 GRAM + 100 XP' }
-        ];
-        document.getElementById('questsList').innerHTML = qItems.map(qi => {
-          const done = qi.cur >= qi.max;
-          const cl = q.claimed.includes(qi.key);
+        // Кланы
+        document.getElementById('leaveClanBtn').style.display = s.clan_id ? 'block' : 'none';
+        document.getElementById('clansList').innerHTML = s.clans.map(cl => {
+          const isMine = s.clan_id === cl.id;
           return `
-            <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
+            <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;${isMine ? 'border-color:var(--emerald);' : ''}">
               <div>
-                <div style="font-size:13px;font-weight:900;">${qi.title}</div>
-                <div style="font-size:11px;color:var(--muted);margin-top:3px;">Прогресс: ${Math.min(qi.cur, qi.max)}/${qi.max} • <b style="color:var(--gold);">${qi.rew}</b></div>
+                <div style="font-size:14px;font-weight:900;">🛡️ ${cl.name} <span style="font-size:11px;color:var(--gold);">Ур. ${cl.level} (+${cl.bonus}%)</span></div>
+                <div style="font-size:11px;color:var(--muted);margin-top:2px;">Участников: <b>${cl.members}/${cl.max_members}</b> • Казна: ${cl.treasury.toLocaleString()} G</div>
               </div>
-              ${cl ? `<span style="font-size:11px;color:var(--accent);font-weight:900;">Забрано ✓</span>`
-                   : (done ? `<button class="btn-green" onclick="app.claimKey('${qi.key}')">Забрать</button>` : `<span style="font-size:11px;color:var(--muted);">${Math.floor((qi.cur/qi.max)*100)}%</span>`)}
+              ${isMine ? `<button class="btn-gold-top" onclick="app.donateClan('${cl.id}')">Взнос 25K</button>`
+                       : `<button class="btn-em" onclick="app.joinClan('${cl.id}')">Вступить</button>`}
             </div>`;
         }).join('');
 
-        // Достижения
-        const achRars = ["Rare", "Epic", "Legendary", "Mythic", "Luxury", "Divine"];
+        // Крафты
+        const craftRars = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
+        document.getElementById('craftList').innerHTML = craftRars.map(cr => {
+          const cnt = s.tags.filter(t => t.rarity === cr && t.eq === 0).length;
+          return `
+            <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div style="font-size:13px;font-weight:900;color:${COLORS[cr]};">5× ${cr} ➔ Апгрейд тира</div>
+                <div style="font-size:11px;color:var(--muted);">Свободных в Сейфе: <b>${cnt} / 5</b></div>
+              </div>
+              <button class="btn-em" ${cnt < 5 ? 'disabled style="opacity:0.4;"' : ''} onclick="app.craftGroup('${cr}')">Крафт</button>
+            </div>`;
+        }).join('');
+
+        // Задания, Достижения, Пасс, Подарок, Магазин, Лидеры
+        const q = s.quests;
+        const qArr = [
+          { key: 'q1', t: 'Сделай 15 бросков рулетки', c: q.spins, m: 15, r: '5 000 G + 50 XP' },
+          { key: 'q2', t: 'Выбей 5 редких или круче', c: q.rare, m: 5, r: '12 000 G + 50 XP' },
+          { key: 'q3', t: 'Сделай 1 крафт', c: q.crafts, m: 1, r: '10 000 G + 50 XP' },
+          { key: 'q_all', t: '🎁 Выполни все 3 задания', c: ['q1','q2','q3'].filter(x=>q.claimed.includes(x)).length, m: 3, r: '50 000 G + 100 XP' }
+        ];
+        document.getElementById('questsList').innerHTML = qArr.map(x => `
+          <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
+            <div><div style="font-size:13px;font-weight:900;">${x.t}</div><div style="font-size:11px;color:var(--muted);">${Math.min(x.c,x.m)}/${x.m} • <b style="color:var(--gold);">${x.r}</b></div></div>
+            ${q.claimed.includes(x.key) ? `<span style="color:var(--emerald);font-weight:900;font-size:11px;">✓</span>`
+              : (x.c >= x.m ? `<button class="btn-em" onclick="app.claimKey('${x.key}')">Забрать</button>` : '')}
+          </div>`).join('');
+
         let achHtml = "";
-        achRars.forEach(rr => {
+        ["Rare", "Epic", "Legendary", "Mythic", "Luxury", "Divine"].forEach(rr => {
           const cnt = s.ach.stats[rr] || 0;
-          [5, 20, 50].forEach((trg, idx) => {
+          [5, 25, 100].forEach((trg, idx) => {
             const k = `ach_${rr}_${trg}`;
             const cl = s.ach.claimed.includes(k);
             achHtml += `
-              <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
-                <div>
-                  <div style="font-size:12px;font-weight:900;color:${COLORS[rr]};">${rr} Коллекционер ${idx+1} (Выбить ${trg} шт.)</div>
-                  <div style="font-size:10px;color:var(--muted);">Выбито: ${cnt}/${trg} • Награда: ${(trg*2500).toLocaleString()} G</div>
-                </div>
-                ${cl ? `<span style="font-size:11px;color:var(--accent);">✓</span>`
-                     : (cnt >= trg ? `<button class="btn-green" onclick="app.claimKey('${k}')">Забрать</button>` : '')}
+              <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+                <div><div style="font-size:12px;font-weight:900;color:${COLORS[rr]};">${rr} Охотник ${idx+1} (${cnt}/${trg})</div><div style="font-size:10px;color:var(--muted);">Награда: ${(trg*5000).toLocaleString()} GRAM</div></div>
+                ${cl ? `<span style="color:var(--emerald);">✓</span>` : (cnt >= trg ? `<button class="btn-em" onclick="app.claimKey('${k}')">Забрать</button>` : '')}
               </div>`;
           });
         });
         document.getElementById('achList').innerHTML = achHtml;
 
-        // Сезонный пропуск (50 уровней)
-        document.getElementById('passXpVal').innerText = `${s.season_xp} XP (Ур. ${Math.floor(s.season_xp / 50)})`;
+        document.getElementById('passHeaderTxt').innerText = `Очки сезона: ${s.season_xp} XP (Уровень ${Math.floor(s.season_xp/50)})`;
         let passHtml = "";
         for (let lv = 1; lv <= 50; lv++) {
           const k = `pass_${lv}`;
-          const unlocked = s.season_xp >= lv * 50;
           const cl = s.season_claimed.includes(k);
           passHtml += `
-            <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
-              <div>
-                <div style="font-size:13px;font-weight:900;">Уровень ${lv} (${lv * 50} XP)</div>
-                <div style="font-size:11px;color:var(--gold);">Награда: +${(lv * 1500).toLocaleString()} GRAM</div>
-              </div>
-              ${cl ? `<span style="color:var(--accent);font-weight:900;font-size:11px;">Получено ✓</span>`
-                   : (unlocked ? `<button class="btn-green" onclick="app.claimKey('${k}')">Забрать</button>` : `<span style="font-size:11px;color:var(--muted);">🔒</span>`)}
+            <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;">
+              <div><div style="font-size:13px;font-weight:900;">Уровень ${lv} (${lv*50} XP)</div><div style="font-size:11px;color:var(--gold);">+${(lv*2500).toLocaleString()} GRAM</div></div>
+              ${cl ? `<span style="color:var(--emerald);">✓</span>` : (s.season_xp >= lv*50 ? `<button class="btn-em" onclick="app.claimKey('${k}')">Забрать</button>` : `<span>🔒</span>`)}
             </div>`;
         }
         document.getElementById('passList').innerHTML = passHtml;
 
-        // Плавильня (Крафт)
-        const craftRars = ["Common", "Uncommon", "Rare", "Epic", "Legendary", "Mythic"];
-        document.getElementById('craftGroups').innerHTML = craftRars.map(cr => {
-          const count = s.tags.filter(t => t.rarity === cr && t.eq === 0).length;
-          return `
-            <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
-              <div>
-                <div style="font-size:13px;font-weight:900;color:${COLORS[cr]};">5× ${cr} ➔ Следующий тир</div>
-                <div style="font-size:11px;color:var(--muted);">В наличии свободных: <b>${count} / 5</b></div>
-              </div>
-              <button class="btn-green" ${count < 5 ? 'disabled style="opacity:0.4;"' : ''} onclick="app.craftGroup('${cr}')">Скрафтить</button>
-            </div>`;
-        }).join('');
-
-        // Подарок дня
-        const dRew = [1000, 3000, 5000, 10000, 15000, 25000, 50000];
-        document.getElementById('dailyGrid').innerHTML = dRew.map((val, i) => `
-          <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;${s.daily_streak === i ? 'border-color:var(--gold);' : ''}">
-            <b>День ${i + 1}</b>
-            <span style="color:var(--gold);font-weight:900;">+${val.toLocaleString()} GRAM ${s.daily_streak > i ? '✅' : ''}</span>
+        const dArr = [2500, 5000, 10000, 20000, 35000, 50000, 100000];
+        document.getElementById('dailyList').innerHTML = dArr.map((v, i) => `
+          <div class="card-box" style="display:flex;justify-content:space-between;${s.daily_streak===i?'border-color:var(--gold);':''}">
+            <b>День ${i+1}</b><b style="color:var(--gold);">+${v.toLocaleString()} GRAM ${s.daily_streak>i?'✅':''}</b>
           </div>`).join('');
 
-        // Магазин Доната
-        document.getElementById('donateCatalog').innerHTML = DONATE_ITEMS.map(di => `
-          <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
-            <div style="padding-right:10px;">
-              <div style="font-size:14px;font-weight:900;">${di.title}</div>
-              <div style="font-size:11px;color:var(--muted);margin-top:2px;">${di.desc}</div>
-            </div>
-            <button class="btn-shop-top" onclick="app.buyStars('${di.key}')">${di.stars} ⭐️</button>
+        document.getElementById('donateList').innerHTML = DONATE_CATALOG.map(d => `
+          <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
+            <div style="padding-right:10px;"><div style="font-size:14px;font-weight:900;">${d.title}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${d.desc}</div></div>
+            <button class="btn-gold-top" style="flex-shrink:0;" onclick="app.buyStars('${d.key}')">${d.stars} ⭐️</button>
           </div>`).join('');
 
-        // Лидерборд и Кланы
-        document.getElementById('leadersBox').innerHTML = s.leaders.map((l, i) => `
-          <div class="item-card" style="display:flex;justify-content:space-between;padding:10px 14px;">
-            <span><b>#${i+1}</b> ${l.username} (Ур. ${l.level})</span>
-            <b style="color:var(--accent);">${l.balance.toLocaleString()} G</b>
-          </div>`).join('');
-
-        document.getElementById('clansBox').innerHTML = s.clans.map(cl => `
-          <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;">
-            <div>
-              <div style="font-size:14px;font-weight:900;">${cl.name}</div>
-              <div style="font-size:11px;color:var(--muted);">Казна: ${cl.treasury.toLocaleString()} G • Участников: ${cl.members}</div>
-            </div>
-            <button class="btn-green" onclick="fetch('${API}/api/clan_action',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({user_id:${UID},clan_id:'${cl.id}'})}).then(()=>app.sync())">
-              ${s.clan_id === cl.id ? 'Ваш клан ✓' : 'Вступить'}
-            </button>
+        document.getElementById('leadersList').innerHTML = s.leaders.map((l, i) => `
+          <div class="card-box" style="display:flex;justify-content:space-between;padding:10px 14px;">
+            <span><b>#${i+1}</b> ${l.username} (Ур. ${l.level})</span><b style="color:var(--emerald);">${l.balance.toLocaleString()} G</b>
           </div>`).join('');
       },
 
@@ -1215,27 +1473,22 @@
           if (f === 'my' && l.seller_id !== UID) return false;
           return true;
         });
-
         document.getElementById('marketList').innerHTML = lots.map(l => {
           const c = COLORS[l.rarity] || '#fff';
           const hrs = Math.floor(l.left / 3600);
           const mins = Math.floor((l.left % 3600) / 60);
           return `
-            <div class="item-card" style="display:flex;justify-content:space-between;align-items:center;border-left:4px solid ${c};">
+            <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;border-left:4px solid ${c};">
               <div>
-                <div style="font-size:17px;font-weight:900;color:var(--text);">${l.price.toLocaleString()} GRAM</div>
-                <div style="font-family:monospace;font-size:15px;font-weight:900;color:${c};margin:2px 0;">${l.tag} <span style="font-size:10px;">(${l.rarity})</span></div>
+                <div style="font-size:17px;font-weight:900;">${l.price.toLocaleString()} GRAM</div>
+                <div style="font-family:monospace;font-size:15px;font-weight:900;color:${c};">${l.tag} (${l.rarity})</div>
                 <div style="font-size:11px;color:var(--gold);">
-                  ${l.is_auction ? `🔨 ${l.bids} ставок • ещё ${hrs}ч ${mins}м • Лидер: ${l.bidder_name || 'нет'}` : `💰 Фикс. продажа • Продавец: ${l.seller_name}`}
+                  ${l.is_auction ? `🔨 ${l.bids} ставок • ещё ${hrs}ч ${mins}м • Лидер: ${l.bidder_name || 'нет'}` : `💰 Продавец: ${l.seller_name}`}
                 </div>
               </div>
-              <div style="display:flex;flex-direction:column;gap:5px;">
-                ${l.is_auction
-                  ? `<button class="btn-green" onclick="app.interactLot(${l.lot_id},'bid')">Ставка</button>`
-                  : `<button class="btn-green" onclick="app.interactLot(${l.lot_id},'buy')">Купить</button>`}
-              </div>
+              <button class="btn-em" onclick="app.interactLot(${l.lot_id},'${l.is_auction ? 'bid' : 'buy'}')">${l.is_auction ? 'Ставка' : 'Купить'}</button>
             </div>`;
-        }).join('') || `<div class="item-card" style="text-align:center;color:var(--muted);">Лотов по фильтру не найдено</div>`;
+        }).join('') || `<div class="card-box" style="text-align:center;color:var(--muted);">Лотов не найдено</div>`;
       }
     };
 
