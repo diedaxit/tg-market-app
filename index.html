@@ -656,20 +656,36 @@
         } catch (e) { ui.showToast(`Оплата в демо-режиме недоступна.`, "error"); }
       },
 
+      // ЧИСТЫЕ ССЫЛКИ ДЛЯ ШЕРИНГА (С ПРАВИЛЬНЫМ БОТОМ)
       shareRef() {
-        const cleanLink = `t.me/atminttagsbot?startapp=ref_${MY_ID}`;
+        const uid = tg?.initDataUnsafe?.user?.id || "player";
+        // Правильный юзернейм твоего бота: MintTagsBot
+        const botLink = `https://t.me/MintTagsBot?startapp=ref_${uid}`;
         const msg = "Забирай лучшие @username первее всех и строй свою медиа империю!";
-        const url = `https://t.me/share/url?url=${encodeURIComponent(cleanLink)}&text=${encodeURIComponent(msg)}`;
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, '_blank');
+        
+        // Формируем системную ссылку. Telegram сам сделает красивое превью.
+        const url = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(msg)}`;
+        
+        if (tg && tg.openTelegramLink) {
+          tg.openTelegramLink(url);
+        } else {
+          window.open(url, '_blank');
+        }
       },
 
       shareTrade() {
-        const cleanLink = `t.me/atminttagsbot?startapp=trade_${MY_ID}`;
-        const msg = "Приглашаю в комнату P2P-трейда в MintTags! Переходи:";
-        const url = `https://t.me/share/url?url=${encodeURIComponent(cleanLink)}&text=${encodeURIComponent(msg)}`;
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, '_blank');
+        const uid = tg?.initDataUnsafe?.user?.id || "player";
+        // Правильный юзернейм твоего бота: MintTagsBot
+        const botLink = `https://t.me/MintTagsBot?startapp=trade_${uid}`;
+        const msg = "Приглашаю в комнату P2P-трейда в MintTags!";
+        
+        const url = `https://t.me/share/url?url=${encodeURIComponent(botLink)}&text=${encodeURIComponent(msg)}`;
+        
+        if (tg && tg.openTelegramLink) {
+          tg.openTelegramLink(url);
+        } else {
+          window.open(url, '_blank');
+        }
       },
 
       saveTycoon() { localStorage.setItem('minttags_v4_tycoon', JSON.stringify(this.localTycoon)); },
