@@ -6,7 +6,7 @@ from aiogram.types import (
     InlineKeyboardButton, WebAppInfo
 )
 
-BOT_TOKEN = os.getenv("BOT_TOKEN", "ВАШ_ТОКЕН_БОТА")
+BOT_TOKEN = os.getenv("BOT_TOKEN", "9076307904:AAFQs_dohcZxxAUdfGoR5wZeBK9ytk_pF6A")
 APP_URL = os.getenv("RENDER_EXTERNAL_URL", "https://atminttagsbot.onrender.com")
 
 bot = Bot(token=BOT_TOKEN)
