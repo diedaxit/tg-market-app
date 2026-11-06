@@ -80,7 +80,7 @@ WORDS_EPIC = ["shadow", "crypto", "hacker", "sniper", "ninja", "blade"]
 WORDS_RARE = ["gamer", "player", "rocket", "market", "trade", "speed"]
 
 def generate_random_readable_word(length):
-    """Генерирует абсолютно случайные, но читаемые ники (чередование гласных/согласных)"""
+    """Генерирует случайные, но читаемые ники (чередование гласных/согласных)"""
     vowels = "aeiouy"
     consonants = "bcdfghjklmnpqrstvwxz"
     word = ""
@@ -91,17 +91,18 @@ def generate_random_readable_word(length):
             word += random.choice(vowels)
     return word
 
+# ХАРДКОРНЫЙ РЕБАЛАНС ШАНСОВ (Масса ~1,000,000)
 RARITIES = [
-    {"name": "Common",       "w": 70000, "inc": 1,      "xp": 5,     "sell": 50},
-    {"name": "Uncommon",     "w": 20000, "inc": 5,      "xp": 15,    "sell": 250},
-    {"name": "Rare",         "w": 7000,  "inc": 15,     "xp": 40,    "sell": 750},
-    {"name": "Epic",         "w": 2000,  "inc": 50,     "xp": 100,   "sell": 2500},
-    {"name": "Legendary",    "w": 600,   "inc": 200,    "xp": 300,   "sell": 10000},
-    {"name": "Mythic",       "w": 200,   "inc": 450,    "xp": 800,   "sell": 25000},
-    {"name": "Luxury",       "w": 60,    "inc": 1200,   "xp": 1500,  "sell": 75000},
-    {"name": "Ultra-Mythic", "w": 20,    "inc": 4000,   "xp": 2500,  "sell": 200000},
-    {"name": "Exclusive",    "w": 6,     "inc": 15000,  "xp": 5000,  "sell": 800000},
-    {"name": "Divine",       "w": 1,     "inc": 100000, "xp": 15000, "sell": 3000000}
+    {"name": "Common",       "w": 800000, "inc": 1,      "xp": 5,     "sell": 50},
+    {"name": "Uncommon",     "w": 150000, "inc": 5,      "xp": 15,    "sell": 250},
+    {"name": "Rare",         "w": 40000,  "inc": 15,     "xp": 40,    "sell": 750},
+    {"name": "Epic",         "w": 8000,   "inc": 50,     "xp": 100,   "sell": 2500},
+    {"name": "Legendary",    "w": 1000,   "inc": 200,    "xp": 300,   "sell": 10000},
+    {"name": "Mythic",       "w": 250,    "inc": 450,    "xp": 800,   "sell": 25000},
+    {"name": "Luxury",       "w": 50,     "inc": 1200,   "xp": 1500,  "sell": 75000},
+    {"name": "Ultra-Mythic", "w": 10,     "inc": 4000,   "xp": 2500,  "sell": 200000},
+    {"name": "Exclusive",    "w": 2,      "inc": 15000,  "xp": 5000,  "sell": 800000},
+    {"name": "Divine",       "w": 1,      "inc": 100000, "xp": 15000, "sell": 3000000}
 ]
 
 SPIN_MODES = {
@@ -122,7 +123,7 @@ def generate_tag_logic(cur, mode, luck_multi):
     for i, r in enumerate(RARITIES):
         if i >= min_idx:
             weight = r["w"]
-            if i >= 3: weight = int(weight * luck_multi)
+            if i >= 3: weight = int(weight * luck_multi) # Удача от Epic и выше
             pool.append({"data": r, "w": weight})
             total_w += weight
 
@@ -231,6 +232,9 @@ def login(data: LoginReq):
     cur = conn.cursor()
     now = int(time.time())
     
+    # Авто-продажа забытых тегов с прошлой сессии при входе
+    auto_sell_unsaved(cur, data.user_id)
+    
     cur.execute("SELECT balance FROM users WHERE tg_user_id = ?", (data.user_id,))
     if not cur.fetchone():
         ref_id = None
@@ -250,7 +254,8 @@ def login(data: LoginReq):
                 
         cur.execute("INSERT INTO users (tg_user_id, username, balance, level, xp, ref_by, created_at, last_claim) VALUES (?, ?, 1500.0, 1, 0, ?, ?, ?)",
                     (data.user_id, data.username, ref_id, now, now))
-        conn.commit()
+    
+    conn.commit()
     conn.close()
     return {"status": "ok"}
 
@@ -258,10 +263,6 @@ def login(data: LoginReq):
 def get_state(user_id: int):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    
-    # Авто-продажа несохраненного при входе
-    auto_sold = auto_sell_unsaved(cur, user_id)
-    conn.commit()
 
     cur.execute("SELECT balance, level, xp, smm_lvl, buyer_lvl, luck_until FROM users WHERE tg_user_id = ?", (user_id,))
     user = cur.fetchone()
@@ -272,7 +273,8 @@ def get_state(user_id: int):
     balance, level, xp, smm, buyer, luck_until = user
     now = int(time.time())
     
-    # Загружаем только СОХРАНЕННЫЕ теги (is_saved = 1)
+    # ЗАМЕТКА АРХИТЕКТОРА: get_state теперь чистый GET-эндпоинт без мутаций (auto_sell_unsaved удален отсюда)
+    
     cur.execute("SELECT tag, rarity, income_per_sec, sell_price, reasons, is_equipped FROM usernames WHERE owner_id = ? AND is_saved = 1 ORDER BY income_per_sec DESC", (user_id,))
     tags = []
     equipped_tag = "@Не привязан"
@@ -283,7 +285,7 @@ def get_state(user_id: int):
     conn.close()
     return {
         "balance": round(balance, 2), "level": level, "xp": xp, "smm": smm, "buyer": buyer,
-        "luck_active": luck_until > now, "equipped": equipped_tag, "hold": tags, "auto_sold": auto_sold
+        "luck_active": luck_until > now, "equipped": equipped_tag, "hold": tags, "auto_sold": 0
     }
 
 @app.post("/api/mint")
@@ -295,7 +297,7 @@ def mint(data: MintReq):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
     
-    # Сначала авто-продаем все старые висящие теги с прошлого минта, если юзер их не сохранил
+    # Авто-продаем висящие теги с ПРЕДЫДУЩЕГО минта (если юзер нажал "Крутить" снова, не сохранив старые)
     auto_sold = auto_sell_unsaved(cur, data.user_id)
 
     cur.execute("SELECT balance, level, xp, luck_multi, luck_until FROM users WHERE tg_user_id = ?", (data.user_id,))
@@ -317,7 +319,6 @@ def mint(data: MintReq):
         else:
             tag, rarity, inc, xp_g, sell, reasons = f"@{generate_random_readable_word(6)}{random.randint(10,99)}", "Common", 1.0, 5, 50, "Обычный тег"
             
-        # Записываем с is_saved = 0 (ждет решения юзера)
         cur.execute("INSERT INTO usernames (tag, owner_id, rarity, income_per_sec, sell_price, reasons, is_saved, created_at) VALUES (?, ?, ?, ?, ?, ?, 0, ?)",
                     (tag, data.user_id, rarity, inc, sell, reasons, now))
         drops.append({"tag": tag, "rarity": rarity, "inc": inc, "xp": xp_g, "sell": sell, "reasons": reasons.split(",")})
@@ -340,7 +341,6 @@ def mint(data: MintReq):
 def save_tag(data: TagReq):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    # Проверка места
     cur.execute("SELECT COUNT(*) FROM usernames WHERE owner_id = ? AND is_saved = 1", (data.user_id,))
     if cur.fetchone()[0] >= 100:
         conn.close()
