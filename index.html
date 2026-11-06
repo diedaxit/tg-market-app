@@ -45,7 +45,7 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-tap-highlight-color: transparent; font-family: var(--font-body); }
-    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 90px; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
+    body { background-color: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 92px; overflow-x: hidden; transition: background 0.2s, color 0.2s; }
 
     h1, h2, h3, .rr-font {
       font-family: var(--font-display);
@@ -53,7 +53,7 @@
       letter-spacing: 0.4px;
     }
 
-    /* АНИМИРОВАННАЯ ЗАСТАВКА ЗАГРУЗКИ */
+    /* ПРЕЛОАДЕР */
     #preloader {
       position: fixed; inset: 0; z-index: 99999;
       background: radial-gradient(circle at 50% 35%, #132a21 0%, #080a0f 75%);
@@ -69,15 +69,15 @@
       animation: emblemPulse 1.5s infinite ease-in-out; margin-bottom: 18px;
     }
     @keyframes emblemPulse {
-      0%, 100% { transform: scale(1) rotate(0deg); box-shadow: 0 0 35px rgba(16,185,129,0.35); }
+      0%, 100% { transform: scale(1) rotate(0deg); }
       50% { transform: scale(1.08) rotate(3deg); box-shadow: 0 0 60px rgba(245,158,11,0.55); }
     }
     .loader-title { font-family: var(--font-display); font-size: 20px; font-weight: 900; letter-spacing: 1.5px; background: linear-gradient(90deg, #fff, var(--gold), var(--emerald)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-    .loader-progress-track { width: 210px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; margin-top: 18px; border: 1px solid rgba(255,255,255,0.06); }
+    .loader-progress-track { width: 210px; height: 6px; background: rgba(255,255,255,0.08); border-radius: 6px; overflow: hidden; margin-top: 18px; }
     .loader-progress-bar { width: 45%; height: 100%; background: linear-gradient(90deg, var(--emerald), var(--gold)); border-radius: 6px; animation: barSweep 1.1s infinite ease-in-out; }
     @keyframes barSweep { 0% { transform: translateX(-110%); } 100% { transform: translateX(240%); } }
 
-    /* БЛОКЕР ОБЯЗАТЕЛЬНОЙ ПОДПИСКИ НА @MintTags_News */
+    /* БЛОКЕР ПОДПИСКИ НА @MintTags_News */
     #subBlocker {
       position: fixed; inset: 0; z-index: 99990;
       background: rgba(8, 10, 15, 0.96); backdrop-filter: blur(14px);
@@ -87,7 +87,7 @@
       background: linear-gradient(160deg, #161d2b 0%, #0d111a 100%);
       border: 2px solid var(--gold); border-radius: 26px; padding: 26px 20px;
       width: 100%; max-width: 360px; text-align: center;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.85), 0 0 40px rgba(245,158,11,0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.85);
     }
 
     /* TOAST & FLASH */
@@ -107,14 +107,18 @@
     .bal-sub { font-size: 10px; color: var(--muted); text-align: right; font-weight: 700; }
     .bal-main { font-size: 16px; font-weight: 900; color: var(--text); text-align: right; font-family: var(--font-display); }
 
-    /* ПЕРЕКЛЮЧАТЕЛИ ВВЕРХУ ГЛАВНОЙ */
-    .switch-row { display: flex; gap: 8px; align-items: center; margin-bottom: 12px; }
+    /* ПЕРЕКЛЮЧАТЕЛИ И БЫСТРЫЕ КНОПКИ ВВЕРХУ ГЛАВНОЙ (КАК В НОМЕРКЕ) */
+    .switch-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
     .seg-bar { display: flex; background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 3px; flex: 1; }
     .seg-item { flex: 1; padding: 9px 6px; text-align: center; font-size: 11px; font-weight: 900; border-radius: 11px; color: var(--muted); cursor: pointer; transition: 0.15s; font-family: var(--font-display); }
     .seg-item.active { background: var(--card-sub); color: var(--text); box-shadow: 0 2px 8px rgba(0,0,0,0.35); }
     .btn-gold-top { background: linear-gradient(135deg, #fbbf24, #d97706); color: #090b10; border: none; padding: 10px 14px; border-radius: 14px; font-size: 11px; font-weight: 900; cursor: pointer; display: flex; align-items: center; gap: 5px; font-family: var(--font-display); box-shadow: 0 4px 14px rgba(245,158,11,0.3); }
 
-    /* БАННЕРЫ СОБЫТИЙ НА ГЛАВНОЙ */
+    .quick-pills-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 10px; }
+    .q-pill { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 8px 4px; font-size: 11px; font-weight: 800; text-align: center; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 4px; }
+    .q-pill:active { transform: scale(0.96); }
+
+    /* БАННЕРЫ СОБЫТИЙ */
     .banners-grid { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; }
     .banner-card {
       background: var(--card); border: 1px solid var(--border); border-radius: 15px;
@@ -122,9 +126,8 @@
     }
     .banner-luck { background: linear-gradient(90deg, rgba(245,158,11,0.16) 0%, var(--card) 100%); border-color: rgba(245,158,11,0.4); }
     .banner-merch { background: linear-gradient(90deg, rgba(16,185,129,0.16) 0%, var(--card) 100%); border-color: rgba(16,185,129,0.4); }
-    .banner-duel { background: linear-gradient(90deg, rgba(239,68,68,0.15) 0%, var(--card) 100%); border-color: rgba(239,68,68,0.38); }
 
-    /* СЦЕНА ГЕНЕРАЦИИ */
+    /* СЦЕНА ГЕНЕРАЦИИ И КАСКАДНЫЕ ИКСЫ (КАК НА СКРИНШОТЕ 4) */
     .stage-card {
       background: var(--card); border: 1px solid var(--border); border-radius: 22px;
       padding: 15px 14px; text-align: center; margin-bottom: 12px; position: relative; overflow: hidden;
@@ -135,20 +138,40 @@
       100% { box-shadow: 0 0 45px rgba(245,158,11,0.85); border-color: #fde047; }
     }
 
-    .pity-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); margin-bottom: 10px; font-weight: 700; }
-    .pity-pills { display: flex; gap: 6px; }
-    .pity-tag { background: var(--card-sub); padding: 3px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; color: var(--text); border: 1px solid var(--border); }
+    .stage-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .rar-title-left { font-size: 13px; font-weight: 900; font-family: var(--font-display); }
+    .price-top-right { font-size: 17px; font-weight: 900; color: var(--emerald); font-family: var(--font-display); }
+
+    .pity-segments { display: flex; gap: 4px; margin-bottom: 12px; }
+    .pity-seg { flex: 1; height: 4px; border-radius: 3px; background: rgba(255,255,255,0.1); transition: background 0.3s; }
+    .pity-seg.on { background: var(--emerald); box-shadow: 0 0 6px var(--emerald); }
 
     .plate-frame {
       background: linear-gradient(180deg, #ffffff 0%, #e2e8f0 100%); color: #0f172a;
       border-radius: 16px; padding: 15px 12px; border: 4px solid #1e293b;
       box-shadow: 0 10px 28px rgba(0,0,0,0.55); display: flex; align-items: center;
-      justify-content: space-between; margin-bottom: 10px; transition: 0.2s;
+      justify-content: space-between; margin-bottom: 12px; transition: 0.2s;
     }
     .plate-side { border-right: 2px solid #94a3b8; padding-right: 12px; text-align: center; min-width: 68px; }
     .plate-side-top { font-size: 12px; font-weight: 900; color: #0f172a; font-family: var(--font-display); }
     .plate-side-bot { font-size: 9px; font-weight: 800; color: #475569; margin-top: 2px; font-family: var(--font-display); }
     .plate-code { flex: 1; font-size: 22px; font-weight: 900; font-family: var(--font-display); letter-spacing: 1px; text-align: center; padding-left: 8px; word-break: break-all; color: #0f172a; }
+
+    /* Анимация вылета строчек «За что дали ×» */
+    .origin-sub { font-size: 11px; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+    .factors-stack { display: flex; flex-direction: column; gap: 5px; margin: 8px 0 14px; min-height: 24px; }
+    .factor-line {
+      font-size: 13px; font-weight: 700; color: var(--text);
+      opacity: 0; transform: translateY(8px) scale(0.96);
+      animation: factorPop 0.28s forwards cubic-bezier(0.18, 0.89, 0.32, 1.28);
+    }
+    .factor-mult {
+      color: var(--emerald); font-weight: 900; font-family: var(--font-display);
+      margin-left: 5px; text-shadow: 0 0 10px rgba(16, 185, 129, 0.45);
+    }
+    @keyframes factorPop {
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
 
     /* СЕЛЕКТОРЫ ПРОКРУТА */
     .selectors-row { display: flex; gap: 8px; margin-bottom: 10px; }
@@ -176,6 +199,35 @@
     .tool-ico { width: 44px; height: 44px; border-radius: 14px; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 21px; }
     .tool-tile span { font-size: 10px; font-weight: 800; display: block; }
 
+    /* МИНИ-ИГРА #1: АПГРЕЙДЕР НОМЕРОВ */
+    .upgrader-stage { position: relative; width: 240px; height: 240px; margin: 12px auto 16px; }
+    #upgraderCanvas { width: 240px; height: 240px; border-radius: 50%; background: var(--card-sub); }
+    .upgrader-pointer {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      transition: transform 3.2s cubic-bezier(0.12, 0.88, 0.22, 1);
+    }
+    .upgrader-needle {
+      width: 4px; height: 110px; background: linear-gradient(180deg, #fff, var(--gold));
+      transform-origin: bottom center; transform: translateY(-55px); border-radius: 4px;
+      box-shadow: 0 0 12px var(--gold);
+    }
+    .upgrader-center {
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      width: 68px; height: 68px; border-radius: 50%; background: var(--bg-elev);
+      border: 3px solid var(--emerald); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; font-family: var(--font-display); font-size: 13px; font-weight: 900;
+    }
+
+    /* МИНИ-ИГРА #2: TON РАКЕТКА */
+    .rocket-screen {
+      background: radial-gradient(circle at 50% 80%, #1e1b4b 0%, #090d16 80%);
+      border: 1px solid var(--border); border-radius: 20px; height: 200px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      position: relative; overflow: hidden; margin-bottom: 12px;
+    }
+    .rocket-mult-big { font-size: 38px; font-weight: 900; font-family: var(--font-display); color: var(--emerald); text-shadow: 0 0 25px rgba(16,185,129,0.5); }
+    .rocket-ship { font-size: 40px; transition: transform 0.3s; margin-bottom: 6px; }
+
     /* КОЛЕСО ФОРТУНЫ */
     .wheel-stage { position: relative; width: 270px; height: 270px; margin: 12px auto 16px; }
     .wheel-pin { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); z-index: 6; font-size: 28px; }
@@ -185,15 +237,25 @@
     .prize-row { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-bottom: 1px solid var(--border); font-size: 13px; font-weight: 800; }
     .prize-dot { width: 10px; height: 10px; border-radius: 50%; }
 
-    /* КАРТОЧКИ И ШТОРКИ */
+    /* КАРТОЧКИ И МОДАЛКИ */
     .card-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 14px; margin-bottom: 9px; }
     .btn-em { background: var(--emerald); color: #04130d; border: none; padding: 8px 12px; border-radius: 11px; font-size: 10px; font-weight: 900; cursor: pointer; font-family: var(--font-display); }
     .btn-ghost { background: var(--card-sub); border: 1px solid var(--border); color: var(--text); padding: 8px 12px; border-radius: 11px; font-size: 11px; font-weight: 800; cursor: pointer; }
 
     .sheet-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.78); backdrop-filter: blur(6px); z-index: 10000; display: none; align-items: flex-end; justify-content: center; }
-    .sheet-panel { background: var(--bg-elev); border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 18px 16px 30px; max-height: 84vh; overflow-y: auto; }
+    .sheet-panel { background: var(--bg-elev); border-top: 1px solid var(--border); border-radius: 24px 24px 0 0; width: 100%; max-width: 480px; padding: 18px 16px 30px; max-height: 85vh; overflow-y: auto; }
     .sheet-item { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 12px 14px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .sheet-item.active { border-color: var(--emerald); background: var(--emerald-glow); }
+
+    /* ПОДАРОК ДНЯ (ЛИНЕЙКА 7 ДНЕЙ КАК НА СКРИНЕ 2) */
+    .daily-strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; margin: 16px 0; }
+    .daily-cell { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 10px 2px; text-align: center; font-size: 11px; font-weight: 800; color: var(--muted); }
+    .daily-cell.active { border-color: var(--emerald); color: var(--text); background: var(--emerald-glow); }
+
+    /* КРУЖКИ 3 ДРУЗЕЙ (КАК НА СКРИНЕ 3) */
+    .friends-avatars { display: flex; justify-content: center; gap: 14px; margin: 16px 0; }
+    .friend-circle { width: 52px; height: 52px; border-radius: 50%; background: var(--card-sub); border: 2px dashed var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; color: var(--muted); }
+    .friend-circle.filled { border-style: solid; border-color: var(--emerald); background: var(--emerald-glow); color: var(--emerald); }
 
     /* НАСТРОЙКИ */
     .set-group-title { font-size: 11px; font-weight: 900; color: var(--muted); margin: 14px 4px 6px; text-transform: uppercase; font-family: var(--font-display); }
@@ -218,7 +280,7 @@
 </head>
 <body>
 
-  <!-- АНИМИРОВАННАЯ ЗАСТАВКА ЗАГРУЗКИ -->
+  <!-- АНИМИРОВАННАЯ ЗАСТАВКА -->
   <div id="preloader">
     <div class="loader-emblem">👑</div>
     <div class="loader-title">MINTTAGS EMPIRE</div>
@@ -226,13 +288,13 @@
     <div class="loader-progress-track"><div class="loader-progress-bar"></div></div>
   </div>
 
-  <!-- НЕОТКЛЮЧАЕМОЕ ОКНО ОБЯЗАТЕЛЬНОЙ ПОДПИСКИ НА @MintTags_News -->
+  <!-- ОБЯЗАТЕЛЬНАЯ ПОДПИСКА НА @MintTags_News -->
   <div id="subBlocker">
     <div class="sub-modal-card">
       <div style="font-size:44px;margin-bottom:10px;">📢</div>
       <h2 style="font-size:17px;color:var(--gold);margin-bottom:8px;">Доступ к MintTags</h2>
       <p style="font-size:13px;color:var(--muted);line-height:1.5;margin-bottom:18px;">
-        Для входа в игру и получения бонуса <b>+15,000 GRAM</b> необходимо подписаться на официальный канал новостей <b>@MintTags_News</b>!
+        Для входа в игру и получения бонуса <b>+15,000 GRAM</b> необходимо подписаться на наш официальный канал новостей <b>@MintTags_News</b>!
       </p>
       <button class="btn-spin-main" style="background:linear-gradient(135deg,#3b82f6,#1d4ed8);color:#fff;margin-bottom:10px;" onclick="app.openNewsChannel()">
         📲 Подписаться на @MintTags_News
@@ -240,6 +302,49 @@
       <button class="btn-spin-main" onclick="app.verifySubscription(true)">
         ✅ Проверить подписку
       </button>
+    </div>
+  </div>
+
+  <!-- АВТО-ШТОРКА «ПОДАРОК ДНЯ» ПРИ ВХОДЕ (КАК НА СКРИНЕ 2) -->
+  <div class="sheet-bg" id="dailyPopupSheet" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet-panel" style="text-align:center;">
+      <div style="width:40px;height:4px;background:var(--border);border-radius:3px;margin:0 auto 14px;"></div>
+      <h2 style="font-size:19px;margin-bottom:8px;">Подарок дня</h2>
+      <p style="font-size:12px;color:var(--muted);line-height:1.45;">
+        Заходи каждый день — награда растет. На 7-й день — 💎 <b>1,000,000 G и 👑 VIP на сутки</b>. Пропустишь день — начнешь с первого.
+      </p>
+      <div class="daily-strip" id="dailyPopupStrip"></div>
+      <button class="btn-spin-main" id="dailyPopupBtn" onclick="app.claimDaily()">Забрать +10 000 G</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛКА ЗАДАНИЯ «ПОЗОВИ 3 ДРУЗЕЙ — УДАЧА ×2 НА 3 ЧАСА» (КАК НА СКРИНЕ 3) -->
+  <div class="sheet-bg" id="refQuestSheet" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet-panel" style="text-align:center;">
+      <div style="display:inline-block;background:var(--gold-glow);border:1px solid var(--gold);color:var(--gold);padding:4px 12px;border-radius:14px;font-size:10px;font-weight:900;margin-bottom:10px;">
+        🎯 ЗАДАНИЕ ДНЯ • БОНУС АККАУНТА
+      </div>
+      <h2 style="font-size:20px;line-height:1.25;margin-bottom:8px;">Позови 3 друзей —<br><span style="color:var(--gold);">удача ×2 на 3 ч</span></h2>
+      <p style="font-size:12px;color:var(--muted);line-height:1.45;">
+        Друг заходит по твоей ссылке в игру. Награда <b>Удача ×2 на 3 часа</b> включится сама, как только наберется 3 друга!
+      </p>
+      <div class="friends-avatars" id="refQuestAvatars"></div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:16px;" id="refQuestStatusTxt">Готово 0 из 3</div>
+      <button class="btn-spin-main" style="background:var(--gold);color:#111;margin-bottom:8px;" onclick="app.shareRef()">Выполнить задание</button>
+      <button class="btn-ghost" style="width:100%;padding:12px;" onclick="document.getElementById('refQuestSheet').style.display='none'">Позже</button>
+    </div>
+  </div>
+
+  <!-- МОДАЛКА ВВОДА ПРОМОКОДА -->
+  <div class="sheet-bg" id="promoSheet" onclick="if(event.target===this)this.style.display='none'">
+    <div class="sheet-panel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h3 style="font-size:15px;">🔑 Активация промокода</h3>
+        <button class="btn-ghost" onclick="document.getElementById('promoSheet').style.display='none'">✕</button>
+      </div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Введи секретный код из канала <b>@MintTags_News</b> (например: <code>MINTTAGS</code>):</p>
+      <input type="text" id="promoCodeInp" placeholder="ВВЕДИТЕ ПРОМОКОД..." style="width:100%;padding:13px;border-radius:14px;background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--font-display);font-size:13px;margin-bottom:12px;text-transform:uppercase;">
+      <button class="btn-spin-main" onclick="app.activatePromo()">Активировать код</button>
     </div>
   </div>
 
@@ -265,7 +370,7 @@
         <button class="btn-ghost" onclick="document.getElementById('multSheet').style.display='none'">✕</button>
       </div>
       <div class="sheet-item" onclick="app.selectSpinCount(1)">
-        <div><div style="font-size:14px;font-weight:900;">1× Прокрут</div><div style="font-size:11px;color:var(--muted);">Посимвольная слот-рулетка</div></div>
+        <div><div style="font-size:14px;font-weight:900;">1× Прокрут</div><div style="font-size:11px;color:var(--muted);">Каскадная анимация множителей ×</div></div>
         <b style="color:var(--emerald);">За GRAM</b>
       </div>
       <div class="sheet-item" onclick="app.selectSpinCount(5)">
@@ -290,16 +395,15 @@
         <h3 style="font-size:14px;">Сами едут в Хранилище</h3>
         <button class="btn-ghost" onclick="document.getElementById('autoSaveSheet').style.display='none'">✕</button>
       </div>
-      <p style="font-size:11px;color:var(--muted);margin-bottom:12px;">Выбери минимальную редкость, начиная с которой все выбитые @username и +888 будут автоматически сохраняться в Сейф:</p>
       <div id="autoSaveList"></div>
     </div>
   </div>
 
-  <!-- ИНФОРМАЦИОННАЯ МОДАЛКА -->
+  <!-- ИНФОРМАЦИОННАЯ И ЮРИДИЧЕСКАЯ МОДАЛКА -->
   <div class="sheet-bg" id="infoSheet" onclick="if(event.target===this)this.style.display='none'">
     <div class="sheet-panel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h3 style="font-size:14px;" id="infoModalTitle">Информация</h3>
+        <h3 style="font-size:13px;" id="infoModalTitle">Информация</h3>
         <button class="btn-ghost" onclick="document.getElementById('infoSheet').style.display='none'">✕</button>
       </div>
       <div id="infoModalBody" style="font-size:12px;color:var(--muted);line-height:1.6;"></div>
@@ -312,7 +416,7 @@
       <div class="top-pill" onclick="ui.nav('more')">
         <span>УР. <b id="topLvl">1</b></span>
       </div>
-      <div class="top-pill" style="border-color:rgba(245,158,11,0.4);" onclick="ui.openDonateAndBuy()">
+      <div class="top-pill" style="border-color:rgba(245,158,11,0.4);" onclick="document.getElementById('refQuestSheet').style.display='flex'">
         <span>🍀 <b id="topLuck" style="color:var(--gold);">×1</b></span>
       </div>
     </div>
@@ -332,50 +436,50 @@
       <button class="btn-gold-top" onclick="ui.openDonateAndBuy()">⭐ МАГАЗИН</button>
     </div>
 
-    <!-- Промо-плашки: Скупщик, PvP-Дуэли и Удача -->
+    <!-- Быстрые кнопки мини-игр и инструментов как в Номерке (Код, Перекуп, Апгрейд, Ракетка) -->
+    <div class="quick-pills-row">
+      <div class="q-pill" onclick="document.getElementById('promoSheet').style.display='flex'">🔑 Код</div>
+      <div class="q-pill" onclick="ui.openSub('upgrader')">🎯 Апгрейд</div>
+      <div class="q-pill" onclick="ui.openSub('rocket')">🚀 Ракетка</div>
+      <div class="q-pill" onclick="ui.openSub('duels')">⚔️ Дуэли</div>
+    </div>
+
+    <!-- Промо-плашки -->
     <div class="banners-grid">
+      <div class="banner-card banner-luck" onclick="document.getElementById('refQuestSheet').style.display='flex'">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:21px;">🍀</span>
+          <div>
+            <div class="rr-font" style="font-size:11px;font-weight:900;color:var(--gold);">Удача ×2 на 3ч БЕСПЛАТНО</div>
+            <div style="font-size:11px;color:var(--muted);" id="refBannerSub">🎁 Задание • Позови 3 друзей (0 из 3)</div>
+          </div>
+        </div>
+        <span class="rr-font" style="font-size:10px;color:var(--gold);">ОТКРЫТЬ ›</span>
+      </div>
+
       <div class="banner-card banner-merch" onclick="ui.nav('storage')">
         <div style="display:flex;align-items:center;gap:10px;">
           <span style="font-size:21px;">🕵️‍♂️</span>
           <div>
-            <div class="rr-font" style="font-size:11px;font-weight:900;color:var(--emerald);" id="merchBannerTitle">Тайный Скупщик в городе!</div>
-            <div style="font-size:11px;color:var(--muted);" id="merchBannerSub">Скупает редкие теги из Сейфа с наценкой +65%</div>
+            <div class="rr-font" style="font-size:11px;font-weight:900;color:var(--emerald);" id="merchBannerTitle">Перекуп • Скупщик в городе!</div>
+            <div style="font-size:11px;color:var(--muted);" id="merchBannerSub">Платит +65% за редкие лоты из Сейфа</div>
           </div>
         </div>
         <span class="rr-font" style="font-size:10px;color:var(--emerald);">В СЕЙФ ›</span>
       </div>
-
-      <div class="banner-card banner-duel" onclick="ui.openSub('duels')">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:21px;">⚔️</span>
-          <div>
-            <div class="rr-font" style="font-size:11px;font-weight:900;color:#f87171;">PvP-Дуэли на номерах • Банк ×1.9</div>
-            <div style="font-size:11px;color:var(--muted);" id="hotSeriesSub">Горячая серия дня: +40% к продажам</div>
-          </div>
-        </div>
-        <span class="rr-font" style="font-size:10px;color:#f87171;">В БОЙ ›</span>
-      </div>
-
-      <div class="banner-card banner-luck" onclick="ui.openDonateAndBuy('luck_x2_1h')">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <span style="font-size:21px;">🍀</span>
-          <div>
-            <div class="rr-font" style="font-size:11px;font-weight:900;color:var(--gold);">Удача ×2 и ×5 в Магазине</div>
-            <div style="font-size:11px;color:var(--muted);">Усиление шанса на +888 (×1000) и Divine @username</div>
-          </div>
-        </div>
-        <span class="rr-font" style="font-size:11px;font-weight:900;color:var(--gold);">19 ⭐️ ›</span>
-      </div>
     </div>
 
-    <!-- Сцена генерации -->
+    <!-- Сцена генерации (Оформление 1-в-1 по структуре со скрина 4) -->
     <div class="stage-card" id="stageCard">
-      <div class="pity-header">
-        <span id="stageSubStatus">ГОТОВ К ИГРЕ</span>
-        <div class="pity-pills">
-          <span class="pity-tag">Удача ×5: <b id="p100Val" style="color:var(--emerald);">0/100</b></span>
-          <span class="pity-tag">Удача ×50: <b id="p500Val" style="color:var(--gold);">0/500</b></span>
-        </div>
+      <div class="stage-top-bar">
+        <span class="rar-title-left" id="stageRarTitle" style="color:var(--muted);">Готов к игре</span>
+        <span class="price-top-right" id="stagePriceTop">0 G</span>
+      </div>
+
+      <!-- Индикатор-деления до гаранта -->
+      <div class="pity-segments" id="pitySegBar">
+        <div class="pity-seg"></div><div class="pity-seg"></div><div class="pity-seg"></div><div class="pity-seg"></div>
+        <div class="pity-seg"></div><div class="pity-seg"></div><div class="pity-seg"></div><div class="pity-seg"></div>
       </div>
 
       <div id="singleStage">
@@ -386,9 +490,14 @@
           </div>
           <div class="plate-code" id="plateCode">@USERNAME</div>
         </div>
-        <div style="font-size:12px;color:var(--muted);font-weight:700;margin-bottom:8px;" id="plateMeta">Нажми «Крутить» для запуска рулетки</div>
-        <div id="plateReasons" style="display:none;background:rgba(0,0,0,0.32);padding:10px 12px;border-radius:12px;text-align:left;font-size:11px;color:var(--muted);margin-bottom:10px;"></div>
-        <div id="singleActions" style="display:none;gap:8px;margin-bottom:4px;"></div>
+
+        <div class="origin-sub" id="plateOriginSub">Реестр Fragment • Ожидание броска</div>
+
+        <!-- Каскадные строчки «За что дали ×» -->
+        <div class="factors-stack" id="factorsStack"></div>
+
+        <div id="singleActions" style="display:none;gap:8px;justify-content:center;margin-bottom:8px;"></div>
+        <div style="font-size:11px;color:var(--muted);" id="bottomSellHint">Удача ×5: <b id="p100Val">0/100</b> • Удача ×50: <b id="p500Val">0/500</b></div>
       </div>
 
       <div id="multiStage" style="display:none;flex-direction:column;gap:8px;text-align:left;"></div>
@@ -410,9 +519,102 @@
     </div>
 
     <button class="btn-spin-main" id="mainSpinBtn" onclick="app.mint()">
-      <span id="spinBtnText">КРУТИТЬ</span>
+      <span id="spinBtnText">КРУТИТЬ ЕЩЁ</span>
       <span class="cost-badge" id="spinBtnCost">250 GRAM</span>
     </button>
+  </div>
+
+  <!-- ================= МИНИ-ИГРА #1: АПГРЕЙДЕР НОМЕРОВ (×2, ×3, ×5, ×10) ================= -->
+  <div id="view-upgrader" class="view">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <button class="btn-ghost" onclick="ui.nav('play')">‹ Назад</button>
+      <h3 style="font-size:16px;color:var(--emerald);">🎯 Апгрейдер номеров</h3>
+    </div>
+    <div class="card-box" style="text-align:center;">
+      <p style="font-size:11px;color:var(--muted);margin-bottom:10px;">
+        Поставь свой <b>@username</b> или <b>+888</b> из Сейфа и выбери множитель. Если стрелка остановится в изумрудной зоне — ты получишь новый предмет в <b>2, 3, 5 или 10 раз дороже</b>!
+      </p>
+
+      <div class="upgrader-stage">
+        <canvas id="upgraderCanvas" width="480" height="480"></canvas>
+        <div class="upgrader-pointer" id="upgraderPointer"><div class="upgrader-needle"></div></div>
+        <div class="upgrader-center">
+          <span id="upgChanceTxt" style="color:var(--emerald);">48%</span>
+          <span style="font-size:9px;color:var(--muted);" id="upgMultLabel">×2 ЦЕЛЬ</span>
+        </div>
+      </div>
+
+      <div style="font-size:12px;font-weight:800;text-align:left;margin-bottom:6px;">1. Выбери предмет для апгрейда:</div>
+      <select id="upgItemSel" style="width:100%;padding:11px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:12px;"></select>
+
+      <div style="font-size:12px;font-weight:800;text-align:left;margin-bottom:6px;">2. Выбери множитель и шанс:</div>
+      <div class="quick-pills-row" style="margin-bottom:14px;">
+        <div class="q-pill" id="um-2" style="border-color:var(--emerald);color:var(--emerald);" onclick="app.setUpgradeMult(2)">×2 (48%)</div>
+        <div class="q-pill" id="um-3" onclick="app.setUpgradeMult(3)">×3 (31%)</div>
+        <div class="q-pill" id="um-5" onclick="app.setUpgradeMult(5)">×5 (18%)</div>
+        <div class="q-pill" id="um-10" onclick="app.setUpgradeMult(10)">×10 (9%)</div>
+      </div>
+
+      <button class="btn-spin-main" id="btnRunUpgrade" onclick="app.runUpgrade()">ЗАПУСТИТЬ АПГРЕЙД</button>
+    </div>
+  </div>
+
+  <!-- ================= МИНИ-ИГРА #2: TON РАКЕТКА (CRASH) ================= -->
+  <div id="view-rocket" class="view">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <button class="btn-ghost" onclick="ui.nav('play')">‹ Назад</button>
+      <h3 style="font-size:16px;color:var(--gold);">🚀 TON Ракетка</h3>
+    </div>
+
+    <div class="rocket-screen">
+      <div class="rocket-ship" id="rocketShip">🚀</div>
+      <div class="rocket-mult-big" id="rocketMultDisp">×1.00</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;" id="rocketStatusTxt">Укажи ставку и целевой икс авто-вывода</div>
+    </div>
+
+    <div class="card-box">
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Ставка (GRAM):</div>
+      <input type="number" id="rocketBetInp" value="2500" style="width:100%;padding:11px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:12px;">
+
+      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Целевой коэффициент (Авто-вывод от ×1.2 до ×50):</div>
+      <div class="quick-pills-row" style="margin-bottom:10px;">
+        <div class="q-pill" onclick="document.getElementById('rocketTargetInp').value='1.5'">×1.5</div>
+        <div class="q-pill" onclick="document.getElementById('rocketTargetInp').value='2.0'">×2.0</div>
+        <div class="q-pill" onclick="document.getElementById('rocketTargetInp').value='5.0'">×5.0</div>
+        <div class="q-pill" onclick="document.getElementById('rocketTargetInp').value='10.0'">×10.0</div>
+      </div>
+      <input type="number" step="0.1" id="rocketTargetInp" value="2.0" style="width:100%;padding:11px;border-radius:12px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:14px;">
+
+      <button class="btn-spin-main" id="btnLaunchRocket" onclick="app.launchRocket()">🚀 ЗАПУСТИТЬ РАКЕТУ</button>
+    </div>
+  </div>
+
+  <!-- ================= МИНИ-ИГРА #3: ВЗЛОМ КРИПТО-СЕЙФА ================= -->
+  <div id="view-vault" class="view">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
+      <h3 style="font-size:16px;color:#60a5fa;">🔐 Взлом Сейфа Дурова</h3>
+    </div>
+    <div class="card-box" style="text-align:center;">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">
+        Бесплатная попытка раз в час! Угадай, за каким из 3 зашифрованных шлюзов спрятан главный грант GRAM:
+      </p>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+        <div class="card-box" style="cursor:pointer;border-color:var(--gold);padding:20px 8px;" onclick="app.hackVault(1)">
+          <div style="font-size:32px;margin-bottom:6px;">🗄️</div>
+          <div class="rr-font" style="font-size:11px;">ЯЧЕЙКА #1</div>
+        </div>
+        <div class="card-box" style="cursor:pointer;border-color:var(--emerald);padding:20px 8px;" onclick="app.hackVault(2)">
+          <div style="font-size:32px;margin-bottom:6px;">🗄️</div>
+          <div class="rr-font" style="font-size:11px;">ЯЧЕЙКА #2</div>
+        </div>
+        <div class="card-box" style="cursor:pointer;border-color:var(--purple);padding:20px 8px;" onclick="app.hackVault(3)">
+          <div style="font-size:32px;margin-bottom:6px;">🗄️</div>
+          <div class="rr-font" style="font-size:11px;">ЯЧЕЙКА #3</div>
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:800;color:var(--gold);" id="vaultResultTxt">Выбери ячейку для дешифровки</div>
+    </div>
   </div>
 
   <!-- ================= 2. ХРАНИЛИЩЕ (СЕЙФ + КАНАЛЫ) ================= -->
@@ -436,18 +638,16 @@
     </div>
 
     <div id="st-chan-body" style="display:none;">
-      <!-- Налоговый Аудит ФНС / Роскомнадзора (аналог штрафов ГИБДД) -->
       <div class="card-box" id="taxAlertCard" style="border-color:var(--ruby);background:linear-gradient(90deg, rgba(239,68,68,0.16), var(--card));">
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <div style="padding-right:8px;">
             <div class="rr-font" style="font-size:11px;font-weight:900;color:#f87171;" id="taxTitleTxt">🚔 НАЛОГОВЫЙ РЕЙД: -25% К ДОХОДУ</div>
-            <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="taxSubTxt">Оплати Аудит Безопасности (на 4 часа) или включи VIP, чтобы снять удержание!</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;" id="taxSubTxt">Оплати Аудит Безопасности (на 4 часа) или включи VIP!</div>
           </div>
           <button class="btn-em" id="taxPayBtn" onclick="app.payTaxShield()">ОПЛАТИТЬ</button>
         </div>
       </div>
 
-      <!-- Слот номера +888 -->
       <div class="card-box" style="border-color:var(--gold);background:linear-gradient(135deg, rgba(245,158,11,0.15), var(--card));">
         <div>
           <span class="rr-font" style="font-size:10px;font-weight:900;color:var(--gold);">📞 НОМЕР +888 ДЛЯ КАНАЛОВ (ОТ ×2 ДО ×1000)</span>
@@ -464,7 +664,6 @@
       </div>
       <div id="channelsList"></div>
 
-      <!-- Прокачка каналов с жесткими лимитами и растущей ценой -->
       <div class="card-box">
         <div class="rr-font" style="font-size:12px;font-weight:900;margin-bottom:10px;">Штат продвижения (Лимит уровней)</div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
@@ -513,18 +712,18 @@
     <div id="marketList"></div>
   </div>
 
-  <!-- ================= 4. ДРУЗЬЯ (РЕФЕРАЛКА БЕЗ ОШИБКИ BOT_INVALID) ================= -->
+  <!-- ================= 4. ДРУЗЬЯ ================= -->
   <div id="view-friends" class="view">
     <div class="card-box" style="border-color:var(--gold);text-align:center;padding:20px 14px;">
-      <div class="rr-font" style="font-size:11px;font-weight:900;color:var(--gold);">РЕФЕРАЛЬНАЯ ПРОГРАММА</div>
-      <h2 style="font-size:18px;margin:6px 0 10px;">ЗОВИ ДРУЗЕЙ — <span style="color:var(--gold);">ЗАБИРАЙ ДО 5,000,000 G</span></h2>
+      <div class="rr-font" style="font-size:11px;font-weight:900;color:var(--gold);">ПАРТНЕРСКАЯ СЕТЬ</div>
+      <h2 style="font-size:18px;margin:6px 0 10px;">3 ДРУГА = <span style="color:var(--gold);">УДАЧА ×2 НА 3 ЧАСА</span></h2>
       <p style="font-size:12px;color:var(--muted);margin-bottom:14px;line-height:1.45;">
-        Твой друг сразу получает <b>+35,000 GRAM</b> при входе, а ты получаешь мгновенный бонус + <b>10% от всего его дохода в GRAM</b> и <b>15% в Stars</b> с его покупок!
+        Друг сразу получает <b>+35,000 GRAM</b> при входе, а ты получаешь бонусы + <b>10% от его дохода в GRAM</b> и <b>15% в Stars</b> с покупок!
       </p>
       <button class="btn-spin-main" style="background:var(--gold);color:#111;margin-bottom:8px;" onclick="app.shareRef()">
         📤 ОТПРАВИТЬ ПРИГЛАШЕНИЕ ДРУГУ
       </button>
-      <button class="btn-ghost" style="width:100%;" onclick="app.copyRef()">📋 Скопировать ссылку: t.me/MintTagsBot?startapp=ref_...</button>
+      <button class="btn-ghost" style="width:100%;" onclick="app.copyRef()">📋 Скопировать реферальную ссылку</button>
     </div>
 
     <div class="card-box">
@@ -536,30 +735,42 @@
     </div>
   </div>
 
-  <!-- ================= 5. ЕЩЁ (ВСЕ ИНСТРУМЕНТЫ + ДУЭЛИ И КОЛЛЕКЦИИ) ================= -->
+  <!-- ================= 5. ЕЩЁ (ХАБ ВСЕХ МИНИ-ИГР И ИНСТРУМЕНТОВ) ================= -->
   <div id="view-more" class="view">
     <div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
       <div style="display:flex;align-items:center;gap:12px;">
         <div class="top-pill" style="width:46px;height:46px;justify-content:center;font-size:16px;border-color:var(--gold);" id="moreLvl">1</div>
         <div>
           <div class="rr-font" style="font-size:14px;font-weight:900;" id="moreName">Игрок</div>
-          <div style="font-size:11px;color:var(--muted);">Участник <b id="moreMem">#1</b> • Побед в дуэлях: <b id="moreWins" style="color:var(--gold);">0</b></div>
+          <div style="font-size:11px;color:var(--muted);">ID <b id="moreMem">#1</b> • Побед в дуэлях: <b id="moreWins" style="color:var(--gold);">0</b></div>
         </div>
       </div>
       <button class="btn-ghost" onclick="ui.openSub('settings')">⚙️ Настройки</button>
     </div>
 
     <div class="tools-grid">
+      <div class="tool-tile" onclick="ui.openSub('upgrader')">
+        <div class="tool-ico" style="background:rgba(16,185,129,0.18);color:#10b981;">🎯</div>
+        <span>Апгрейдер</span>
+      </div>
+      <div class="tool-tile" onclick="ui.openSub('rocket')">
+        <div class="tool-ico" style="background:rgba(245,158,11,0.18);color:#f59e0b;">🚀</div>
+        <span>Ракетка</span>
+      </div>
       <div class="tool-tile" onclick="ui.openSub('duels')">
         <div class="tool-ico" style="background:rgba(239,68,68,0.18);color:#ef4444;">⚔️</div>
         <span>PvP Дуэли</span>
+      </div>
+      <div class="tool-tile" onclick="ui.openSub('vault')">
+        <div class="tool-ico" style="background:rgba(59,130,246,0.18);color:#3b82f6;">🔐</div>
+        <span>Взлом Сейфа</span>
       </div>
       <div class="tool-tile" onclick="ui.openSub('albums')">
         <div class="tool-ico" style="background:rgba(6,182,212,0.18);color:#06b6d4;">📖</div>
         <span>Коллекции</span>
       </div>
       <div class="tool-tile" onclick="ui.openSub('wheel')">
-        <div class="tool-ico" style="background:rgba(245,158,11,0.18);color:#f59e0b;">🎡</div>
+        <div class="tool-ico" style="background:rgba(234,179,8,0.18);color:#eab308;">🎡</div>
         <span>Колесо</span>
       </div>
       <div class="tool-tile" onclick="ui.openSub('craft')">
@@ -567,26 +778,16 @@
         <span>Крафты</span>
       </div>
       <div class="tool-tile" onclick="ui.openSub('quests')">
-        <div class="tool-ico" style="background:rgba(16,185,129,0.18);color:#10b981;">📋</div>
+        <div class="tool-ico" style="background:rgba(34,197,94,0.18);color:#22c55e;">📋</div>
         <span>Задания</span>
-      </div>
-      <div class="tool-tile" onclick="ui.openSub('pass')">
-        <div class="tool-ico" style="background:rgba(59,130,246,0.18);color:#3b82f6;">🎫</div>
-        <span>Сезон Пасс</span>
-      </div>
-      <div class="tool-tile" onclick="ui.openSub('ach')">
-        <div class="tool-ico" style="background:rgba(236,72,153,0.18);color:#ec4899;">🏅</div>
-        <span>Достижения</span>
-      </div>
-      <div class="tool-tile" onclick="ui.openSub('clans')">
-        <div class="tool-ico" style="background:rgba(20,184,166,0.18);color:#14b8a6;">🛡️</div>
-        <span>Кланы</span>
       </div>
     </div>
 
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-      <button class="btn-ghost" style="padding:12px;" onclick="ui.openSub('daily')">🎁 Подарок дня</button>
-      <button class="btn-ghost" style="padding:12px;" onclick="ui.openSub('leaders')">🏆 Топ игроков</button>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;">
+      <button class="btn-ghost" style="padding:10px 4px;font-size:10px;" onclick="ui.openSub('pass')">🎫 Пасс</button>
+      <button class="btn-ghost" style="padding:10px 4px;font-size:10px;" onclick="ui.openSub('ach')">🏅 Ачивки</button>
+      <button class="btn-ghost" style="padding:10px 4px;font-size:10px;" onclick="ui.openSub('clans')">🛡️ Кланы</button>
+      <button class="btn-ghost" style="padding:10px 4px;font-size:10px;" onclick="ui.openSub('leaders')">🏆 Топ</button>
     </div>
 
     <div class="card-box" style="background:linear-gradient(135deg, #f59e0b, #d97706);color:#090b10;cursor:pointer;" onclick="ui.openDonateAndBuy()">
@@ -600,41 +801,31 @@
     </div>
   </div>
 
-  <!-- ================= НОВЫЕ ЭКРАНЫ: PVP-ДУЭЛИ И КОЛЛЕКЦИИ ================= -->
-
-  <!-- PVP-ДУЭЛИ НА НОМЕРАХ И ТЕГАХ -->
+  <!-- ОСТАЛЬНЫЕ ЭКРАНЫ (ДУЭЛИ, КОЛЛЕКЦИИ, КОЛЕСО, КРАФТЫ, КЛАНЫ, ЗАДАНИЯ, ПАСС, НАСТРОЙКИ) -->
   <div id="view-duels" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
+      <button class="btn-ghost" onclick="ui.nav('play')">‹ Назад</button>
       <h3 style="font-size:16px;color:#f87171;">⚔️ PvP-Арена Дуэлей</h3>
     </div>
     <div class="card-box" style="border-color:var(--ruby);">
-      <div class="rr-font" style="font-size:12px;color:var(--gold);margin-bottom:4px;">Битва редкости и качества номеров</div>
       <p style="font-size:11px;color:var(--muted);line-height:1.45;margin-bottom:12px;">
-        Выбери свой самый крутой <b>@username</b> или <b>+888</b> из Сейфа и сделай ставку. Чем выше редкость и % качества твоего предмета, тем выше шанс сокрушить соперника и забрать банк <b>×1.9</b>! (Сам предмет при поражении не сгорает).
+        Выбери свой предмет из Сейфа и сделай ставку. Чем выше редкость и % качества, тем выше шанс победить соперника и забрать банк <b>×1.9</b>! (Сам предмет не сгорает).
       </p>
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">1. Твой боевой номер / тег из Сейфа:</div>
       <select id="duelItemSel" style="width:100%;padding:11px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:12px;"></select>
-
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">2. Ставка на дуэль (GRAM):</div>
       <input type="number" id="duelBetInp" value="5000" style="width:100%;padding:11px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:14px;">
-
       <button class="btn-spin-main" style="background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;" onclick="app.startDuel()">⚔️ ВЫЗВАТЬ СОПЕРНИКА НА БОЙ</button>
     </div>
     <div id="duelLogBox"></div>
   </div>
 
-  <!-- КОЛЛЕКЦИОННЫЕ АЛЬБОМЫ -->
   <div id="view-albums" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
       <h3 style="font-size:16px;color:#06b6d4;">📖 Коллекционные Альбомы</h3>
     </div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Собирай тематические сеты в своём Сейфе и забирай крупные гранты GRAM (предметы при активации остаются у тебя)!</p>
     <div id="albumsList"></div>
   </div>
 
-  <!-- КОЛЕСО ФОРТУНЫ -->
   <div id="view-wheel" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
@@ -658,17 +849,11 @@
     </div>
   </div>
 
-  <!-- КРАФТЫ -->
   <div id="view-craft" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Крафты</h3></div>
-    <div class="card-box" style="border-color:var(--ruby);">
-      <div class="rr-font" style="font-size:12px;font-weight:900;color:var(--gold);">⚗️ Слияние 5 предметов в тир выше (Риск 25%)</div>
-      <div style="font-size:11px;color:var(--muted);margin-top:4px;">Успех 75% дает предмет следующей редкости. При неудаче (25%) все 5 сгорают!</div>
-    </div>
     <div id="craftList"></div>
   </div>
 
-  <!-- КЛАНЫ -->
   <div id="view-clans" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
       <div style="display:flex;align-items:center;gap:10px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Кланы</h3></div>
@@ -684,27 +869,21 @@
     <div id="clansList"></div>
   </div>
 
-  <!-- ЗАДАНИЯ, ДОСТИЖЕНИЯ, ПАСС, ПОДАРОК, РЕЙТИНГ -->
   <div id="view-quests" class="view"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Задания дня</h3></div><div id="questsList"></div></div>
   <div id="view-ach" class="view"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Достижения</h3></div><div id="achList"></div></div>
   <div id="view-pass" class="view"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Сезонный пропуск</h3></div><div class="card-box"><b id="passHeaderTxt" style="color:var(--gold);">Очки сезона: 0 XP</b></div><div id="passList"></div></div>
   <div id="view-daily" class="view"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Подарок дня</h3></div><div id="dailyList"></div><button class="btn-spin-main" style="margin-top:10px;" onclick="app.claimDaily()">ЗАБРАТЬ ПОДАРОК</button></div>
   <div id="view-leaders" class="view"><div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button><h3 style="font-size:16px;">Рейтинг</h3></div><div id="leadersList"></div></div>
 
-  <!-- ВЫСТАВЛЕНИЕ НА АУКЦИОН -->
   <div id="view-sell_lot" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><button class="btn-ghost" onclick="ui.nav('market')">‹ Назад</button><h3 style="font-size:16px;">Выставить на Аукцион / Рынок</h3></div>
     <div class="card-box">
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Выбранный @username или +888:</div>
       <select id="lotItemSel" style="width:100%;padding:11px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:10px;"></select>
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Тип торгов:</div>
       <select id="lotModeSel" style="width:100%;padding:11px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:10px;">
         <option value="1">🔨 Аукцион на время (перебитие ставок)</option>
         <option value="0">💰 Фиксированная продажа</option>
       </select>
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Начальная цена (GRAM):</div>
       <input type="number" id="lotPriceVal" value="10000" style="width:100%;padding:11px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:10px;">
-      <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Длительность:</div>
       <select id="lotHoursVal" style="width:100%;padding:11px;border-radius:11px;background:var(--bg-elev);color:var(--text);border:1px solid var(--border);margin-bottom:14px;">
         <option value="1">1 час</option><option value="3" selected>3 часа</option><option value="6">6 часов</option><option value="12">12 часов</option><option value="24">24 часа</option>
       </select>
@@ -712,7 +891,6 @@
     </div>
   </div>
 
-  <!-- МАГАЗИН ДОНАТА -->
   <div id="view-donate" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <button class="btn-ghost" onclick="ui.nav('play')">‹ Назад</button>
@@ -721,7 +899,7 @@
     <div id="donateList"></div>
   </div>
 
-  <!-- НАСТРОЙКИ -->
+  <!-- НАСТРОЙКИ И ЮРИДИЧЕСКИЕ ДОКУМЕНТЫ -->
   <div id="view-settings" class="view">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
       <button class="btn-ghost" onclick="ui.nav('more')">‹ Назад</button>
@@ -731,11 +909,11 @@
     <div class="set-group-title">Игра</div>
     <div class="set-card">
       <div class="set-row" onclick="ui.toggleSetting('sound')">
-        <div><div style="font-size:14px;font-weight:800;">Звук</div><div style="font-size:11px;color:var(--muted);">Тактильные щелчки слота и победный аккорд</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Звук</div><div style="font-size:11px;color:var(--muted);">Щелчки рулетки и аккорды выигрыша</div></div>
         <div class="toggle on" id="tgl-sound"></div>
       </div>
       <div class="set-row" onclick="ui.toggleSetting('vibro')">
-        <div><div style="font-size:14px;font-weight:800;">Вибрация</div><div style="font-size:11px;color:var(--muted);">Тактильная отдача при выбивании номеров</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Вибрация</div><div style="font-size:11px;color:var(--muted);">Тактильный отклик при выбивании</div></div>
         <div class="toggle on" id="tgl-vibro"></div>
       </div>
       <div class="set-row" onclick="ui.openAutoSaveSheet()">
@@ -746,49 +924,49 @@
         <span style="color:var(--muted);font-size:18px;">›</span>
       </div>
       <div class="set-row" onclick="ui.toggleSetting('toast_garage')">
-        <div><div style="font-size:14px;font-weight:800;">Плашка «Номер в Сейфе»</div><div style="font-size:11px;color:var(--muted);">Всплывает, когда предмет сам уехал в Хранилище</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Плашка «Номер в Сейфе»</div><div style="font-size:11px;color:var(--muted);">Уведомление при авто-сохранении</div></div>
         <div class="toggle on" id="tgl-toast_garage"></div>
       </div>
       <div class="set-row" onclick="ui.toggleSetting('shine')">
-        <div><div style="font-size:14px;font-weight:800;">Блеск редких номеров</div><div style="font-size:11px;color:var(--muted);">Золотое свечение и салют у легендарных и круче</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Блеск редких номеров</div><div style="font-size:11px;color:var(--muted);">Свечение и салют у легендарных и круче</div></div>
         <div class="toggle on" id="tgl-shine"></div>
       </div>
       <div class="set-row" onclick="ui.toggleSetting('fast')">
-        <div><div style="font-size:14px;font-weight:800;">Быстрая прокрутка</div><div style="font-size:11px;color:var(--muted);">@username и +888 открываются сразу без анимации</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Быстрая прокрутка</div><div style="font-size:11px;color:var(--muted);">Открывать сразу без анимации барабана</div></div>
         <div class="toggle" id="tgl-fast"></div>
       </div>
       <div class="set-row" onclick="ui.toggleTheme()">
-        <div><div style="font-size:14px;font-weight:800;">Светлая тема</div><div style="font-size:11px;color:var(--muted);">Переключить между Темным и Светлым оформлением</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Светлая тема</div><div style="font-size:11px;color:var(--muted);">Бело-изумрудное оформление</div></div>
         <div class="toggle" id="tgl-theme"></div>
       </div>
     </div>
 
-    <div class="set-group-title">Помощь и Правила</div>
+    <div class="set-group-title">Помощь и Правовая информация</div>
     <div class="set-card">
       <div class="set-row" onclick="ui.showInfoModal('how')">
-        <div><div style="font-size:14px;font-weight:800;">Как играть</div><div style="font-size:11px;color:var(--muted);">Обучение: Скупщик, Дуэли, Аудит и +888</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Как играть</div><div style="font-size:11px;color:var(--muted);">Полный гайд по @username, +888 и мини-играм</div></div>
         <span style="color:var(--muted);">›</span>
       </div>
       <div class="set-row" onclick="app.openSupportChat()">
-        <div><div style="font-size:14px;font-weight:800;">Написать в поддержку</div><div style="font-size:11px;color:var(--emerald);">Вопросы, ошибки и предложения</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Написать в поддержку</div><div style="font-size:11px;color:var(--emerald);">@MintTagsSupport • вопросы, баги и предложения</div></div>
         <span style="color:var(--muted);">›</span>
       </div>
       <div class="set-row" onclick="ui.showInfoModal('multi')">
-        <div><div style="font-size:14px;font-weight:800;">За что дают × и как считается цена</div><div style="font-size:11px;color:var(--muted);">Диапазоны цен и иксы номеров +888 (от ×2 до ×1000)</div></div>
+        <div><div style="font-size:14px;font-weight:800;">За что дают × и как считается цена</div><div style="font-size:11px;color:var(--muted);">Все коэффициенты букв, цифр +888 и тиров</div></div>
         <span style="color:var(--muted);">›</span>
       </div>
       <div class="set-row" onclick="ui.showInfoModal('terms')">
-        <div><div style="font-size:14px;font-weight:800;">Пользовательское соглашение</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Пользовательское соглашение (Оферта)</div><div style="font-size:11px;color:var(--muted);">Юридические правила использования симулятора</div></div>
         <span style="color:var(--muted);">›</span>
       </div>
       <div class="set-row" onclick="ui.showInfoModal('privacy')">
-        <div><div style="font-size:14px;font-weight:800;">Политика конфиденциальности</div></div>
+        <div><div style="font-size:14px;font-weight:800;">Политика конфиденциальности</div><div style="font-size:11px;color:var(--muted);">Обработка и защита данных (152-ФЗ / GDPR)</div></div>
         <span style="color:var(--muted);">›</span>
       </div>
     </div>
   </div>
 
-  <!-- НИЖНИЙ ТАББАР -->
+  <!-- ТАББАР -->
   <div class="tabbar">
     <div class="tab-btn active" id="tab-play" onclick="ui.nav('play')">
       <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg><span>Играть</span>
@@ -811,10 +989,10 @@
     const tg = window.Telegram?.WebApp;
     if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#080a0f'); tg.setBackgroundColor('#080a0f'); }
 
-    // КОНФИГУРАЦИЯ ССЫЛОК (Здесь можешь указать свой контакт поддержки)
+    // ОФИЦИАЛЬНЫЕ КОНТАКТЫ ПРОЕКТА
     const BOT_USERNAME = "MintTagsBot";
     const NEWS_CHANNEL_URL = "https://t.me/MintTags_News";
-    const SUPPORT_URL = "https://t.me/MintTags_News";
+    const SUPPORT_URL = "https://t.me/MintTagsSupport";
 
     const API = window.location.origin.includes("http") ? window.location.origin : "https://atminttagsbot.onrender.com";
     const INIT_DATA_RAW = tg?.initData || "";
@@ -905,6 +1083,7 @@
 
     const app = {
       s: null, itemType: 'username', tier: 'tier_0', spinMult: 1, mktFilter: 'all', wheelAngle: 0,
+      upgMult: 2, upgAngle: 0, dailyPopupShown: false,
       autoSaveMinIdx: 0,
       cfg: { sound: true, vibro: true, fast: false, toast_garage: true, shine: true },
 
@@ -914,6 +1093,7 @@
         if (savedAuto !== null) this.autoSaveMinIdx = parseInt(savedAuto);
         ui.updateAutoSaveLabel();
         ui.drawWheelCanvas();
+        ui.drawUpgraderWheel(48);
 
         try {
           document.getElementById('loaderStepTxt').innerText = "Подключение к серверу MintTags...";
@@ -925,7 +1105,13 @@
           await this.verifySubscription(false);
         } catch (e) {}
 
-        setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 450);
+        setTimeout(() => {
+          document.getElementById('preloader').classList.add('hidden');
+          if (this.s && this.s.can_daily && !this.dailyPopupShown) {
+            this.dailyPopupShown = true;
+            document.getElementById('dailyPopupSheet').style.display = 'flex';
+          }
+        }, 450);
         setInterval(() => this.tick(), 1000);
       },
 
@@ -1054,13 +1240,35 @@
               s += (ch === ' ' || ch === '@' || ch === '+') ? ch : chars[Math.floor(Math.random() * chars.length)];
             }
             el.innerText = s;
-            await new Promise(r => setTimeout(r, 20));
+            await new Promise(r => setTimeout(r, 18));
           }
           sfx.tick(420 + pos * 45);
           if (this.cfg.vibro && tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
         }
         el.innerText = targetStr;
         sfx.win(rarIdx);
+      },
+
+      async animateFactorsCascade(factors, finalPrice) {
+        const stack = document.getElementById('factorsStack');
+        stack.innerHTML = '';
+        const topPriceEl = document.getElementById('stagePriceTop');
+        if (!factors || factors.length === 0) {
+          topPriceEl.innerText = `${finalPrice.toLocaleString()} G`;
+          return;
+        }
+        for (let i = 0; i < factors.length; i++) {
+          const f = factors[i];
+          const row = document.createElement('div');
+          row.className = 'factor-line';
+          row.innerHTML = `${f.label} <span class="factor-mult">${f.mult}</span>`;
+          stack.appendChild(row);
+          sfx.tick(600 + i * 110);
+          const stepPrice = Math.floor((finalPrice / factors.length) * (i + 1));
+          topPriceEl.innerText = `${stepPrice.toLocaleString()} G`;
+          if (!this.cfg.fast) await new Promise(r => setTimeout(r, 210));
+        }
+        topPriceEl.innerText = `${finalPrice.toLocaleString()} G`;
       },
 
       async mint() {
@@ -1086,7 +1294,7 @@
             ui.toast((await r.json()).detail, true);
           } else {
             const d = await r.json();
-            if (d.auto_sold > 0) ui.toast(`Несохраненный дроп продан за +${d.auto_sold.toLocaleString()} G`);
+            if (d.auto_sold > 0) ui.toast(`Прошлый дроп продан за +${d.auto_sold.toLocaleString()} G`);
             await this.displayDropsResult(d.drops);
             await this.sync();
           }
@@ -1101,35 +1309,39 @@
         if (drops.length === 1) {
           sBox.style.display = 'block'; mBox.style.display = 'none';
           const item = drops[0];
-          const c = COLORS[item.rarity] || '#fff';
+          const rObj = RARITY_LIST.find(x => x.name === item.rarity) || RARITY_LIST[0];
+          const c = rObj.color;
+
+          document.getElementById('stageRarTitle').innerText = rObj.ru;
+          document.getElementById('stageRarTitle').style.color = c;
           document.getElementById('plateRegion').innerText = item.type === 'number' ? '+888' : 'TON';
           document.getElementById('plateSub').innerText = item.type === 'number' ? `×${item.num_x}` : '@ID';
           document.getElementById('singleActions').style.display = 'none';
+          document.getElementById('factorsStack').innerHTML = '';
 
           await this.animateRevealText(item.tag, item.rar_idx || 0);
-
           document.getElementById('plateFrame').style.borderColor = c;
-          const multBadge = item.type === 'number' ? ` • <b style="color:var(--gold);">Каналам ×${item.num_x}</b>` : '';
-          document.getElementById('plateMeta').innerHTML = `<b style="color:${c};">${item.rarity} (${item.q}%)</b> • Цена: <b>${item.sell.toLocaleString()} G</b> (+${item.inc.toLocaleString()}/с)${multBadge}`;
+          document.getElementById('plateOriginSub').innerText = item.type === 'number'
+            ? `Анонимный пул Fragment • Пассив +${item.inc.toLocaleString()} G/с`
+            : `Глобальный реестр TON • Пассив +${item.inc.toLocaleString()} G/с`;
 
-          const rEl = document.getElementById('plateReasons');
-          rEl.style.display = 'block';
-          rEl.innerHTML = item.reasons.map(x => `<div>${x}</div>`).join('');
+          await this.animateFactorsCascade(item.factors || [], item.sell);
 
           const act = document.getElementById('singleActions');
           act.style.display = 'flex';
           if (item.auto_saved) {
             if (this.cfg.toast_garage) ui.toast(`📥 ${item.tag} сохранен в Сейф!`);
             act.innerHTML = `
-              <div style="flex:1;padding:11px;background:var(--emerald-glow);border:1px solid var(--emerald);border-radius:12px;color:var(--emerald);font-weight:900;font-size:11px;">✅ В СЕЙФЕ</div>
-              <button class="btn-ghost" style="flex:1;padding:11px;border-color:var(--gold);color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">Продать за ${item.sell.toLocaleString()} G</button>
+              <button class="btn-ghost" style="padding:10px 18px;border-color:var(--emerald);color:var(--emerald);">В Сейфе ✓</button>
+              <button class="btn-ghost" style="padding:10px 18px;color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">Продать за ${item.sell.toLocaleString()} G</button>
             `;
           } else {
             act.innerHTML = `
-              <button class="btn-em" style="flex:1;padding:12px;" onclick="app.itemAction('${item.tag}','save',1,this)">📥 В СЕЙФ</button>
-              <button class="btn-ghost" style="flex:1;padding:12px;border-color:var(--gold);color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">Продать +${item.sell.toLocaleString()}</button>
+              <button class="btn-em" style="padding:10px 20px;" onclick="app.itemAction('${item.tag}','save',1,this)">В Сейф</button>
+              <button class="btn-ghost" style="padding:10px 18px;color:var(--gold);" onclick="app.itemAction('${item.tag}','sell',1,this)">Продать за ${item.sell.toLocaleString()} G</button>
             `;
           }
+          document.getElementById('bottomSellHint').innerText = `Этот лот оценивается рынком в ${item.sell.toLocaleString()} GRAM`;
 
           if (this.cfg.shine && item.rar_idx >= 4) {
             document.getElementById('stageCard').classList.add('celebrate-leg');
@@ -1159,6 +1371,134 @@
               </div>`;
           }).join('');
         }
+      },
+
+      /* МИНИ-ИГРА #1: АПГРЕЙДЕР */
+      setUpgradeMult(m) {
+        this.upgMult = m;
+        const chances = {2: 48, 3: 31, 5: 18, 10: 9};
+        [2, 3, 5, 10].forEach(x => {
+          const el = document.getElementById('um-' + x);
+          el.style.borderColor = x === m ? 'var(--emerald)' : 'var(--border)';
+          el.style.color = x === m ? 'var(--emerald)' : 'var(--text)';
+        });
+        document.getElementById('upgChanceTxt').innerText = chances[m] + '%';
+        document.getElementById('upgMultLabel').innerText = `×${m} ЦЕЛЬ`;
+        ui.drawUpgraderWheel(chances[m]);
+      },
+
+      async runUpgrade() {
+        const tag = document.getElementById('upgItemSel').value;
+        if (!tag) { ui.toast("Сначала выбери свободный предмет из Сейфа!", true); return; }
+        const btn = document.getElementById('btnRunUpgrade');
+        btn.disabled = true;
+
+        const r = await fetch(`${API}/api/minigame/upgrade`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, tag, target_mult: this.upgMult })
+        });
+        if (!r.ok) {
+          ui.toast((await r.json()).detail, true);
+          btn.disabled = false;
+          return;
+        }
+        const d = await r.json();
+        this.upgAngle += 1800 + d.angle;
+        document.getElementById('upgraderPointer').style.transform = `rotate(${this.upgAngle}deg)`;
+
+        setTimeout(async () => {
+          if (d.win) {
+            sfx.win(5);
+            confetti({ particleCount: 110, spread: 80 });
+            ui.toast(d.message);
+          } else {
+            ui.toast(d.message, true);
+          }
+          await this.sync();
+          ui.openSub('upgrader');
+          btn.disabled = false;
+        }, 3250);
+      },
+
+      /* МИНИ-ИГРА #2: РАКЕТКА */
+      async launchRocket() {
+        const bet = parseFloat(document.getElementById('rocketBetInp').value);
+        const target_x = parseFloat(document.getElementById('rocketTargetInp').value);
+        const btn = document.getElementById('btnLaunchRocket');
+        btn.disabled = true;
+
+        const r = await fetch(`${API}/api/minigame/rocket`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, bet, target_x })
+        });
+        if (!r.ok) {
+          ui.toast((await r.json()).detail, true);
+          btn.disabled = false;
+          return;
+        }
+        const d = await r.json();
+        const disp = document.getElementById('rocketMultDisp');
+        const ship = document.getElementById('rocketShip');
+        const stTxt = document.getElementById('rocketStatusTxt');
+
+        ship.innerText = "🚀";
+        disp.style.color = "var(--emerald)";
+        stTxt.innerText = "Полет нормальный...";
+
+        let cur = 1.00;
+        const endVal = d.win ? d.target_x : d.crash_x;
+        const step = Math.max(0.03, (endVal - 1.0) / 28);
+
+        while (cur < endVal) {
+          cur = Math.min(endVal, cur + step);
+          disp.innerText = `×${cur.toFixed(2)}`;
+          sfx.tick(380 + cur * 30);
+          await new Promise(res => setTimeout(res, 45));
+        }
+
+        if (d.win) {
+          sfx.win(5);
+          confetti({ particleCount: 90, spread: 70 });
+          stTxt.innerText = d.message;
+          ui.toast(d.message);
+        } else {
+          ship.innerText = "💥";
+          disp.style.color = "var(--ruby)";
+          disp.innerText = `ВЗРЫВ ×${d.crash_x.toFixed(2)}`;
+          stTxt.innerText = d.message;
+          ui.toast(d.message, true);
+        }
+        await this.sync();
+        btn.disabled = false;
+      },
+
+      /* МИНИ-ИГРА #3: ВЗЛОМ СЕЙФА И ПРОМОКОДЫ */
+      async hackVault(cell) {
+        const r = await fetch(`${API}/api/minigame/vault`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, cell })
+        });
+        if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
+        const d = await r.json();
+        sfx.win(4);
+        document.getElementById('vaultResultTxt').innerText = d.message;
+        ui.toast(d.message);
+        await this.sync();
+      },
+
+      async activatePromo() {
+        const code = document.getElementById('promoCodeInp').value;
+        const r = await fetch(`${API}/api/promo`, {
+          method: 'POST', headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ user_id: UID, key: code })
+        });
+        if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
+        const d = await r.json();
+        document.getElementById('promoSheet').style.display = 'none';
+        document.getElementById('promoCodeInp').value = '';
+        confetti({ particleCount: 90, spread: 70 });
+        ui.toast(`🔑 Промокод ${d.code} активирован: +${d.reward.toLocaleString()} GRAM!`);
+        await this.sync();
       },
 
       async buyBulkSpins(packKey) {
@@ -1213,7 +1553,7 @@
           body: JSON.stringify({ user_id: UID })
         });
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
-        ui.toast("🛡️ Аудит Безопасности оплачен на 4 часа! Каналы дают 100% дохода.");
+        ui.toast("🛡️ Аудит Безопасности оплачен на 4 часа!");
         await this.sync();
       },
 
@@ -1225,7 +1565,7 @@
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
         const d = await r.json();
         confetti({ particleCount: 100, spread: 75 });
-        ui.toast(`📖 Коллекция собрана! Получено +${d.reward.toLocaleString()} GRAM!`);
+        ui.toast(`📖 Коллекция собрана! +${d.reward.toLocaleString()} GRAM!`);
         await this.sync();
       },
 
@@ -1308,9 +1648,11 @@
           method: 'POST', headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ user_id: UID })
         });
+        document.getElementById('dailyPopupSheet').style.display = 'none';
         if (!r.ok) { ui.toast((await r.json()).detail, true); return; }
         const d = await r.json();
-        ui.toast(`🎁 День ${d.day}: +${d.reward.toLocaleString()} GRAM!`);
+        confetti({ particleCount: 80, spread: 70 });
+        ui.toast(`🎁 День ${d.day}: получено +${d.reward.toLocaleString()} GRAM!`);
         await this.sync();
       },
 
@@ -1387,7 +1729,6 @@
       },
 
       shareRef() {
-        // Чистый нативный шеринг Telegram без ошибки BOT_INVALID
         const cleanLink = `https://t.me/${BOT_USERNAME}?startapp=ref_${UID}`;
         const txt = "👑 Забирай эксклюзивные @username и анонимные номера +888 в MintTags! Переходи и забирай +35,000 GRAM на старт:";
         const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(cleanLink)}&text=${encodeURIComponent(txt)}`;
@@ -1427,6 +1768,12 @@
           document.getElementById('duelItemSel').innerHTML = app.s.tags.map(t =>
             `<option value="${t.tag}">${t.tag} (${t.rarity} • Качество ${t.q}%)</option>`
           ).join('');
+        }
+        if (id === 'upgrader' && app.s) {
+          const free = app.s.tags.filter(t => !t.eq);
+          document.getElementById('upgItemSel').innerHTML = free.map(t =>
+            `<option value="${t.tag}">${t.tag} (${t.rarity} • Цена ${t.sell.toLocaleString()} G)</option>`
+          ).join('') || `<option value="">Нет свободных предметов в Сейфе</option>`;
         }
       },
 
@@ -1484,6 +1831,29 @@
         if (el) el.innerText = `${r.ru} и дороже — сохраняются сами`;
       },
 
+      drawUpgraderWheel(chancePct) {
+        const canvas = document.getElementById('upgraderCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+        const cx = 240, cy = 240, r = 220;
+        const winRad = (chancePct / 100) * (2 * Math.PI);
+        ctx.clearRect(0, 0, 480, 480);
+
+        // Зона проигрыша
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, 0, 2 * Math.PI);
+        ctx.lineWidth = 34;
+        ctx.strokeStyle = "#1e293b";
+        ctx.stroke();
+
+        // Зеленая зона успеха (начиная сверху -PI/2)
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + winRad);
+        ctx.lineWidth = 34;
+        ctx.strokeStyle = "#10b981";
+        ctx.stroke();
+      },
+
       drawWheelCanvas() {
         const canvas = document.getElementById('wheelCanvas');
         if (!canvas) return;
@@ -1537,18 +1907,18 @@
         const titles = {
           how: "КАК ИГРАТЬ В MINTTAGS",
           multi: "ЗА ЧТО ДАЮТ × И КАК СЧИТАЕТСЯ ЦЕНА",
-          terms: "ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ",
+          terms: "ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ (ОФЕРТА)",
           privacy: "ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ"
         };
         const rarRows = RARITY_LIST.map(r =>
-          `• <b style="color:${r.color};">${r.ru} (${r.name}):</b> цена <b>${r.range}</b> | номер +888 дает <b>×${r.num_x}</b> к каналам`
+          `• <b style="color:${r.color};">${r.ru} (${r.name}):</b> диапазон <b>${r.range}</b> | +888 дает <b>×${r.num_x}</b> к каналам`
         ).join('<br>');
 
         const bodies = {
-          how: "<b>1. Выбивай @username и +888:</b><br>Крути слот и собирай коллекцию в Сейф.<br><br><b>2. Тайный Скупщик и Серия Дня:</b><br>Каждые 15 минут Скупщик предлагает до +80% за конкретную редкость. А если в номере есть символы «Серии Дня» — он продается еще на +40% дороже!<br><br><b>3. PvP-Дуэли и Коллекции:</b><br>Вызывай соперников на дуэль номеров и собирай Альбомы ради крупных грантов GRAM.",
-          multi: `<b>Динамический диапазон цен и Иксы +888:</b><br>Цена внутри каждой редкости зависит от процента качества (1–100%): чем короче слово и красивее цифры, тем ближе цена к максимуму тира!<br><br>${rarRows}`,
-          terms: "MintTags: Media Empire — развлекательный игровой симулятор в Telegram. Все внутриигровые единицы GRAM и виртуальные предметы предназначены исключительно для игрового процесса.",
-          privacy: "Мы используем только публичный Telegram ID и имя профиля для сохранения прогресса, реферальной таблицы и зачисления покупок Telegram Stars."
+          how: "<b>1. Генерация @username и +888:</b><br>Крути барабан и выбивай комбинации. Под номером поочередно раскрываются все факторы его редкости и множители.<br><br><b>2. Мини-игры (Апгрейдер, Ракетка, Сейф):</b><br>Рискни предметом в Апгрейдере ради ×10 к цене, лови иксы в TON Ракетке или взламывай Сейф Дурова каждый час!<br><br><b>3. Перекуп и Каналы:</b><br>Привязывай +888 к каналам (до ×1000) и сливай редкие лоты Тайному Скупщику с наценкой до +80%!",
+          multi: `<b>Как формируется рыночная цена:</b><br>Каждый выбитый лот получает базовую оценку тира и умножается на коэффициенты: короткие слова, культовые корни (durov, ton, dubai), отсутствие цифр или повторяющиеся семерки в +888!<br><br>${rarRows}`,
+          terms: `<b>1. ОБЩИЕ ПОЛОЖЕНИЯ И ЮРИДИЧЕСКИЙ СТАТУС</b><br>1.1. Настоящее Пользовательское соглашение (далее — «Оферта») регулирует отношения между Администрацией игрового веб-приложения <b>@MintTagsBot</b> и Пользователем.<br>1.2. Приложение «MintTags: Media Empire» является исключительно развлекательной браузерной игрой-симулятором (GameFi/Tycoon-симулятор).<br><br><b>2. ОТСУТСТВИЕ ПРИЗНАКОВ АЗАРТНЫХ ИГР И ФИНАНСОВЫХ УСЛУГ</b><br>2.1. Все внутриигровые единицы («GRAM»), а также виртуальные карточки «@username» и «+888» являются исключительно внутриигровыми учетными очками (игровым реквизитом), существуют только внутри базы данных симулятора и не имеют реальной рыночной, фиатной или криптовалютной стоимости.<br>2.2. В приложении технически отсутствует вывод средств в фиатные деньги, криптовалюту или реальные NFT-объекты платформы Fragment. Игра не является казино, лотереей, тотализатором или финансовой биржей.<br><br><b>3. ОПЛАТА ЦИФРОВЫХ УСЛУГ TELEGRAM STARS (XTR)</b><br>3.1. Приобретение внутриигровых усилений (VIP-статуса, бустов удачи, слотов) осуществляется добровольно с использованием внутренней валюты мессенджера Telegram Stars (XTR).<br>3.2. Услуга считается оказанной в полном объеме в момент автоматического зачисления выбранного внутриигрового бонуса на игровой профиль Пользователя. Согласно законодательству о цифровом контенте, активированные внутриигровые расходуемые бонусы возврату и обмену не подлежат.<br><br><b>4. ОГРАНИЧЕНИЕ ОТВЕТСТВЕННОСТИ И КОНТАКТЫ</b><br>4.1. Приложение предоставляется по принципу «как есть» (AS IS). Использование сторонних скриптов, автокликеров или эксплойтов влечет блокировку игрового профиля.<br>4.2. Официальная служба поддержки пользователей: <b>@MintTagsSupport</b>. Канал новостей: <b>@MintTags_News</b>.`,
+          privacy: `<b>ПОЛИТИКА КОНФИДЕНЦИАЛЬНОСТИ И ЗАЩИТЫ ДАННЫХ (152-ФЗ / GDPR)</b><br><br><b>1. ОБРАБАТЫВАЕМЫЕ ДАННЫЕ</b><br>1.1. При запуске Telegram Mini App мы получаем исключительно открытые данные вашего профиля, передаваемые самим мессенджером Telegram через протокол <code>WebAppInitData</code>: публичный числовой идентификатор (<code>tg_user_id</code>) и отображаемое имя (<code>first_name / username</code>).<br>1.2. Мы НЕ запрашиваем и НЕ храним ваш номер телефона, пароли, геолокацию, переписку или платежные реквизиты банковских карт.<br><br><b>2. ЦЕЛИ ОБРАБОТКИ</b><br>2.1. Данные используются строго для сохранения вашего внутриигрового прогресса в базе данных, отображения вашего имени в таблице лидеров, учета приглашенных друзей и начисления покупок Telegram Stars.<br><br><b>3. ЗАЩИТА И УДАЛЕНИЕ ДАННЫХ</b><br>3.1. Все запросы верифицируются криптографической подписью HMAC-SHA256. Данные не передаются третьим лицам и рекламным сетям.<br>3.2. По запросу в службу поддержки <b>@MintTagsSupport</b> игровой профиль пользователя может быть полностью обнулен и удален из базы данных.`
         };
         document.getElementById('infoModalTitle').innerText = titles[type];
         document.getElementById('infoModalBody').innerHTML = bodies[type];
@@ -1566,7 +1936,7 @@
         const btn = document.getElementById('mainSpinBtn');
         const lack = app.s && app.s.balance < cost;
         btn.classList.toggle('lack', lack);
-        document.getElementById('spinBtnText').innerText = lack ? "НЕ ХВАТАЕТ НА СТАВКУ" : "КРУТИТЬ";
+        document.getElementById('spinBtnText').innerText = lack ? "НЕ ХВАТАЕТ НА СТАВКУ" : "КРУТИТЬ ЕЩЁ";
         document.getElementById('spinBtnCost').innerText = cost.toLocaleString() + " GRAM";
       },
 
@@ -1580,7 +1950,38 @@
         document.getElementById('p500Val').innerText = `${s.pity_500}/500`;
         document.getElementById('topInc').innerText = `+${Math.floor(app.calcPassiveRate()).toLocaleString()}/с`;
 
-        // Информация о Скупщике и Серии Дня
+        // Заполнение 8 сегментов прогресса до гаранта 100
+        const filledSegs = Math.min(8, Math.floor((s.pity_100 / 100) * 8));
+        document.querySelectorAll('#pitySegBar .pity-seg').forEach((el, idx) => {
+          el.classList.toggle('on', idx < filledSegs);
+        });
+
+        // Шторка подарка дня (7 дней)
+        const dRew = [10000, 25000, 50000, 100000, 200000, 400000, 1000000];
+        const curDayIdx = (s.daily_streak || 0) % 7;
+        document.getElementById('dailyPopupStrip').innerHTML = dRew.map((val, idx) => `
+          <div class="daily-cell ${idx === curDayIdx ? 'active' : ''}">
+            <div style="font-size:18px;margin-bottom:4px;">${idx === 6 ? '💎' : '🎁'}</div>
+            <div>${idx + 1}</div>
+          </div>
+        `).join('');
+        document.getElementById('dailyPopupBtn').innerText = `Забрать +${dRew[curDayIdx].toLocaleString()} G`;
+
+        // Задание 3 друзей (кружки аватарок как на скрине 3)
+        const rCnt = Math.min(3, s.refs_count || 0);
+        document.getElementById('refBannerSub').innerText = s.ref_3_done
+          ? "✅ Выполнено! Удача ×2 на 3ч получена"
+          : `🎁 Задание • Позови 3 друзей (${rCnt} из 3)`;
+        let avHtml = "";
+        for (let i = 0; i < 3; i++) {
+          avHtml += `<div class="friend-circle ${i < rCnt ? 'filled' : ''}">${i < rCnt ? '✓' : '👤'}</div>`;
+        }
+        document.getElementById('refQuestAvatars').innerHTML = avHtml;
+        document.getElementById('refQuestStatusTxt').innerText = s.ref_3_done
+          ? "✅ Задание выполнено! Награда активирована."
+          : `Готово ${rCnt} из 3 • Пригласи ещё ${3 - rCnt}`;
+
+        // Скупщик
         const merch = s.merchant;
         const hot = s.hot_series;
         if (merch) {
@@ -1588,11 +1989,8 @@
           document.getElementById('merchBannerSub').innerText = `Платит +${merch.bonus_pct}% за ${merch.ru} (${merch.rarity}) • ещё ${Math.floor(merch.left_sec/60)} мин`;
           document.getElementById('holdMerchHint').innerText = `🕵️‍♂️ Скупщик ищет ${merch.ru} (+${merch.bonus_pct}%)!`;
         }
-        if (hot) {
-          document.getElementById('hotSeriesSub').innerText = `🔥 Серия дня: ${hot.title} (+${hot.bonus_pct}% к продаже)`;
-        }
 
-        // Сейф (с кнопкой продажи Скупщику и кнопкой Аукциона)
+        // Сейф
         document.getElementById('holdCnt').innerText = s.tags.length;
         document.getElementById('holdMax').innerText = s.max_hold;
         document.getElementById('holdList').innerHTML = s.tags.map(t => {
@@ -1622,7 +2020,7 @@
             </div>`;
         }).join('') || `<div class="card-box" style="text-align:center;color:var(--muted);">В Сейфе пока пусто</div>`;
 
-        // Налоговый Аудит ФНС в Каналах
+        // Налоговый Аудит
         const taxCard = document.getElementById('taxAlertCard');
         if (s.tax_active) {
           taxCard.style.borderColor = 'var(--ruby)';
@@ -1638,7 +2036,7 @@
           document.getElementById('taxPayBtn').style.display = 'none';
         }
 
-        // Каналы и слот номера +888
+        // Каналы
         const numItem = s.tags.find(t => t.eq === 1 && t.slot === 99);
         document.getElementById('numSlotTag').innerText = numItem ? numItem.tag : "Не привязан (Выбери +888 в Сейфе)";
         document.getElementById('numSlotTag').style.color = numItem ? COLORS[numItem.rarity] : 'var(--muted)';
@@ -1783,8 +2181,7 @@
         }
         document.getElementById('passList').innerHTML = passHtml;
 
-        const dArr = [10000, 25000, 50000, 100000, 200000, 400000, 1000000];
-        document.getElementById('dailyList').innerHTML = dArr.map((v, i) => `
+        document.getElementById('dailyList').innerHTML = dRew.map((v, i) => `
           <div class="card-box" style="display:flex;justify-content:space-between;${s.daily_streak===i?'border-color:var(--gold);':''}">
             <b class="rr-font" style="font-size:12px;">ДЕНЬ ${i+1}</b><b style="color:var(--gold);">+${v.toLocaleString()} GRAM ${s.daily_streak>i?'✅':''}</b>
           </div>`).join('');
