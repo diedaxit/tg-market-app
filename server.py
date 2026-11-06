@@ -26,9 +26,6 @@ app.add_middleware(
 DB_NAME = "market.db"
 NEWS_CHANNEL = "@MintTags_News"
 
-# ==========================================
-# ЗАЩИТА ОТ DDOS, АВТОКЛИКЕРОВ И ВЗЛОМА
-# ==========================================
 RATE_BUCKETS = {}
 TX_LOCKS = set()
 
@@ -87,6 +84,7 @@ def init_db():
             max_channels INTEGER DEFAULT 2,
             ref_by INTEGER DEFAULT NULL,
             refs_count INTEGER DEFAULT 0,
+            ref_3_rewarded INTEGER DEFAULT 0,
             contrib_gram REAL DEFAULT 0.0,
             contrib_stars INTEGER DEFAULT 0,
             smm_lvl INTEGER DEFAULT 1,
@@ -97,6 +95,7 @@ def init_db():
             pity_100 INTEGER DEFAULT 0,
             pity_500 INTEGER DEFAULT 0,
             last_wheel INTEGER DEFAULT 0,
+            last_vault INTEGER DEFAULT 0,
             daily_streak INTEGER DEFAULT 0,
             last_daily INTEGER DEFAULT 0,
             q_spins INTEGER DEFAULT 0,
@@ -107,6 +106,7 @@ def init_db():
             ach_stats TEXT DEFAULT '{}',
             ach_claimed TEXT DEFAULT '[]',
             albums_claimed TEXT DEFAULT '[]',
+            promos_used TEXT DEFAULT '[]',
             tax_shield_until INTEGER DEFAULT 0,
             duel_wins INTEGER DEFAULT 0,
             auto_save_min_idx INTEGER DEFAULT 0,
@@ -175,19 +175,20 @@ def init_db():
         ("season_xp", "INTEGER DEFAULT 0"), ("season_claimed", "TEXT DEFAULT '[]'"),
         ("vip_until", "INTEGER DEFAULT 0"), ("max_hold", "INTEGER DEFAULT 100"),
         ("max_channels", "INTEGER DEFAULT 2"), ("ref_by", "INTEGER DEFAULT NULL"),
-        ("refs_count", "INTEGER DEFAULT 0"), ("contrib_gram", "REAL DEFAULT 0.0"),
-        ("contrib_stars", "INTEGER DEFAULT 0"), ("smm_lvl", "INTEGER DEFAULT 1"),
-        ("buyer_lvl", "INTEGER DEFAULT 0"), ("ai_boost", "INTEGER DEFAULT 0"),
-        ("clan_id", "TEXT DEFAULT NULL"), ("total_spins", "INTEGER DEFAULT 0"),
-        ("pity_100", "INTEGER DEFAULT 0"), ("pity_500", "INTEGER DEFAULT 0"),
-        ("last_wheel", "INTEGER DEFAULT 0"), ("daily_streak", "INTEGER DEFAULT 0"),
+        ("refs_count", "INTEGER DEFAULT 0"), ("ref_3_rewarded", "INTEGER DEFAULT 0"),
+        ("contrib_gram", "REAL DEFAULT 0.0"), ("contrib_stars", "INTEGER DEFAULT 0"),
+        ("smm_lvl", "INTEGER DEFAULT 1"), ("buyer_lvl", "INTEGER DEFAULT 0"),
+        ("ai_boost", "INTEGER DEFAULT 0"), ("clan_id", "TEXT DEFAULT NULL"),
+        ("total_spins", "INTEGER DEFAULT 0"), ("pity_100", "INTEGER DEFAULT 0"),
+        ("pity_500", "INTEGER DEFAULT 0"), ("last_wheel", "INTEGER DEFAULT 0"),
+        ("last_vault", "INTEGER DEFAULT 0"), ("daily_streak", "INTEGER DEFAULT 0"),
         ("last_daily", "INTEGER DEFAULT 0"), ("q_spins", "INTEGER DEFAULT 0"),
         ("q_rare", "INTEGER DEFAULT 0"), ("q_crafts", "INTEGER DEFAULT 0"),
         ("q_duels", "INTEGER DEFAULT 0"), ("q_claimed", "TEXT DEFAULT '[]'"),
         ("ach_stats", "TEXT DEFAULT '{}'"), ("ach_claimed", "TEXT DEFAULT '[]'"),
-        ("albums_claimed", "TEXT DEFAULT '[]'"), ("tax_shield_until", "INTEGER DEFAULT 0"),
-        ("duel_wins", "INTEGER DEFAULT 0"), ("auto_save_min_idx", "INTEGER DEFAULT 0"),
-        ("sub_verified", "INTEGER DEFAULT 0")
+        ("albums_claimed", "TEXT DEFAULT '[]'"), ("promos_used", "TEXT DEFAULT '[]'"),
+        ("tax_shield_until", "INTEGER DEFAULT 0"), ("duel_wins", "INTEGER DEFAULT 0"),
+        ("auto_save_min_idx", "INTEGER DEFAULT 0"), ("sub_verified", "INTEGER DEFAULT 0")
     ]:
         if col not in u_cols:
             try: cur.execute(f"ALTER TABLE users ADD COLUMN {col} {ctype}")
@@ -217,9 +218,8 @@ def init_db():
 init_db()
 
 # ==========================================
-# СБАЛАНСИРОВАННАЯ ХАРДКОРНАЯ ЭКОНОМИКА И ШАНСЫ
+# СБАЛАНСИРОВАННЫЕ РЕДКОСТИ, ШАНСЫ И ФАКТОРЫ ИКСОВ
 # ==========================================
-# Пассивный доход снижен в 10 раз для долгого удержания и соревновательного духа!
 RARITIES = [
     {"name": "Common",       "ru": "Обычный",      "w": 820000, "min_p": 10,       "max_p": 100,       "inc": 1.5,     "xp": 5,     "num_x": 2},
     {"name": "Uncommon",     "ru": "Необычный",    "w": 145000, "min_p": 101,      "max_p": 350,       "inc": 5.0,     "xp": 15,    "num_x": 5},
@@ -234,16 +234,15 @@ RARITIES = [
 ]
 
 SPIN_TIERS = {
-    "tier_0": {"min_idx": 0, "u_cost": 250,    "n_cost": 25000,    "title": "Обычный+"},
-    "tier_1": {"min_idx": 1, "u_cost": 800,    "n_cost": 75000,    "title": "Необычный+"},
-    "tier_2": {"min_idx": 2, "u_cost": 3000,   "n_cost": 250000,   "title": "Редкий+"},
-    "tier_3": {"min_idx": 3, "u_cost": 12000,  "n_cost": 900000,   "title": "Эпический+"},
-    "tier_4": {"min_idx": 4, "u_cost": 55000,  "n_cost": 3500000,  "title": "Легендарный+"},
-    "tier_5": {"min_idx": 5, "u_cost": 250000, "n_cost": 15000000, "title": "Мифический+"},
-    "tier_6": {"min_idx": 6, "u_cost": 1200000,"n_cost": 65000000, "title": "Luxury+"}
+    "tier_0": {"min_idx": 0, "u_cost": 250,     "n_cost": 25000,    "title": "Обычный+"},
+    "tier_1": {"min_idx": 1, "u_cost": 800,     "n_cost": 75000,    "title": "Необычный+"},
+    "tier_2": {"min_idx": 2, "u_cost": 3000,    "n_cost": 250000,   "title": "Редкий+"},
+    "tier_3": {"min_idx": 3, "u_cost": 12000,   "n_cost": 900000,   "title": "Эпический+"},
+    "tier_4": {"min_idx": 4, "u_cost": 55000,   "n_cost": 3500000,  "title": "Легендарный+"},
+    "tier_5": {"min_idx": 5, "u_cost": 250000,  "n_cost": 15000000, "title": "Мифический+"},
+    "tier_6": {"min_idx": 6, "u_cost": 1200000, "n_cost": 65000000, "title": "Luxury+"}
 }
 
-# Лимиты прокачки менеджеров каналов
 MAX_SMM_LVL = 20
 MAX_BUYER_LVL = 15
 
@@ -252,6 +251,34 @@ def get_smm_upgrade_cost(lvl: int) -> float:
 
 def get_buyer_upgrade_cost(lvl: int) -> float:
     return round(15000.0 * (2.55 ** lvl))
+
+WORD_LORE = {
+    "x": ("Ультра-символ «X» (1 буква)", "×500"),
+    "v": ("Знак Победы «V» (1 буква)", "×480"),
+    "ai": ("Искусственный Интеллект «AI»", "×420"),
+    "go": ("Глагол действия «GO» (2 буквы)", "×380"),
+    "durov": ("Культовый корень «durov» (Основатель)", "×120"),
+    "telegram": ("Официальный бренд «telegram»", "×110"),
+    "ton": ("Крипто-тикер блокчейна «TON»", "×95"),
+    "notcoin": ("Легендарный веб3-токен «notcoin»", "×85"),
+    "redo": ("Символ Resistance Dog «redo»", "×80"),
+    "cat": ("Короткое слово «cat» (3 буквы)", "×45"),
+    "dog": ("Короткое слово «dog» (3 буквы)", "×45"),
+    "nft": ("Индекс цифровых активов «NFT»", "×55"),
+    "god": ("Статусный тег «god» (3 буквы)", "×50"),
+    "dubai": ("Эмиратская серия «dubai»", "×25"),
+    "money": ("Финансовый корень «money»", "×22"),
+    "rich": ("Лакшери статус «rich»", "×20"),
+    "gold": ("Премиальный корень «gold»", "×20"),
+    "star": ("Звездная серия «star» (4 буквы)", "×12"),
+    "litvin": ("Медийный никнейм «litvin»", "×14"),
+    "mellstroy": ("Хайп-индекс «mellstroy»", "×15"),
+    "mrbeast": ("Мировой бренд «mrbeast»", "×16"),
+    "tiger": ("Хищный корень «tiger» (5 букв)", "×6,5"),
+    "ghost": ("Анонимный корень «ghost»", "×6,0"),
+    "alpha": ("Лидерский индекс «alpha»", "×7,2"),
+    "whale": ("Индекс крипто-кита «whale»", "×8,0")
+}
 
 WORDS = {
     "Divine": ["x", "v", "ai", "go", "ok", "up"],
@@ -267,7 +294,6 @@ WORDS = {
 RECENT_ROOTS = []
 
 def get_daily_hot_series():
-    """Серия дня (обновляется каждые 24 часа): дает +40% к цене продажи подходящих тегов/номеров"""
     day_seed = int(time.time() // 86400)
     series_list = [
         {"code": "77", "title": "Цифры «77» в номере/теге", "bonus_pct": 40},
@@ -279,7 +305,6 @@ def get_daily_hot_series():
     return series_list[day_seed % len(series_list)]
 
 def get_active_merchant_offer():
-    """Тайный Скупщик (меняется каждые 15 минут): скупает определенную редкость с наценкой до +75%"""
     slot_15m = int(time.time() // 900)
     left_sec = 900 - (int(time.time()) % 900)
     offers = [
@@ -311,6 +336,44 @@ def calc_range_price(r_obj: dict, quality_pct: int, is_num: bool = False):
         inc = round(inc * 8, 1)
     return price, inc
 
+def build_factors_for_tag(tag: str, rarity: str, quality: int, is_num: bool, num_x: int) -> list[dict]:
+    """Генерирует красивые строчки факторов с иксами как на скриншоте Номерка"""
+    factors = []
+    clean = tag.replace("@", "").replace("+888 ", "").replace(" ", "")
+
+    if is_num:
+        if len(clean) == 4 and clean.startswith("0"):
+            factors.append({"label": "Ультра-короткая серия «0XXX»", "mult": "×250"})
+        if "777" in clean or "888" in clean or "999" in clean:
+            factors.append({"label": "Три одинаковые цифры подряд", "mult": "×18"})
+        elif "00" in clean or "77" in clean or "88" in clean:
+            factors.append({"label": "2 одинаковые цифры", "mult": "×2,4"})
+        if clean == clean[::-1] and len(clean) >= 4:
+            factors.append({"label": "Зеркальный палиндром цифр", "mult": "×12"})
+        factors.append({"label": f"Множитель к доходу каналов", "mult": f"×{num_x}"})
+        factors.append({"label": f"Качество в тире {rarity}", "mult": f"×{round(1.0 + quality/100, 2)}".replace(".", ",")})
+    else:
+        base_word = "".join(c for c in clean if c.isalpha())
+        digits = "".join(c for c in clean if c.isdigit())
+        if base_word in WORD_LORE:
+            lbl, m = WORD_LORE[base_word]
+            factors.append({"label": lbl, "mult": m})
+        else:
+            factors.append({"label": f"Читаемый корень «{base_word[:8]}»", "mult": f"×{round(1.1 + quality/120, 1)}".replace(".", ",")})
+
+        if "_" not in tag and not digits:
+            factors.append({"label": f"Чистые буквы без цифр ({len(base_word)} симв.)", "mult": "×3,5"})
+        elif "_" not in tag and len(digits) == 1:
+            factors.append({"label": f"Индекс первой волны «{digits}» (2015 г.)", "mult": "×2,2"})
+        elif len(digits) >= 2 and len(set(digits)) == 1:
+            factors.append({"label": f"Одинаковые цифры «{digits}»", "mult": "×1,8"})
+        elif "vip" in tag or "ton" in tag or "pro" in tag:
+            factors.append({"label": "Статусная приставка серии", "mult": "×2,0"})
+        else:
+            factors.append({"label": f"Индекс редкости внутри {rarity}", "mult": f"×{round(1.0 + quality/100, 2)}".replace(".", ",")})
+
+    return factors
+
 def generate_phone_number(r_obj: dict):
     rarity_name = r_obj["name"]
     num_x = r_obj["num_x"]
@@ -320,52 +383,38 @@ def generate_phone_number(r_obj: dict):
         d = random.choice(["0001", "0007", "0777", "0888", "0999", "0000"])
         tag = f"+888 {d}"
         quality = random.randint(92, 100)
-        reasons = [f"👑 Короткая серия +888 0XXX ({quality}% идеал)", f"🔥 Дает ×{num_x} ко всем каналам!"]
     elif rarity_name == "Exclusive":
         d = random.choice(["7", "8", "9", "0", "1"])
         tag = f"+888 {d*4} {d*3}"
         quality = random.randint(82, 99)
-        reasons = [f"💎 Моно-репит из одних «{d}» ({quality}%)", f"🔥 Дает ×{num_x} ко всем каналам!"]
     elif rarity_name == "Ultra-Mythic":
         d1, d2 = random.choice(["7", "8", "9"]), random.choice(["0", "1", "5"])
         tag = f"+888 {d1*4} {d2*3}"
-        reasons = [f"🔥 Квадра «{d1*4}» + Триплет «{d2*3}» ({quality}%)", f"⚡ Дает ×{num_x} ко всем каналам!"]
     elif rarity_name == "Luxury":
         d = random.choice(["777", "888", "999", "000"])
         tag = f"+888 0{d} {d}"
-        reasons = [f"💰 Двойной VIP-блок «{d}» ({quality}%)", f"⚡ Дает ×{num_x} ко всем каналам!"]
     elif rarity_name == "Mythic":
         d = random.choice(["777", "888", "999"])
         tag = f"+888 {random.randint(10, 99)}00 {d}"
-        reasons = [f"🎰 Триплет «{d}» + Сотня ({quality}%)", f"⚡ Дает ×{num_x} ко всем каналам!"]
     elif rarity_name == "Legendary":
         tag = random.choice(["+888 1234 567", "+888 7654 321", f"+888 {random.randint(10,99)}77 700"])
-        reasons = [f"⭐ Редкая комбинация ({quality}%)", f"⚡ Дает ×{num_x} ко всем каналам!"]
     elif rarity_name == "Epic":
         a, b = random.randint(1, 9), random.randint(1, 9)
         tag = f"+888 {a}{a}{b}{b} {random.randint(100,999)}"
-        reasons = [f"✅ Парный дубль «{a}{a}{b}{b}» ({quality}%)", f"⚡ Дает ×{num_x} к каналам"]
     elif rarity_name == "Rare":
         a = random.randint(10, 99)
         tag = f"+888 {a}{a} {random.randint(100,999)}"
-        reasons = [f"✅ Зеркальный блок «{a}{a}» ({quality}%)", f"⚡ Дает ×{num_x} к каналам"]
     elif rarity_name == "Uncommon":
         tag = f"+888 {random.randint(100,999)}0 {random.randint(10,99)}0"
-        reasons = [f"✅ Круглые окончания ({quality}% в тире)", f"⚡ Дает ×{num_x} к каналам"]
     else:
         tag = f"+888 {random.randint(1000,9999)} {random.randint(100,999)}"
-        reasons = [f"📞 Анонимный номер ({quality}% в тире)", f"⚡ Дает ×{num_x} к каналам"]
 
     sell, inc = calc_range_price(r_obj, quality, is_num=True)
-    return tag, inc, sell, num_x, quality, "|".join(reasons)
+    factors = build_factors_for_tag(tag, rarity_name, quality, True, num_x)
+    reasons_str = "|".join(f"{f['label']} {f['mult']}" for f in factors)
+    return tag, inc, sell, num_x, quality, reasons_str, factors
 
 def roll_single_candidate(cur, item_type: str, tier_key: str, luck: float):
-    """
-    ЧЕСТНАЯ МАТЕМАТИКА ВЕСОВ:
-    При выборе высокого тира (например Rare+), базовая редкость этого тира получает 90% массы пула,
-    а более высокие редкости остаются по-настоящему редкими и желанными!
-    Буст Удачи (luck) масштабируется с затуханием для высших тиров.
-    """
     global RECENT_ROOTS
     min_idx = SPIN_TIERS.get(tier_key, SPIN_TIERS["tier_0"])["min_idx"]
 
@@ -378,20 +427,13 @@ def roll_single_candidate(cur, item_type: str, tier_key: str, luck: float):
         if min_idx == 0:
             base_w = r["w"]
         else:
-            # В платных тирах (Необычный+, Редкий+, Эпический+) 90% падает входная редкость тира,
-            # а каждый следующий шаг вверх в 6.5 раз реже предыдущего!
             decay_weights = [900000, 82000, 14500, 2800, 520, 110, 25, 6, 2, 1]
             base_w = decay_weights[min(dist, len(decay_weights) - 1)]
 
-        # Применяем Удачу только к редкостям выше входного тира с логарифмическим затуханием
-        if dist == 0:
-            effective_luck = 1.0
-        elif dist == 1:
-            effective_luck = 1.0 + (luck - 1.0) * 0.55
-        elif dist == 2:
-            effective_luck = 1.0 + (luck - 1.0) * 0.30
-        else:
-            effective_luck = 1.0 + (luck - 1.0) * 0.15
+        if dist == 0: effective_luck = 1.0
+        elif dist == 1: effective_luck = 1.0 + (luck - 1.0) * 0.55
+        elif dist == 2: effective_luck = 1.0 + (luck - 1.0) * 0.30
+        else: effective_luck = 1.0 + (luck - 1.0) * 0.15
 
         w = max(1, int(base_w * effective_luck))
         pool.append({"idx": i, "data": r, "w": w})
@@ -410,10 +452,11 @@ def roll_single_candidate(cur, item_type: str, tier_key: str, luck: float):
     rarity = picked["name"]
 
     if item_type == "number":
-        tag, inc, sell, num_x, qual, reas = generate_phone_number(picked)
+        tag, inc, sell, num_x, qual, reas_str, factors = generate_phone_number(picked)
         return {
             "tag": tag, "rarity": rarity, "rar_idx": rar_idx, "quality": qual,
-            "inc": inc, "xp": picked["xp"] * 2, "sell": sell, "num_multi": num_x, "reasons": reas
+            "inc": inc, "xp": picked["xp"] * 2, "sell": sell, "num_multi": num_x,
+            "reasons": reas_str, "factors": factors
         }
 
     word = None
@@ -435,36 +478,34 @@ def roll_single_candidate(cur, item_type: str, tier_key: str, luck: float):
     if rarity in ["Divine", "Exclusive", "Ultra-Mythic", "Luxury", "Mythic", "Legendary"]:
         tag = f"@{word}"
         quality = max(55, 100 - len(word) * 5 + random.randint(0, 15))
-        reasons = [f"💎 Элитный тег «{word.upper()}»", "🚫 Без цифр и символов _", f"📏 {len(word)} букв (Ценность {quality}%)"]
     elif rarity == "Epic":
-        num_s = random.randint(1, 19)
-        quality = max(15, 95 - num_s * 4)
+        num_s = random.randint(1, 9)
+        quality = max(25, 95 - num_s * 6)
         tag = f"@{word}{num_s}"
-        reasons = [f"💡 Корень «{word}» ({quality}% в тире)", f"📏 Диапазон: {picked['min_p']:,}–{picked['max_p']:,} G"]
     elif rarity == "Rare":
         tag = f"@{word}_{random.choice(['vip', 'ton', 'pro', 'hq'])}"
-        reasons = [f"✅ Статусная приставка ({quality}% в тире)", f"📏 Диапазон: {picked['min_p']:,}–{picked['max_p']:,} G"]
     elif rarity == "Uncommon":
         base = generate_live_nickname()
         word = base
-        suffix = random.choice(['', str(random.randint(1, 99))])
-        quality = random.randint(70, 99) if suffix == '' else random.randint(1, 69)
+        suffix = random.choice(['', str(random.randint(11, 99))])
+        quality = random.randint(70, 99) if suffix == '' else random.randint(5, 69)
         tag = f"@{base}{suffix}"
-        reasons = [f"✅ Живой никнейм ({quality}% в тире)", f"📏 Диапазон: {picked['min_p']}–{picked['max_p']} G"]
     else:
         base = generate_live_nickname()
         word = base
         tag = f"@{base}{random.randint(100, 9999)}"
-        reasons = [f"Живой никнейм ({quality}% в тире)", f"Диапазон: {picked['min_p']}–{picked['max_p']} G"]
 
     if word:
         RECENT_ROOTS.append(word)
         if len(RECENT_ROOTS) > 6: RECENT_ROOTS.pop(0)
 
     sell, inc = calc_range_price(picked, quality, is_num=False)
+    factors = build_factors_for_tag(tag, rarity, quality, False, 1)
+    reas_str = "|".join(f"{f['label']} {f['mult']}" for f in factors)
     return {
         "tag": tag, "rarity": rarity, "rar_idx": rar_idx, "quality": quality,
-        "inc": inc, "xp": picked["xp"], "sell": sell, "num_multi": 1.0, "reasons": "|".join(reasons)
+        "inc": inc, "xp": picked["xp"], "sell": sell, "num_multi": 1.0,
+        "reasons": reas_str, "factors": factors
     }
 
 def generate_item_with_pity_choice(cur, item_type: str, tier_key: str, luck: float, choice_count: int = 1):
@@ -530,7 +571,6 @@ def process_passive_income(cur, user_id: int):
     num_mult = num_row[0] or 1.0
     num_direct = num_row[1] or 0.0
 
-    # Множители улучшений с лимитом (СММ до 20 ур. по +15%, Байер до 15 ур. по +40%, AI дает x3.0)
     mgr_mult = (1.0 + smm * 0.15) * (1.0 + buyer * 0.40) * (3.0 if ai_b > 0 else 1.0)
     base_total = ((ch_inc * mgr_mult * num_mult) if ch_inc > 0 else 0.0) + (num_direct * mgr_mult * 0.25)
 
@@ -538,8 +578,6 @@ def process_passive_income(cur, user_id: int):
         base_total *= 2.0
     if clan_id:
         base_total *= get_clan_bonus_multiplier(cur, clan_id)
-
-    # Налоговая инспекция (аналог штрафов ГИБДД): без активного Аудита или VIP удерживается 25% дохода
     if vip_until <= now and tax_until <= now:
         base_total *= 0.75
 
@@ -554,13 +592,16 @@ def process_passive_income(cur, user_id: int):
     return earned
 
 # ==========================================
-# МОДЕЛИ И API ЭНДПОИНТЫ
+# МОДЕЛИ ЗАПРОСОВ
 # ==========================================
 class ReqLogin(BaseModel): user_id: int; username: str = "Player"; ref_by: str = ""; init_data: str = ""
 class ReqMint(BaseModel): user_id: int; item_type: str = "username"; tier: str = "tier_0"; spin_count: int = 1; auto_save_min_idx: int = 0; init_data: str = ""
 class ReqAction(BaseModel): user_id: int; tag: str; action_type: str; slot: int = 1; init_data: str = ""
 class ReqCraft(BaseModel): user_id: int; tags: list[str]; init_data: str = ""
 class ReqDuel(BaseModel): user_id: int; tag: str; bet: float
+class ReqUpgradeItem(BaseModel): user_id: int; tag: str; target_mult: int # 2, 3, 5, 10
+class ReqCrashBet(BaseModel): user_id: int; bet: float; target_x: float
+class ReqVaultHack(BaseModel): user_id: int; cell: int
 class ReqMarketCreate(BaseModel): user_id: int; username: str; tag: str; is_auction: int; price: float; hours: int = 3
 class ReqMarketInteract(BaseModel): user_id: int; username: str; lot_id: int; act: str
 class ReqSimple(BaseModel): user_id: int; key: str = ""
@@ -592,6 +633,21 @@ async def check_channel_sub(uid: int):
         conn.close()
     return {"subscribed": is_sub}
 
+def apply_ref_bonus_and_check_3_friends(cur, ref_uid: int):
+    now = int(time.time())
+    cur.execute("SELECT refs_count, ref_3_rewarded, luck_until FROM users WHERE tg_user_id = ?", (ref_uid,))
+    r_row = cur.fetchone()
+    if not r_row:
+        return
+    old_cnt, r3_done, l_until = r_row
+    nc = old_cnt + 1
+    rew = 25000.0 if nc == 1 else (75000.0 if nc == 2 else (250000.0 if nc == 5 else (5000000.0 if nc == 20 else 35000.0)))
+    cur.execute("UPDATE users SET refs_count = ?, balance = balance + ? WHERE tg_user_id = ?", (nc, rew, ref_uid))
+    # Автоматическое задание со скриншота: за 3 друзей -> Удача x2 на 3 часа (10800 сек)!
+    if nc >= 3 and (r3_done or 0) == 0:
+        new_until = max(now, l_until or 0) + 10800
+        cur.execute("UPDATE users SET luck_multi = MAX(luck_multi, 2.0), luck_until = ?, ref_3_rewarded = 1 WHERE tg_user_id = ?", (new_until, ref_uid))
+
 @app.post("/api/login")
 def login(data: ReqLogin):
     check_rate(data.user_id, 15, 3.0)
@@ -616,13 +672,10 @@ def login(data: ReqLogin):
     if not existing:
         valid_ref = None
         if parsed_ref and parsed_ref != data.user_id:
-            cur.execute("SELECT refs_count FROM users WHERE tg_user_id = ?", (parsed_ref,))
-            ru = cur.fetchone()
-            if ru:
+            cur.execute("SELECT 1 FROM users WHERE tg_user_id = ?", (parsed_ref,))
+            if cur.fetchone():
                 valid_ref = parsed_ref
-                nc = ru[0] + 1
-                rew = 25000.0 if nc == 1 else (75000.0 if nc == 2 else (250000.0 if nc == 5 else (5000000.0 if nc == 20 else 35000.0)))
-                cur.execute("UPDATE users SET refs_count = ?, balance = balance + ? WHERE tg_user_id = ?", (nc, rew, valid_ref))
+                apply_ref_bonus_and_check_3_friends(cur, valid_ref)
         start_bal = 35000.0 if valid_ref else 15000.0
         cur.execute("""
             INSERT INTO users (tg_user_id, username, balance, level, xp, ref_by, tax_shield_until, last_claim, created_at)
@@ -630,11 +683,9 @@ def login(data: ReqLogin):
         """, (data.user_id, data.username, start_bal, valid_ref, now + 7200, now, now))
     else:
         if existing[0] is None and parsed_ref and parsed_ref != data.user_id:
-            cur.execute("SELECT refs_count FROM users WHERE tg_user_id = ?", (parsed_ref,))
-            ru = cur.fetchone()
-            if ru:
-                nc = ru[0] + 1
-                cur.execute("UPDATE users SET refs_count = ?, balance = balance + 25000.0 WHERE tg_user_id = ?", (nc, parsed_ref))
+            cur.execute("SELECT 1 FROM users WHERE tg_user_id = ?", (parsed_ref,))
+            if cur.fetchone():
+                apply_ref_bonus_and_check_3_friends(cur, parsed_ref)
                 cur.execute("UPDATE users SET ref_by = ?, balance = balance + 15000.0 WHERE tg_user_id = ?", (parsed_ref, data.user_id))
         cur.execute("UPDATE users SET username = ? WHERE tg_user_id = ?", (data.username, data.user_id))
         auto_sell_unsaved(cur, data.user_id)
@@ -653,8 +704,8 @@ def get_state(uid: int):
 
     cur.execute("""
         SELECT rowid, balance, level, xp, season_xp, season_claimed, smm_lvl, buyer_lvl, ai_boost,
-               luck_multi, luck_until, vip_until, max_hold, max_channels, refs_count, clan_id,
-               total_spins, pity_100, pity_500, last_wheel, daily_streak, last_daily,
+               luck_multi, luck_until, vip_until, max_hold, max_channels, refs_count, ref_3_rewarded, clan_id,
+               total_spins, pity_100, pity_500, last_wheel, last_vault, daily_streak, last_daily,
                q_spins, q_rare, q_crafts, q_duels, q_claimed, ach_stats, ach_claimed,
                albums_claimed, tax_shield_until, duel_wins, auto_save_min_idx, sub_verified
         FROM users WHERE tg_user_id = ?
@@ -664,7 +715,7 @@ def get_state(uid: int):
         conn.close(); raise HTTPException(404, "User not found")
 
     (mem_num, bal, lvl, xp, s_xp, s_cl, smm, buyer, ai_b, luck_m, luck_u, vip_u, max_h, max_ch,
-     refs, clan_id, tot_spins, p100, p500, l_wheel, d_streak, l_daily, qs, qr, qc, qd, q_cl,
+     refs, ref3_rew, clan_id, tot_spins, p100, p500, l_wheel, l_vault, d_streak, l_daily, qs, qr, qc, qd, q_cl,
      a_st, a_cl, alb_cl, tax_u, d_wins, auto_idx, sub_v) = u
 
     cur.execute("""
@@ -711,17 +762,20 @@ def get_state(uid: int):
     conn.close()
     is_vip = vip_u > now
     active_luck = (luck_m if luck_u > now else 1.0) * (1.35 if is_vip else 1.0)
+    actual_refs = max(refs, len(referrals_list))
 
     return {
         "member_number": mem_num, "balance": round(bal, 2), "level": lvl, "xp": xp,
         "season_xp": s_xp, "season_claimed": json.loads(s_cl or "[]"),
         "smm": smm, "smm_max": MAX_SMM_LVL, "smm_cost": get_smm_upgrade_cost(smm),
         "buyer": buyer, "buyer_max": MAX_BUYER_LVL, "buyer_cost": get_buyer_upgrade_cost(buyer),
-        "ai_boost": ai_b, "luck_multi": round(active_luck, 2),
+        "ai_boost": ai_b, "luck_multi": round(active_luck, 2), "luck_left": max(0, (luck_u or 0) - now),
         "is_vip": is_vip, "max_hold": max_h, "max_channels": max_ch,
-        "refs_count": max(refs, len(referrals_list)), "referrals_list": referrals_list,
+        "refs_count": actual_refs, "ref_3_done": (ref3_rew or 0) == 1 or actual_refs >= 3,
+        "referrals_list": referrals_list,
         "clan_id": clan_id, "total_spins": tot_spins, "pity_100": p100, "pity_500": p500,
         "wheel_wait": max(0, (l_wheel + 1800) - now),
+        "vault_wait": max(0, ((l_vault or 0) + 3600) - now),
         "daily_streak": d_streak, "can_daily": (now - l_daily) >= 86400,
         "quests": {"spins": qs, "rare": qr, "crafts": qc, "duels": qd or 0, "claimed": json.loads(q_cl or "[]")},
         "ach": {"stats": json.loads(a_st or "{}"), "claimed": json.loads(a_cl or "[]")},
@@ -762,13 +816,13 @@ def execute_spins_internal(cur, user_id: int, item_type: str, tier: str, count: 
         tot_s += 1; p100 += 1; p500 += 1; qs += 1; s_xp += 2
 
         choice_pool = 1
-        pity_triggered = None
+        pity_factor = None
         if p500 >= 500:
             choice_pool = 50; p500 = 0; p100 = 0
-            pity_triggered = "УДАЧА ×50 (Лучший из 50!)"
+            pity_factor = {"label": "Гарант 500-го броска (Лучший из 50)", "mult": "×50"}
         elif p100 >= 100:
             choice_pool = 5; p100 = 0
-            pity_triggered = "УДАЧА ×5 (Лучший из 5!)"
+            pity_factor = {"label": "Гарант 100-го броска (Лучший из 5)", "mult": "×5"}
 
         for _ in range(10):
             cand = generate_item_with_pity_choice(cur, item_type, tier, base_luck, choice_pool)
@@ -777,7 +831,11 @@ def execute_spins_internal(cur, user_id: int, item_type: str, tier: str, count: 
                 break
         else:
             fb_tag = f"+888 {random.randint(1000,9999)} {random.randint(100,999)}" if item_type == "number" else f"@{generate_live_nickname()}{random.randint(100,999)}"
-            cand = {"tag": fb_tag, "rarity": "Common", "rar_idx": 0, "quality": 50, "inc": 1.5, "xp": 5, "sell": 55.0, "num_multi": 2.0, "reasons": "Базовая серия"}
+            cand = {
+                "tag": fb_tag, "rarity": "Common", "rar_idx": 0, "quality": 50,
+                "inc": 1.5, "xp": 5, "sell": 55.0, "num_multi": 2.0,
+                "reasons": "Базовая серия ×1,0", "factors": [{"label": "Базовая серия", "mult": "×1,0"}]
+            }
 
         if cand["rar_idx"] >= 2:
             qr += 1
@@ -793,14 +851,15 @@ def execute_spins_internal(cur, user_id: int, item_type: str, tier: str, count: 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, ?, 0, ?)
         """, (cand["tag"], item_type, user_id, cand["rarity"], cand["quality"], cand["inc"], cand["sell"], cand["num_multi"], cand["reasons"], save_flag, now))
 
-        reasons_list = cand["reasons"].split("|")
-        if pity_triggered:
-            reasons_list.insert(0, f"⚡ {pity_triggered}")
+        factors_out = list(cand.get("factors", []))
+        if pity_factor:
+            factors_out.insert(0, pity_factor)
 
         drops.append({
             "tag": cand["tag"], "type": item_type, "rarity": cand["rarity"], "rar_idx": cand["rar_idx"],
             "q": cand["quality"], "inc": cand["inc"], "xp": cand["xp"], "sell": cand["sell"],
-            "num_x": cand["num_multi"], "auto_saved": save_flag == 1, "reasons": reasons_list
+            "num_x": cand["num_multi"], "auto_saved": save_flag == 1,
+            "reasons": cand["reasons"].split("|"), "factors": factors_out
         })
         added_xp += cand["xp"]
 
@@ -842,6 +901,158 @@ def mint(data: ReqMint):
         TX_LOCKS.discard(data.user_id)
         conn.close()
 
+# ==========================================
+# НОВАЯ МИНИ-ИГРА #1: АПГРЕЙДЕР НОМЕРОВ (x2, x3, x5, x10)
+# ==========================================
+UPGRADE_CHANCES = {2: 48, 3: 31, 5: 18, 10: 9}
+
+@app.post("/api/minigame/upgrade")
+def minigame_upgrade_item(data: ReqUpgradeItem):
+    check_rate(data.user_id, 6, 2.0)
+    if data.target_mult not in UPGRADE_CHANCES:
+        raise HTTPException(400, "Выберите множитель апгрейда: ×2, ×3, ×5 или ×10")
+
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT item_type, rarity, sell_price, is_equipped, on_market FROM usernames WHERE tag = ? AND owner_id = ? AND is_saved = 1", (data.tag, data.user_id))
+    row = cur.fetchone()
+    if not row:
+        conn.close(); raise HTTPException(400, "Предмет не найден в Сейфе!")
+    itype, rar, old_sell, is_eq, on_mkt = row
+    if is_eq == 1 or on_mkt == 1:
+        conn.close(); raise HTTPException(400, "Сначала снимите предмет с канала/рынка!")
+
+    chance_pct = UPGRADE_CHANCES[data.target_mult]
+    roll_deg = random.uniform(0, 360)
+    win_sector_deg = (chance_pct / 100.0) * 360.0
+    is_win = roll_deg <= win_sector_deg
+
+    # Удаляем старый предмет
+    cur.execute("DELETE FROM usernames WHERE tag = ? AND owner_id = ?", (data.tag, data.user_id))
+
+    if not is_win:
+        cur.execute("UPDATE users SET season_xp = season_xp + 10 WHERE tg_user_id = ?", (data.user_id,))
+        conn.commit(); conn.close()
+        return {"win": False, "chance": chance_pct, "angle": round(roll_deg, 1), "message": f"💥 Промах! Стрелка остановилась вне зеленой зоны ({chance_pct}%). {data.tag} сгорел..."}
+
+    # Победа: создаем новый предмет стоимостью ровно в target_mult раз дороже!
+    target_value = round(old_sell * data.target_mult)
+    old_idx = next((i for i, r in enumerate(RARITIES) if r["name"] == rar), 0)
+    step_up = 1 if data.target_mult == 2 else (2 if data.target_mult == 3 else (3 if data.target_mult == 5 else 4))
+    new_rar_obj = RARITIES[min(len(RARITIES) - 1, old_idx + step_up)]
+
+    now = int(time.time())
+    if itype == "number":
+        new_tag, inc, _, num_x, qual, reas_str, _ = generate_phone_number(new_rar_obj)
+    else:
+        cand = roll_single_candidate(cur, "username", f"tier_{min(6, old_idx + step_up)}", 1.5)
+        new_tag, inc, num_x, qual, reas_str = cand["tag"], new_rar_obj["inc"] * (data.target_mult * 0.6), 1.0, 90, cand["reasons"]
+
+    # Убеждаемся, что тег уникален
+    cur.execute("SELECT 1 FROM usernames WHERE tag = ?", (new_tag,))
+    if cur.fetchone():
+        new_tag = f"{new_tag}_{random.randint(1,9)}" if itype == "username" else f"+888 {random.randint(100,999)} 777"
+
+    cur.execute("""
+        INSERT INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_equipped, channel_slot, is_saved, on_market, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, 0, 1, 0, ?)
+    """, (new_tag, itype, data.user_id, new_rar_obj["name"], qual, round(inc, 1), target_value, num_x, reas_str, now))
+    cur.execute("UPDATE users SET season_xp = season_xp + 35 WHERE tg_user_id = ?", (data.user_id,))
+
+    conn.commit(); conn.close()
+    return {
+        "win": True, "chance": chance_pct, "angle": round(roll_deg, 1),
+        "new_item": {"tag": new_tag, "rarity": new_rar_obj["name"], "sell": target_value, "inc": round(inc, 1)},
+        "message": f"🔥 АПГРЕЙД ×{data.target_mult} УСПЕШЕН! Получен {new_tag} стоимостью {target_value:,} GRAM!"
+    }
+
+# ==========================================
+# НОВАЯ МИНИ-ИГРА #2: TON РАКЕТКА (CRASH ИКСЫ)
+# ==========================================
+@app.post("/api/minigame/rocket")
+def minigame_rocket(data: ReqCrashBet):
+    check_rate(data.user_id, 6, 2.0)
+    if data.bet < 200:
+        raise HTTPException(400, "Минимальная ставка в Ракетке — 200 GRAM")
+    if data.target_x < 1.2 or data.target_x > 50.0:
+        raise HTTPException(400, "Выберите коэффициент от ×1.2 до ×50.0")
+
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT balance FROM users WHERE tg_user_id = ?", (data.user_id,))
+    bal = cur.fetchone()[0]
+    if bal < data.bet:
+        conn.close(); raise HTTPException(400, "Недостаточно GRAM для полета!")
+
+    # Честная формула краш-множителя с небольшим преимуществом клуба (4% мгновенный краш на 1.00x)
+    r = random.random()
+    if r < 0.05:
+        crash_point = 1.00
+    else:
+        crash_point = round(min(100.0, 0.96 / (1.0 - r)), 2)
+
+    win = crash_point >= data.target_x
+    if win:
+        winnings = round(data.bet * data.target_x)
+        profit = winnings - data.bet
+        cur.execute("UPDATE users SET balance = balance + ?, season_xp = season_xp + 15 WHERE tg_user_id = ?", (profit, data.user_id))
+        msg = f"🚀 Ракета долетела до ×{crash_point}! Авто-вывод на ×{data.target_x} принес +{winnings:,} GRAM!"
+    else:
+        cur.execute("UPDATE users SET balance = balance - ?, season_xp = season_xp + 5 WHERE tg_user_id = ?", (data.bet, data.user_id))
+        msg = f"💥 ВЗРЫВ НА ×{crash_point}! Ракета не дотянула до твоей цели ×{data.target_x}."
+
+    conn.commit(); conn.close()
+    return {"win": win, "crash_x": crash_point, "target_x": data.target_x, "message": msg}
+
+# ==========================================
+# ДОП. ФИШКА: ВЗЛОМ КРИПТО-СЕЙФА И ПРОМОКОДЫ
+# ==========================================
+@app.post("/api/minigame/vault")
+def minigame_vault(data: ReqVaultHack):
+    conn = get_db(); cur = conn.cursor()
+    now = int(time.time())
+    cur.execute("SELECT last_vault, level FROM users WHERE tg_user_id = ?", (data.user_id,))
+    lv, lvl = cur.fetchone()
+    if (now - (lv or 0)) < 3600:
+        left_m = int((3600 - (now - (lv or 0))) // 60) + 1
+        conn.close(); raise HTTPException(400, f"Крипто-сейф перезагружается! Доступно через {left_m} мин.")
+
+    win_cell = random.randint(1, 3)
+    if data.cell == win_cell:
+        prize = 35000 * lvl
+        cur.execute("UPDATE users SET balance = balance + ?, last_vault = ?, season_xp = season_xp + 30 WHERE tg_user_id = ?", (prize, now, data.user_id))
+        res_msg = f"🔓 СЕЙФ ВЗЛОМАН! В ячейке #{data.cell} найдено +{prize:,} GRAM!"
+    else:
+        consolation = 5000 * lvl
+        cur.execute("UPDATE users SET balance = balance + ?, last_vault = ? WHERE tg_user_id = ?", (consolation, now, data.user_id))
+        res_msg = f"🚨 Сигнализация! Главный куш был в ячейке #{win_cell}, но ты успел унести +{consolation:,} GRAM!"
+
+    conn.commit(); conn.close()
+    return {"message": res_msg, "win_cell": win_cell}
+
+PROMO_CODES = {
+    "MINTTAGS": {"gram": 50000, "desc": "50,000 GRAM"},
+    "DUROV":    {"gram": 75000, "desc": "75,000 GRAM"},
+    "888":      {"gram": 100000,"desc": "100,000 GRAM"}
+}
+
+@app.post("/api/promo")
+def activate_promo(data: ReqSimple):
+    code = (data.key or "").strip().upper()
+    if code not in PROMO_CODES:
+        raise HTTPException(400, "Промокод не найден или истек!")
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT promos_used FROM users WHERE tg_user_id = ?", (data.user_id,))
+    used = json.loads(cur.fetchone()[0] or "[]")
+    if code in used:
+        conn.close(); raise HTTPException(400, "Вы уже активировали этот промокод!")
+    used.append(code)
+    rew = PROMO_CODES[code]["gram"]
+    cur.execute("UPDATE users SET balance = balance + ?, promos_used = ? WHERE tg_user_id = ?", (rew, json.dumps(used), data.user_id))
+    conn.commit(); conn.close()
+    return {"reward": rew, "code": code}
+
+# ==========================================
+# ДЕЙСТВИЯ С ПРЕДМЕТАМИ, ДУЭЛИ, КЛАНЫ, РЫНОК
+# ==========================================
 @app.post("/api/action")
 def tag_action(data: ReqAction):
     check_rate(data.user_id, 12, 2.0)
@@ -896,34 +1107,25 @@ def tag_action(data: ReqAction):
     conn.commit(); conn.close()
     return {"status": "ok", "sold_for": sell_price}
 
-# ==========================================
-# НОВАЯ МЕХАНИКА: PVP-ДУЭЛИ НА ТЕГАХ И НОМЕРАХ
-# ==========================================
 @app.post("/api/duel")
 def play_pvp_duel(data: ReqDuel):
     check_rate(data.user_id, 6, 2.0)
-    if data.bet < 500:
-        raise HTTPException(400, "Минимальная ставка для Дуэли — 500 GRAM")
+    if data.bet < 500: raise HTTPException(400, "Минимальная ставка — 500 GRAM")
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT balance FROM users WHERE tg_user_id = ?", (data.user_id,))
     bal = cur.fetchone()[0]
-    if bal < data.bet:
-        conn.close(); raise HTTPException(400, "Недостаточно GRAM для ставки на дуэль!")
+    if bal < data.bet: conn.close(); raise HTTPException(400, "Недостаточно GRAM!")
 
-    cur.execute("SELECT rarity, quality_pct, sell_price FROM usernames WHERE tag = ? AND owner_id = ? AND is_saved = 1", (data.tag, data.user_id))
+    cur.execute("SELECT rarity, quality_pct FROM usernames WHERE tag = ? AND owner_id = ? AND is_saved = 1", (data.tag, data.user_id))
     my_item = cur.fetchone()
-    if not my_item:
-        conn.close(); raise HTTPException(400, "Выберите свой предмет из Сейфа для участия в дуэли!")
+    if not my_item: conn.close(); raise HTTPException(400, "Выберите предмет из Сейфа!")
 
-    my_rar, my_q, my_sell = my_item
+    my_rar, my_q = my_item
     my_rar_idx = next((i for i, r in enumerate(RARITIES) if r["name"] == my_rar), 0)
     my_power = (my_rar_idx + 1) * 120 + (my_q or 50) + random.randint(-35, 45)
 
-    # Генерируем достойного соперника близкого уровня
-    opp_names = ["@crypto_shark", "@ton_mafia", "@durov_guard", "@arab_whale", "@zxc_king", "@emerald_boss"]
-    opp_name = random.choice(opp_names)
+    opp_name = random.choice(["@crypto_shark", "@ton_mafia", "@durov_guard", "@arab_whale", "@zxc_king"])
     opp_rar_idx = max(0, min(len(RARITIES) - 1, my_rar_idx + random.choice([-1, 0, 0, 1])))
-    opp_rar = RARITIES[opp_rar_idx]["name"]
     opp_q = random.randint(25, 95)
     opp_tag = f"+888 {random.randint(100,999)} {random.randint(100,999)}" if data.tag.startswith("+") else f"@{generate_live_nickname()}{random.randint(1,99)}"
     opp_power = (opp_rar_idx + 1) * 120 + opp_q + random.randint(-35, 35)
@@ -932,53 +1134,47 @@ def play_pvp_duel(data: ReqDuel):
     if win:
         profit = round(data.bet * 0.90)
         cur.execute("UPDATE users SET balance = balance + ?, duel_wins = duel_wins + 1, q_duels = q_duels + 1, season_xp = season_xp + 20 WHERE tg_user_id = ?", (profit, data.user_id))
-        msg = f"⚔️ ПОБЕДА! Твой {data.tag} ({my_power} очк.) сокрушил {opp_tag} ({opp_power} очк.) игрока {opp_name}! Выигрыш: +{profit:,} GRAM!"
+        msg = f"⚔️ ПОБЕДА! Твой {data.tag} ({my_power} очк.) победил {opp_tag} ({opp_power} очк.) игрока {opp_name}! Выигрыш: +{profit:,} G!"
     else:
         cur.execute("UPDATE users SET balance = balance - ?, q_duels = q_duels + 1, season_xp = season_xp + 5 WHERE tg_user_id = ?", (data.bet, data.user_id))
-        msg = f"💥 Поражение! Соперник {opp_name} с {opp_tag} ({opp_power} очк.) обошел твой {data.tag} ({my_power} очк.). Потеряно {int(data.bet):,} G."
+        msg = f"💥 Поражение! {opp_name} с {opp_tag} ({opp_power} очк.) обошел твой {data.tag} ({my_power} очк.)."
 
     conn.commit(); conn.close()
-    return {"win": win, "message": msg, "my_power": my_power, "opp_power": opp_power, "opp_name": opp_name, "opp_tag": opp_tag}
+    return {"win": win, "message": msg}
 
-# ==========================================
-# АУДИТ НАЛОГОВОЙ ЗАЩИТЫ И КОЛЛЕКЦИОННЫЕ АЛЬБОМЫ
-# ==========================================
 @app.post("/api/pay_tax_shield")
 def pay_tax_shield(data: ReqSimple):
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT balance, level FROM users WHERE tg_user_id = ?", (data.user_id,))
     bal, lvl = cur.fetchone()
     cost = round(2000.0 * lvl)
-    if bal < cost:
-        conn.close(); raise HTTPException(400, f"Для оплаты Аудита Безопасности нужно {cost:,} GRAM")
+    if bal < cost: conn.close(); raise HTTPException(400, f"Нужно {cost:,} GRAM")
     now = int(time.time())
     cur.execute("UPDATE users SET balance = balance - ?, tax_shield_until = ? WHERE tg_user_id = ?", (cost, now + 14400, data.user_id))
     conn.commit(); conn.close()
-    return {"status": "ok", "cost": cost}
+    return {"status": "ok"}
 
 @app.post("/api/claim_album")
 def claim_album(data: ReqSimple):
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT albums_claimed FROM users WHERE tg_user_id = ?", (data.user_id,))
     claimed = json.loads(cur.fetchone()[0] or "[]")
-    if data.key in claimed:
-        conn.close(); raise HTTPException(400, "Эта коллекция уже собрана и активирована!")
-
+    if data.key in claimed: conn.close(); raise HTTPException(400, "Коллекция уже собрана!")
     cur.execute("SELECT tag, item_type, rarity FROM usernames WHERE owner_id = ? AND is_saved = 1", (data.user_id,))
     my_tags = cur.fetchall()
 
     reward = 0
     if data.key == "alb_numbers":
         cnt = sum(1 for t in my_tags if t[1] == "number")
-        if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно иметь минимум 3 номера +888 в Сейфе (сейчас {cnt}/3)")
+        if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 номера +888 в Сейфе ({cnt}/3)")
         reward = 150000
     elif data.key == "alb_epic":
         cnt = sum(1 for t in my_tags if t[2] in ["Epic", "Legendary", "Mythic", "Luxury", "Ultra-Mythic", "Exclusive", "Divine"])
-        if cnt < 5: conn.close(); raise HTTPException(400, f"Нужно иметь 5 предметов Epic+ в Сейфе (сейчас {cnt}/5)")
+        if cnt < 5: conn.close(); raise HTTPException(400, f"Нужно 5 предметов Epic+ в Сейфе ({cnt}/5)")
         reward = 350000
     elif data.key == "alb_short":
         cnt = sum(1 for t in my_tags if t[1] == "username" and len(t[0]) <= 5)
-        if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 коротких @username (до 4 букв) в Сейфе (сейчас {cnt}/3)")
+        if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 коротких @username до 4 букв ({cnt}/3)")
         reward = 1000000
     else:
         conn.close(); raise HTTPException(400, "Неизвестная коллекция")
@@ -988,22 +1184,17 @@ def claim_album(data: ReqSimple):
     conn.commit(); conn.close()
     return {"reward": reward}
 
-# ==========================================
-# КЛАНЫ, КРАФТЫ, РЫНОК, КОЛЕСО, ЗАДАНИЯ
-# ==========================================
 @app.post("/api/clan/create")
 def clan_create(data: ReqClanCreate):
     clean_name = data.name.strip()
-    if len(clean_name) < 3 or len(clean_name) > 16:
-        raise HTTPException(400, "Название клана: от 3 до 16 символов!")
+    if len(clean_name) < 3 or len(clean_name) > 16: raise HTTPException(400, "От 3 до 16 символов!")
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT balance, clan_id FROM users WHERE tg_user_id = ?", (data.user_id,))
     bal, cur_clan = cur.fetchone()
     if cur_clan: conn.close(); raise HTTPException(400, "Сначала выйдите из текущего клана!")
-    if bal < 1000000.0: conn.close(); raise HTTPException(400, "Создание клана стоит 1,000,000 GRAM!")
+    if bal < 1000000.0: conn.close(); raise HTTPException(400, "Создание стоит 1,000,000 GRAM!")
     cur.execute("SELECT 1 FROM clans WHERE LOWER(name) = LOWER(?)", (clean_name,))
-    if cur.fetchone(): conn.close(); raise HTTPException(400, "Такое имя клана уже занято!")
-
+    if cur.fetchone(): conn.close(); raise HTTPException(400, "Имя уже занято!")
     cid = f"clan_{data.user_id}_{int(time.time())}"
     cur.execute("UPDATE users SET balance = balance - 1000000.0, clan_id = ? WHERE tg_user_id = ?", (cid, data.user_id))
     cur.execute("INSERT INTO clans (clan_id, name, owner_id, level, treasury, members_count, max_members, created_at) VALUES (?, ?, ?, 1, 0.0, 1, 100, ?)", (cid, clean_name, data.user_id, int(time.time())))
@@ -1015,11 +1206,10 @@ def clan_join(data: ReqClanAction):
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT clan_id FROM users WHERE tg_user_id = ?", (data.user_id,))
     old_c = cur.fetchone()[0]
-    if old_c == data.clan_id: conn.close(); raise HTTPException(400, "Вы уже в этом клане!")
+    if old_c == data.clan_id: conn.close(); raise HTTPException(400, "Вы уже здесь!")
     cur.execute("SELECT members_count, max_members FROM clans WHERE clan_id = ?", (data.clan_id,))
     cl = cur.fetchone()
-    if not cl: conn.close(); raise HTTPException(404, "Клан не найден")
-    if cl[0] >= cl[1]: conn.close(); raise HTTPException(400, f"Лимит участников ({cl[1]}) исчерпан!")
+    if not cl or cl[0] >= cl[1]: conn.close(); raise HTTPException(400, "Клан переполнен!")
     if old_c: cur.execute("UPDATE clans SET members_count = MAX(0, members_count - 1) WHERE clan_id = ?", (old_c,))
     cur.execute("UPDATE clans SET members_count = members_count + 1 WHERE clan_id = ?", (data.clan_id,))
     cur.execute("UPDATE users SET clan_id = ? WHERE tg_user_id = ?", (data.clan_id, data.user_id))
@@ -1039,11 +1229,10 @@ def clan_leave(data: ReqSimple):
 
 @app.post("/api/clan/donate")
 def clan_donate(data: ReqClanAction):
-    if data.amount < 1000: raise HTTPException(400, "Минимум 1,000 GRAM")
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT balance, clan_id FROM users WHERE tg_user_id = ?", (data.user_id,))
     bal, cid = cur.fetchone()
-    if not cid or bal < data.amount: conn.close(); raise HTTPException(400, "Недостаточно средств или вы вне клана")
+    if not cid or bal < data.amount: conn.close(); raise HTTPException(400, "Недостаточно средств")
     cur.execute("UPDATE users SET balance = balance - ? WHERE tg_user_id = ?", (data.amount, data.user_id))
     cur.execute("SELECT level, treasury FROM clans WHERE clan_id = ?", (cid,))
     lvl, tr = cur.fetchone()
@@ -1058,7 +1247,7 @@ CRAFT_COSTS = {"Common": 100, "Uncommon": 500, "Rare": 2500, "Epic": 12000, "Leg
 
 @app.post("/api/craft")
 def craft_items(data: ReqCraft):
-    if len(data.tags) != 5: raise HTTPException(400, "Нужно 5 предметов одной редкости!")
+    if len(data.tags) != 5: raise HTTPException(400, "Нужно 5 предметов!")
     conn = get_db(); cur = conn.cursor()
     ph = ",".join("?" for _ in data.tags)
     cur.execute(f"SELECT tag, item_type, rarity, is_equipped, on_market FROM usernames WHERE owner_id = ? AND tag IN ({ph})", [data.user_id, *data.tags])
@@ -1080,7 +1269,7 @@ def craft_items(data: ReqCraft):
 
     next_r = RARITIES[rar_idx + 1]; now = int(time.time())
     if itype == "number":
-        new_tag, inc, sell, num_x, qual, reas = generate_phone_number(next_r)
+        new_tag, inc, sell, num_x, qual, reas, _ = generate_phone_number(next_r)
     else:
         c = roll_single_candidate(cur, "username", f"tier_{min(6, rar_idx+1)}", 1.0)
         new_tag, qual, reas, num_x = c["tag"], c["quality"], c["reasons"], 1.0
@@ -1175,10 +1364,10 @@ def spin_wheel(data: ReqSimple):
         cur.execute("UPDATE users SET luck_multi = 2.0, luck_until = ?, last_wheel = ? WHERE tg_user_id = ?", (now + picked["val"], now, data.user_id))
     elif picked["type"] == "tag":
         t = f"@wheel_vip{random.randint(10,99)}"
-        cur.execute("INSERT OR IGNORE INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_saved, created_at) VALUES (?,?,?,?,80,18,950,1.0,'🎡 Приз Колеса',1,?)", (t, "username", data.user_id, "Rare", now))
+        cur.execute("INSERT OR IGNORE INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_saved, created_at) VALUES (?,?,?,?,80,18,950,1.0,'🎡 Приз Колеса ×2,0',1,?)", (t, "username", data.user_id, "Rare", now))
         cur.execute("UPDATE users SET last_wheel = ? WHERE tg_user_id = ?", (now, data.user_id))
     elif picked["type"] == "num":
-        t, inc, sell, num_x, q, reas = generate_phone_number(RARITIES[2])
+        t, inc, sell, num_x, q, reas, _ = generate_phone_number(RARITIES[2])
         cur.execute("INSERT OR IGNORE INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_saved, created_at) VALUES (?,?,?,?,?,?,?,?,?,1,?)", (t, "number", data.user_id, "Rare", q, inc, sell, num_x, reas, now))
         cur.execute("UPDATE users SET last_wheel = ? WHERE tg_user_id = ?", (now, data.user_id))
     conn.commit(); conn.close()
@@ -1190,14 +1379,16 @@ DAILY_REWARDS = [10000, 25000, 50000, 100000, 200000, 400000, 1000000]
 def claim_daily(data: ReqSimple):
     conn = get_db(); cur = conn.cursor()
     now = int(time.time())
-    cur.execute("SELECT daily_streak, last_daily FROM users WHERE tg_user_id = ?", (data.user_id,))
-    streak, last_d = cur.fetchone()
+    cur.execute("SELECT daily_streak, last_daily, vip_until FROM users WHERE tg_user_id = ?", (data.user_id,))
+    streak, last_d, vip_u = cur.fetchone()
     if (now - last_d) < 86400: conn.close(); raise HTTPException(400, "Подарок уже получен сегодня!")
     if (now - last_d) > 172800: streak = 0
     reward = DAILY_REWARDS[streak % 7]; new_streak = (streak % 7) + 1
-    cur.execute("UPDATE users SET balance = balance + ?, daily_streak = ?, last_daily = ?, season_xp = season_xp + 25 WHERE tg_user_id = ?", (reward, new_streak, now, data.user_id))
+    # На 7-й день дополнительно даем VIP на сутки, как на референсе!
+    new_vip = max(now, vip_u or 0) + 86400 if new_streak == 7 else (vip_u or 0)
+    cur.execute("UPDATE users SET balance = balance + ?, daily_streak = ?, last_daily = ?, vip_until = ?, season_xp = season_xp + 25 WHERE tg_user_id = ?", (reward, new_streak, now, new_vip, data.user_id))
     conn.commit(); conn.close()
-    return {"reward": reward, "day": new_streak}
+    return {"reward": reward, "day": new_streak, "vip_bonus": new_streak == 7}
 
 @app.post("/api/claim_reward")
 def claim_quest_or_pass(data: ReqSimple):
@@ -1234,23 +1425,18 @@ def claim_quest_or_pass(data: ReqSimple):
     conn.commit(); conn.close()
     return {"reward": reward}
 
-# ==========================================
-# ПРОКАЧКА КАНАЛОВ С ЖЕСТКИМ ЛИМИТОМ И ЭКСПОНЕНЦИАЛЬНОЙ ЦЕНОЙ
-# ==========================================
 @app.post("/api/upgrade_mgr")
 def upgrade_manager(data: ReqSimple):
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT balance, smm_lvl, buyer_lvl FROM users WHERE tg_user_id = ?", (data.user_id,))
     bal, smm, buyer = cur.fetchone()
     if data.key == "smm":
-        if smm >= MAX_SMM_LVL:
-            conn.close(); raise HTTPException(400, f"Достигнут максимальный уровень СММ-Отдела ({MAX_SMM_LVL} ур.)!")
+        if smm >= MAX_SMM_LVL: conn.close(); raise HTTPException(400, f"Макс. уровень СММ ({MAX_SMM_LVL})!")
         cost = get_smm_upgrade_cost(smm)
         if bal < cost: conn.close(); raise HTTPException(400, f"Нужно {int(cost):,} GRAM")
         cur.execute("UPDATE users SET balance = balance - ?, smm_lvl = smm_lvl + 1 WHERE tg_user_id = ?", (cost, data.user_id))
     else:
-        if buyer >= MAX_BUYER_LVL:
-            conn.close(); raise HTTPException(400, f"Достигнут максимальный уровень Закупщика ({MAX_BUYER_LVL} ур.)!")
+        if buyer >= MAX_BUYER_LVL: conn.close(); raise HTTPException(400, f"Макс. уровень Байера ({MAX_BUYER_LVL})!")
         cost = get_buyer_upgrade_cost(buyer)
         if bal < cost: conn.close(); raise HTTPException(400, f"Нужно {int(cost):,} GRAM")
         cur.execute("UPDATE users SET balance = balance - ?, buyer_lvl = buyer_lvl + 1 WHERE tg_user_id = ?", (cost, data.user_id))
@@ -1319,7 +1505,7 @@ def activate_donate(data: ReqSimple):
     elif p == "coins_100m":
         cur.execute("UPDATE users SET balance = balance + 25000000 WHERE tg_user_id = ?", (data.user_id,))
     elif p == "num_888_box":
-        t, inc, sell, num_x, q, reas = generate_phone_number(RARITIES[5])
+        t, inc, sell, num_x, q, reas, _ = generate_phone_number(RARITIES[5])
         cur.execute("INSERT OR IGNORE INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_saved, created_at) VALUES (?,?,?,?,?,?,?,?,?,1,?)",
                     (t, "number", data.user_id, "Mythic", q, inc, sell, num_x, reas, now))
 
