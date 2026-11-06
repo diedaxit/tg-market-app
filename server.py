@@ -24,7 +24,6 @@ DB_NAME = "market.db"
 def init_db():
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    # Таблица пользователей
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             tg_user_id INTEGER PRIMARY KEY,
@@ -42,7 +41,6 @@ def init_db():
             created_at INTEGER
         )
     """)
-    # Таблица тегов (ХОЛД)
     cur.execute("""
         CREATE TABLE IF NOT EXISTS usernames (
             tag TEXT PRIMARY KEY,
@@ -62,7 +60,7 @@ def init_db():
 init_db()
 
 # ==========================================
-# 1. БАЗЫ СЛОВ И РЕДКОСТЕЙ (10 ТИРОВ)
+# 1. БАЗЫ СЛОВ И РЕДКОСТЕЙ
 # ==========================================
 WORDS_DIVINE = ["x", "v", "ai", "go", "ok", "up", "7"]
 WORDS_EXCLUSIVE = ["durov", "telegram", "ton", "notcoin", "pavel", "vk", "redo"]
@@ -72,7 +70,14 @@ WORDS_MYTHIC = ["star", "epic", "moon", "flow", "dark", "litvin", "mellstroy", "
 WORDS_LEGENDARY = ["tiger", "ghost", "alpha", "prime", "whale", "wylsa", "subo", "buster"]
 WORDS_EPIC = ["shadow", "crypto", "hacker", "sniper", "ninja", "blade"]
 WORDS_RARE = ["gamer", "player", "rocket", "market", "trade", "speed"]
-WORDS_UNCOMMON = ["user", "pro", "hero", "fan", "club"]
+
+# ЖИВЫЕ НИКИ (База для Common и Uncommon)
+WORDS_REALISTIC = [
+    "diedaxit", "whaqqa", "hatbeinsober", "dinastiya", "golova_chlena",
+    "kamaz", "shaurma", "pelmen", "zavod", "krasava", "chushpan",
+    "bratuxa", "sueta", "skuf", "masik", "tybik", "cheburek", "zxc",
+    "qwerty", "anon", "kibersport", "pivo", "samp", "csgo", "dota", "deadins1de"
+]
 
 RARITIES = [
     {"name": "Common",       "w": 70000, "inc": 1,      "xp": 5,     "sell": 50},
@@ -95,14 +100,13 @@ SPIN_MODES = {
 }
 
 # ==========================================
-# 2. ДВИЖОК ГЕНЕРАЦИИ ТЕГОВ (СЕРВЕРНЫЙ)
+# 2. ГЕНЕРАТОР
 # ==========================================
 def generate_tag_logic(cur, mode, luck_multi):
     min_idx = SPIN_MODES[mode]["min_idx"]
     pool = []
     total_w = 0
     
-    # Удача умножает шансы на Эпик и выше
     for i, r in enumerate(RARITIES):
         if i >= min_idx:
             weight = r["w"]
@@ -113,16 +117,13 @@ def generate_tag_logic(cur, mode, luck_multi):
     rnd = random.random() * total_w
     picked = pool[0]["data"]
     for p in pool:
-        if rnd < p["w"]:
-            picked = p["data"]
-            break
+        if rnd < p["w"]: picked = p["data"]; break
         rnd -= p["w"]
 
     rarity = picked["name"]
     reasons = []
     
     def get_word(word_list):
-        # Ищем свободный эксклюзив
         random.shuffle(word_list)
         for w in word_list:
             cur.execute("SELECT tag FROM usernames WHERE tag = ?", (f"@{w}",))
@@ -132,25 +133,24 @@ def generate_tag_logic(cur, mode, luck_multi):
     word = None
     if rarity == "Divine":
         word = get_word(WORDS_DIVINE)
-        if word: reasons = ["👑 Ультра-короткий (2 буквы)", "🚫 Без цифр и символов", "✨ Высшая ценность"]
+        if word: reasons = ["👑 2 буквы", "🚫 Без цифр и знаков", "✨ Высшая ценность"]
     elif rarity == "Exclusive":
         word = get_word(WORDS_EXCLUSIVE)
-        if word: reasons = [f"💎 Бренд / Знаменитость ({word})", "🚫 Без цифр", "✨ Уникальный эксклюзив"]
+        if word: reasons = [f"💎 Бренд / Легенда", "🚫 Без цифр", "✨ Уникальный эксклюзив"]
     elif rarity == "Ultra-Mythic":
         word = get_word(WORDS_ULTRA)
-        if word: reasons = ["🔥 3 буквы", "🚫 Без цифр", "✅ Премиальный статус"]
+        if word: reasons = ["🔥 3 буквы", "🚫 Без цифр", "✅ Премиум статус"]
     elif rarity == "Luxury":
         word = get_word(WORDS_LUXURY)
-        if word: reasons = ["💰 Роскошное слово (Luxury)", "🚫 Без цифр", "✅ Высокий спрос на рынке"]
+        if word: reasons = ["💰 Luxury слово", "🚫 Без цифр", "✅ Высокий спрос"]
     elif rarity == "Mythic":
         word = get_word(WORDS_MYTHIC)
-        if word: reasons = ["⭐ 4 буквы / Топ Блогер", "🚫 Без цифр"]
+        if word: reasons = ["⭐ 4 буквы / Блогер", "🚫 Без цифр"]
     elif rarity == "Legendary":
         word = get_word(WORDS_LEGENDARY)
         if word: reasons = ["⭐ 5 букв", "🚫 Без цифр", "✅ Редкий корень"]
     
     if rarity in ["Divine", "Exclusive", "Ultra-Mythic", "Luxury", "Mythic", "Legendary"] and not word:
-        # Если все слова этой редкости заняты — понижаем до Epic
         rarity = "Epic"
         picked = RARITIES[3]
 
@@ -163,22 +163,25 @@ def generate_tag_logic(cur, mode, luck_multi):
         tag = f"@{word}_{random.randint(100,999)}"
         reasons = ["✅ Без нижнего подчеркивания", "✅ Звучный корень"]
     elif rarity == "Uncommon":
-        word = random.choice(WORDS_UNCOMMON)
-        tag = f"@{word}{random.randint(1000,9999)}"
-        reasons = ["✅ Красивый числовой суффикс"]
+        word = random.choice(WORDS_REALISTIC)
+        if random.random() > 0.5:
+            tag = f"@{word}{random.randint(1, 99)}"
+        else:
+            tag = f"@{word}_{random.choice(['pro', 'zxc', 'god', 'vip'])}"
+        reasons = ["✅ Живой никнейм", "✅ Узнаваемый стиль"]
     elif rarity == "Common":
-        word = random.choice(["user", "bot", "acc", "id"])
-        tag = f"@{word}_{random.randint(10000,99999)}"
-        reasons = ["Обычный тег с цифрами"]
+        word = random.choice(WORDS_REALISTIC)
+        # Имитация реальных цифр (года рождения или случайные)
+        if random.random() > 0.5:
+            tag = f"@{word}{random.randint(1990, 2012)}"
+        else:
+            tag = f"@{word}{random.randint(100, 9999)}"
+        reasons = ["Обычный ник с цифрами"]
     else:
         tag = f"@{word}"
 
     return tag, rarity, picked["inc"], picked["xp"], picked["sell"], ",".join(reasons)
 
-
-# ==========================================
-# 3. API МОДЕЛИ
-# ==========================================
 class LoginReq(BaseModel):
     user_id: int
     username: str = "Player"
@@ -193,13 +196,6 @@ class SellReq(BaseModel):
     user_id: int
     tag: str
 
-class UpgradeReq(BaseModel):
-    user_id: int
-    mgr_type: str  # 'smm' или 'buyer'
-
-# ==========================================
-# 4. РОУТЫ (ENDPOINTS)
-# ==========================================
 @app.get("/")
 def serve_index():
     if os.path.exists("index.html"): return FileResponse("index.html")
@@ -219,7 +215,6 @@ def login(data: LoginReq):
         if data.ref_by and data.ref_by.startswith("ref_"):
             try:
                 ref_id = int(data.ref_by.split("_")[1])
-                # Проверка, что рефовод существует
                 cur.execute("SELECT refs_count FROM users WHERE tg_user_id = ?", (ref_id,))
                 ref_user = cur.fetchone()
                 if ref_user and ref_id != data.user_id:
@@ -228,10 +223,8 @@ def login(data: LoginReq):
                     if new_refs == 2: reward = 3000
                     elif new_refs == 5: reward = 10000
                     elif new_refs == 20: reward = 1000000
-                    # Начисляем награду рефоводу
                     cur.execute("UPDATE users SET refs_count = ?, balance = balance + ? WHERE tg_user_id = ?", (new_refs, reward, ref_id))
-            except:
-                pass
+            except: pass
                 
         cur.execute(
             "INSERT INTO users (tg_user_id, username, balance, level, xp, ref_by, created_at, last_claim) VALUES (?, ?, 1500.0, 1, 0, ?, ?, ?)",
@@ -264,20 +257,13 @@ def get_state(user_id: int):
     conn.close()
     return {
         "balance": round(balance, 2),
-        "level": level,
-        "xp": xp,
-        "smm": smm,
-        "buyer": buyer,
-        "luck_active": luck_until > now,
-        "equipped": equipped_tag,
-        "hold": tags
+        "level": level, "xp": xp, "smm": smm, "buyer": buyer,
+        "luck_active": luck_until > now, "equipped": equipped_tag, "hold": tags
     }
 
 @app.post("/api/mint")
 def mint(data: MintReq):
     if data.mode not in SPIN_MODES: raise HTTPException(status_code=400, detail="Invalid mode")
-    if data.spin_count not in [1, 5]: raise HTTPException(status_code=400, detail="Invalid spin count")
-    
     cost = SPIN_MODES[data.mode]["cost"] * data.spin_count
     now = int(time.time())
     
@@ -288,9 +274,8 @@ def mint(data: MintReq):
     user = cur.fetchone()
     if not user or user[0] < cost:
         conn.close()
-        raise HTTPException(status_code=400, detail="Недостаточно GRAM!")
+        raise HTTPException(status_code=400, detail="Недостаточно GRAM на балансе!")
         
-    # Проверка лимита Холда
     cur.execute("SELECT COUNT(*) FROM usernames WHERE owner_id = ?", (data.user_id,))
     if cur.fetchone()[0] + data.spin_count > 100:
         conn.close()
@@ -301,14 +286,13 @@ def mint(data: MintReq):
     
     drops = []
     total_xp_gain = 0
-    
     for _ in range(data.spin_count):
-        for _ in range(10): # Защита от дубликатов
+        for _ in range(10):
             tag, rarity, inc, xp_g, sell, reasons = generate_tag_logic(cur, data.mode, active_luck)
             cur.execute("SELECT tag FROM usernames WHERE tag = ?", (tag,))
             if not cur.fetchone(): break
         else:
-            tag, rarity, inc, xp_g, sell, reasons = f"@user_{random.randint(10000,99999)}", "Common", 1.0, 5, 50, "Обычный тег"
+            tag, rarity, inc, xp_g, sell, reasons = f"@diedaxit{random.randint(100,999)}", "Common", 1.0, 5, 50, "Обычный тег"
             
         cur.execute("INSERT INTO usernames (tag, owner_id, rarity, income_per_sec, sell_price, reasons, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
                     (tag, data.user_id, rarity, inc, sell, reasons, now))
@@ -332,15 +316,11 @@ def mint(data: MintReq):
 def sell_tag(data: SellReq):
     conn = sqlite3.connect(DB_NAME)
     cur = conn.cursor()
-    cur.execute("SELECT sell_price, is_equipped FROM usernames WHERE tag = ? AND owner_id = ?", (data.tag, data.user_id))
+    cur.execute("SELECT sell_price FROM usernames WHERE tag = ? AND owner_id = ?", (data.tag, data.user_id))
     row = cur.fetchone()
     if not row:
         conn.close()
         raise HTTPException(status_code=400, detail="Тег не найден")
-        
-    if row[1] == 1:
-        conn.close()
-        raise HTTPException(status_code=400, detail="Нельзя продать привязанный канал! Сначала отвяжи.")
         
     price = row[0]
     cur.execute("DELETE FROM usernames WHERE tag = ?", (data.tag,))
@@ -349,9 +329,6 @@ def sell_tag(data: SellReq):
     conn.close()
     return {"sold_for": price}
 
-# ==========================================
-# 5. МАГАЗИН И STARS (INVOICES)
-# ==========================================
 PRICES = {
     "luck_x2_1h": {"title": "🍀 Удача x2 (1 час)", "price": 19},
     "luck_x3_2h": {"title": "🔥 Удача x3 (2 часа)", "price": 39},
