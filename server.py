@@ -1153,7 +1153,7 @@ def minigame_vault(data: ReqVaultHack):
 
 PROMO_CODES = {
     "MINTTAGS": {"gram": 50000, "desc": "50,000 GRAM"},
-    "DUROV":    {"gram": 75000, "desc": "75,000 GRAM"},
+    "DUROV":    {"gram": 7500000, "desc": "750,000 GRAM"},
     "888":      {"gram": 100000,"desc": "100,000 GRAM"}
 }
 
