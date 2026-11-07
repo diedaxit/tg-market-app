@@ -1,5 +1,6 @@
 import os
 import sqlite3
+import psycopg2
 from aiogram import Bot, Dispatcher, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import (
@@ -9,10 +10,27 @@ from aiogram.types import (
 
 BOT_TOKEN = os.getenv("BOT_TOKEN", "ВАШ_ТОКЕН_БОТА")
 APP_URL = os.getenv("RENDER_EXTERNAL_URL", "https://atminttagsbot.onrender.com")
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 DB_NAME = "market.db"
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
+
+def bot_db_query(sql: str, params: tuple = ()):
+    if DATABASE_URL:
+        conn = psycopg2.connect(DATABASE_URL)
+        cur = conn.cursor()
+        cur.execute(sql.replace("?", "%s"), params)
+        rows = cur.fetchall()
+        conn.close()
+        return rows
+    else:
+        conn = sqlite3.connect(DB_NAME)
+        cur = conn.cursor()
+        cur.execute(sql, params)
+        rows = cur.fetchall()
+        conn.close()
+        return rows
 
 async def setup_bot_commands():
     commands = [
@@ -46,9 +64,9 @@ async def cmd_start(message: Message):
     await message.answer(
         "👑 <b>MintTags: Media Empire</b>\n\n"
         "Добро пожаловать в главный симулятор охоты за элитными <b>@username</b> и анонимными номерами <b>+888</b>!\n\n"
-        "🔹 Крути слоты с иксами и собирай редкие комбинации\n"
-        "🔹 Прокачивай номера в <b>Апгрейдере (до ×10)</b> и летай в <b>Ракетке</b>\n"
-        "🔹 Привязывай <b>+888</b> к каналам (множитель до <b>×1000</b>)\n"
+        "🔹 Крути слоты с каскадными иксами и собирай редкие серии\n"
+        "🔹 Прокачивай номера в <b>Апгрейдере (до ×10)</b> и летай до Луны в <b>Ракетке (до ×1200)</b>\n"
+        "🔹 Сливай редкие лоты приезжающему <b>Тайному Скупщику (+80%)</b>\n"
         "🔹 Торгуй с игроками на живом Аукционе!\n\n"
         "👇 Жми кнопку ниже, чтобы забрать <b>Подарок дня</b>:",
         reply_markup=get_webapp_kb(ref_param),
@@ -74,17 +92,19 @@ async def cmd_help(message: Message):
 async def cmd_profile(message: Message):
     uid = message.from_user.id
     try:
-        conn = sqlite3.connect(DB_NAME)
-        cur = conn.cursor()
-        cur.execute("SELECT rowid, balance, level, total_spins, refs_count, duel_wins FROM users WHERE tg_user_id = ?", (uid,))
-        u = cur.fetchone()
-        cur.execute("SELECT COUNT(*) FROM usernames WHERE owner_id = ? AND is_saved = 1", (uid,))
-        cnt = cur.fetchone()[0]
-        conn.close()
-        if not u:
+        u_rows = bot_db_query(
+            "SELECT member_number, balance, level, total_spins, refs_count, duel_wins FROM users WHERE tg_user_id = ?",
+            (uid,)
+        )
+        c_rows = bot_db_query(
+            "SELECT COUNT(*) FROM usernames WHERE owner_id = ? AND is_saved = 1",
+            (uid,)
+        )
+        if not u_rows:
             await message.answer("Вы ещё не создали профиль! Нажмите кнопку ниже, чтобы войти в игру:", reply_markup=get_webapp_kb())
             return
-        mem_id, bal, lvl, spins, refs, wins = u
+        mem_id, bal, lvl, spins, refs, wins = u_rows[0]
+        cnt = c_rows[0][0] if c_rows else 0
         await message.answer(
             f"👤 <b>Профиль магната #{mem_id}</b>\n\n"
             f"💰 Баланс: <b>{int(bal):,} GRAM</b>\n"
@@ -102,11 +122,7 @@ async def cmd_profile(message: Message):
 @dp.message(Command("top"))
 async def cmd_top(message: Message):
     try:
-        conn = sqlite3.connect(DB_NAME)
-        cur = conn.cursor()
-        cur.execute("SELECT username, balance, level FROM users ORDER BY balance DESC LIMIT 10")
-        rows = cur.fetchall()
-        conn.close()
+        rows = bot_db_query("SELECT username, balance, level FROM users ORDER BY balance DESC LIMIT 10")
         lines = ["🏆 <b>ТОП-10 МАГНАТОВ MINTTAGS:</b>\n"]
         for i, r in enumerate(rows):
             medal = "🥇" if i == 0 else ("🥈" if i == 1 else ("🥉" if i == 2 else f"#{i+1}"))
