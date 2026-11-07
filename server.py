@@ -1,4 +1,6 @@
 import sqlite3
+import psycopg2
+import asyncio
 import random
 import time
 import os
@@ -10,8 +12,8 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
 from pydantic import BaseModel
-from aiogram.types import LabeledPrice
-from bot import bot
+from aiogram.types import LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
+from bot import bot, APP_URL
 
 app = FastAPI()
 
@@ -23,9 +25,202 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+DATABASE_URL = os.getenv("DATABASE_URL", "")
 DB_NAME = "market.db"
 NEWS_CHANNEL = "@MintTags_News"
 
+# ==========================================
+# УНИВЕРСАЛЬНЫЙ ДРАЙВЕР POSTGRESQL (NEON) / SQLITE
+# ==========================================
+class CursorWrapper:
+    def __init__(self, raw_cur, is_pg: bool):
+        self.cur = raw_cur
+        self.is_pg = is_pg
+
+    def execute(self, sql: str, params: tuple | list = ()):
+        if self.is_pg:
+            q = sql.replace("?", "%s")
+            q = q.replace("INSERT OR IGNORE INTO", "INSERT INTO")
+            if "INSERT INTO clans" in q and "ON CONFLICT" not in q:
+                q += " ON CONFLICT (clan_id) DO NOTHING"
+            if "INSERT INTO usernames" in sql and "OR IGNORE" in sql and "ON CONFLICT" not in q:
+                q += " ON CONFLICT (tag) DO NOTHING"
+            if "INSERT OR REPLACE INTO usernames" in q:
+                q = q.replace("INSERT OR REPLACE INTO usernames", "INSERT INTO usernames")
+                q += """ ON CONFLICT (tag) DO UPDATE SET
+                    owner_id = EXCLUDED.owner_id, rarity = EXCLUDED.rarity, quality_pct = EXCLUDED.quality_pct,
+                    income_per_sec = EXCLUDED.income_per_sec, sell_price = EXCLUDED.sell_price,
+                    num_multi = EXCLUDED.num_multi, reasons = EXCLUDED.reasons, is_equipped = EXCLUDED.is_equipped,
+                    channel_slot = EXCLUDED.channel_slot, is_saved = EXCLUDED.is_saved, on_market = EXCLUDED.on_market"""
+            return self.cur.execute(q, params)
+        return self.cur.execute(sql, params)
+
+    def fetchone(self):
+        return self.cur.fetchone()
+
+    def fetchall(self):
+        return self.cur.fetchall()
+
+class ConnWrapper:
+    def __init__(self, raw_conn, is_pg: bool):
+        self.conn = raw_conn
+        self.is_pg = is_pg
+
+    def cursor(self):
+        return CursorWrapper(self.conn.cursor(), self.is_pg)
+
+    def commit(self):
+        self.conn.commit()
+
+    def close(self):
+        self.conn.close()
+
+def get_db():
+    if DATABASE_URL:
+        raw = psycopg2.connect(DATABASE_URL)
+        return ConnWrapper(raw, True)
+    raw = sqlite3.connect(DB_NAME, timeout=15.0)
+    raw.execute("PRAGMA journal_mode=WAL")
+    raw.execute("PRAGMA synchronous=NORMAL")
+    return ConnWrapper(raw, False)
+
+def init_db():
+    conn = get_db()
+    cur = conn.cursor()
+    id_type = "SERIAL PRIMARY KEY" if conn.is_pg else "INTEGER PRIMARY KEY AUTOINCREMENT"
+    big_type = "BIGINT" if conn.is_pg else "INTEGER"
+
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS users (
+            member_number {id_type},
+            tg_user_id {big_type} UNIQUE,
+            username TEXT,
+            balance REAL DEFAULT 15000.0,
+            level INTEGER DEFAULT 1,
+            xp INTEGER DEFAULT 0,
+            season_xp INTEGER DEFAULT 0,
+            season_claimed TEXT DEFAULT '[]',
+            luck_multi REAL DEFAULT 1.0,
+            luck_until {big_type} DEFAULT 0,
+            vip_until {big_type} DEFAULT 0,
+            max_hold INTEGER DEFAULT 100,
+            max_channels INTEGER DEFAULT 2,
+            ref_by {big_type} DEFAULT NULL,
+            refs_count INTEGER DEFAULT 0,
+            ref_3_rewarded INTEGER DEFAULT 0,
+            contrib_gram REAL DEFAULT 0.0,
+            contrib_stars INTEGER DEFAULT 0,
+            smm_lvl INTEGER DEFAULT 1,
+            buyer_lvl INTEGER DEFAULT 0,
+            ai_boost INTEGER DEFAULT 0,
+            clan_id TEXT DEFAULT NULL,
+            total_spins INTEGER DEFAULT 0,
+            pity_100 INTEGER DEFAULT 0,
+            pity_500 INTEGER DEFAULT 0,
+            last_wheel {big_type} DEFAULT 0,
+            last_vault {big_type} DEFAULT 0,
+            daily_streak INTEGER DEFAULT 0,
+            last_daily {big_type} DEFAULT 0,
+            q_spins INTEGER DEFAULT 0,
+            q_rare INTEGER DEFAULT 0,
+            q_crafts INTEGER DEFAULT 0,
+            q_duels INTEGER DEFAULT 0,
+            q_claimed TEXT DEFAULT '[]',
+            ach_stats TEXT DEFAULT '{{}}',
+            ach_claimed TEXT DEFAULT '[]',
+            albums_claimed TEXT DEFAULT '[]',
+            promos_used TEXT DEFAULT '[]',
+            tax_shield_until {big_type} DEFAULT 0,
+            duel_wins INTEGER DEFAULT 0,
+            auto_save_min_idx INTEGER DEFAULT 0,
+            sub_verified INTEGER DEFAULT 0,
+            notify_merchant INTEGER DEFAULT 0,
+            last_claim {big_type} DEFAULT 0,
+            created_at {big_type}
+        )
+    """)
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS usernames (
+            tag TEXT PRIMARY KEY,
+            item_type TEXT DEFAULT 'username',
+            owner_id {big_type},
+            rarity TEXT,
+            quality_pct INTEGER DEFAULT 50,
+            income_per_sec REAL,
+            sell_price REAL,
+            num_multi REAL DEFAULT 1.0,
+            reasons TEXT,
+            is_equipped INTEGER DEFAULT 0,
+            channel_slot INTEGER DEFAULT 0,
+            is_saved INTEGER DEFAULT 1,
+            on_market INTEGER DEFAULT 0,
+            created_at {big_type}
+        )
+    """)
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS market_lots (
+            lot_id {id_type},
+            tag TEXT UNIQUE,
+            item_type TEXT,
+            rarity TEXT,
+            income_per_sec REAL,
+            num_multi REAL DEFAULT 1.0,
+            reasons TEXT,
+            seller_id {big_type},
+            seller_name TEXT,
+            is_auction INTEGER DEFAULT 0,
+            start_price REAL,
+            current_price REAL,
+            buyout_price REAL,
+            highest_bidder_id {big_type} DEFAULT NULL,
+            highest_bidder_name TEXT DEFAULT '',
+            bids_count INTEGER DEFAULT 0,
+            ends_at {big_type},
+            created_at {big_type}
+        )
+    """)
+    cur.execute(f"""
+        CREATE TABLE IF NOT EXISTS clans (
+            clan_id TEXT PRIMARY KEY,
+            name TEXT UNIQUE,
+            owner_id {big_type} DEFAULT 0,
+            level INTEGER DEFAULT 1,
+            treasury REAL DEFAULT 0.0,
+            members_count INTEGER DEFAULT 0,
+            max_members INTEGER DEFAULT 100,
+            created_at {big_type} DEFAULT 0
+        )
+    """)
+    conn.commit()
+
+    # Безопасное добавление новых колонок
+    for col, ctype in [
+        ("notify_merchant", "INTEGER DEFAULT 0"),
+        ("ref_3_rewarded", "INTEGER DEFAULT 0"),
+        ("last_vault", f"{big_type} DEFAULT 0"),
+        ("promos_used", "TEXT DEFAULT '[]'")
+    ]:
+        try:
+            if conn.is_pg:
+                cur.execute(f"ALTER TABLE users ADD COLUMN IF NOT EXISTS {col} {ctype}")
+            else:
+                cur.execute(f"ALTER TABLE users ADD COLUMN {col} {ctype}")
+            conn.commit()
+        except Exception:
+            if conn.is_pg: conn.conn.rollback()
+
+    cur.execute("""
+        INSERT OR IGNORE INTO clans (clan_id, name, owner_id, level, treasury, members_count, max_members, created_at)
+        VALUES ('mint_general', 'MintGeneral', 0, 5, 1000000.0, 1, 1000, ?)
+    """, (int(time.time()),))
+    conn.commit()
+    conn.close()
+
+init_db()
+
+# ==========================================
+# ЗАЩИТА ОТ DDOS, АВТОКЛИКЕРОВ И ПОДДЕЛКИ ЗАПРОСОВ
+# ==========================================
 RATE_BUCKETS = {}
 TX_LOCKS = set()
 
@@ -58,167 +253,8 @@ def verify_tg_auth(init_data: str, uid: int):
     except Exception:
         pass
 
-def get_db():
-    conn = sqlite3.connect(DB_NAME, timeout=15.0)
-    conn.execute("PRAGMA journal_mode=WAL")
-    conn.execute("PRAGMA synchronous=NORMAL")
-    return conn
-
-def init_db():
-    conn = get_db()
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            member_number INTEGER PRIMARY KEY AUTOINCREMENT,
-            tg_user_id INTEGER UNIQUE,
-            username TEXT,
-            balance REAL DEFAULT 15000.0,
-            level INTEGER DEFAULT 1,
-            xp INTEGER DEFAULT 0,
-            season_xp INTEGER DEFAULT 0,
-            season_claimed TEXT DEFAULT '[]',
-            luck_multi REAL DEFAULT 1.0,
-            luck_until INTEGER DEFAULT 0,
-            vip_until INTEGER DEFAULT 0,
-            max_hold INTEGER DEFAULT 100,
-            max_channels INTEGER DEFAULT 2,
-            ref_by INTEGER DEFAULT NULL,
-            refs_count INTEGER DEFAULT 0,
-            ref_3_rewarded INTEGER DEFAULT 0,
-            contrib_gram REAL DEFAULT 0.0,
-            contrib_stars INTEGER DEFAULT 0,
-            smm_lvl INTEGER DEFAULT 1,
-            buyer_lvl INTEGER DEFAULT 0,
-            ai_boost INTEGER DEFAULT 0,
-            clan_id TEXT DEFAULT NULL,
-            total_spins INTEGER DEFAULT 0,
-            pity_100 INTEGER DEFAULT 0,
-            pity_500 INTEGER DEFAULT 0,
-            last_wheel INTEGER DEFAULT 0,
-            last_vault INTEGER DEFAULT 0,
-            daily_streak INTEGER DEFAULT 0,
-            last_daily INTEGER DEFAULT 0,
-            q_spins INTEGER DEFAULT 0,
-            q_rare INTEGER DEFAULT 0,
-            q_crafts INTEGER DEFAULT 0,
-            q_duels INTEGER DEFAULT 0,
-            q_claimed TEXT DEFAULT '[]',
-            ach_stats TEXT DEFAULT '{}',
-            ach_claimed TEXT DEFAULT '[]',
-            albums_claimed TEXT DEFAULT '[]',
-            promos_used TEXT DEFAULT '[]',
-            tax_shield_until INTEGER DEFAULT 0,
-            duel_wins INTEGER DEFAULT 0,
-            auto_save_min_idx INTEGER DEFAULT 0,
-            sub_verified INTEGER DEFAULT 0,
-            last_claim INTEGER DEFAULT 0,
-            created_at INTEGER
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS usernames (
-            tag TEXT PRIMARY KEY,
-            item_type TEXT DEFAULT 'username',
-            owner_id INTEGER,
-            rarity TEXT,
-            quality_pct INTEGER DEFAULT 50,
-            income_per_sec REAL,
-            sell_price REAL,
-            num_multi REAL DEFAULT 1.0,
-            reasons TEXT,
-            is_equipped INTEGER DEFAULT 0,
-            channel_slot INTEGER DEFAULT 0,
-            is_saved INTEGER DEFAULT 1,
-            on_market INTEGER DEFAULT 0,
-            created_at INTEGER
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS market_lots (
-            lot_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            tag TEXT UNIQUE,
-            item_type TEXT,
-            rarity TEXT,
-            income_per_sec REAL,
-            num_multi REAL DEFAULT 1.0,
-            reasons TEXT,
-            seller_id INTEGER,
-            seller_name TEXT,
-            is_auction INTEGER DEFAULT 0,
-            start_price REAL,
-            current_price REAL,
-            buyout_price REAL,
-            highest_bidder_id INTEGER DEFAULT NULL,
-            highest_bidder_name TEXT DEFAULT '',
-            bids_count INTEGER DEFAULT 0,
-            ends_at INTEGER,
-            created_at INTEGER
-        )
-    """)
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS clans (
-            clan_id TEXT PRIMARY KEY,
-            name TEXT UNIQUE,
-            owner_id INTEGER DEFAULT 0,
-            level INTEGER DEFAULT 1,
-            treasury REAL DEFAULT 0.0,
-            members_count INTEGER DEFAULT 0,
-            max_members INTEGER DEFAULT 100,
-            created_at INTEGER DEFAULT 0
-        )
-    """)
-    conn.commit()
-
-    cur.execute("PRAGMA table_info(users)")
-    u_cols = [c[1] for c in cur.fetchall()]
-    for col, ctype in [
-        ("season_xp", "INTEGER DEFAULT 0"), ("season_claimed", "TEXT DEFAULT '[]'"),
-        ("vip_until", "INTEGER DEFAULT 0"), ("max_hold", "INTEGER DEFAULT 100"),
-        ("max_channels", "INTEGER DEFAULT 2"), ("ref_by", "INTEGER DEFAULT NULL"),
-        ("refs_count", "INTEGER DEFAULT 0"), ("ref_3_rewarded", "INTEGER DEFAULT 0"),
-        ("contrib_gram", "REAL DEFAULT 0.0"), ("contrib_stars", "INTEGER DEFAULT 0"),
-        ("smm_lvl", "INTEGER DEFAULT 1"), ("buyer_lvl", "INTEGER DEFAULT 0"),
-        ("ai_boost", "INTEGER DEFAULT 0"), ("clan_id", "TEXT DEFAULT NULL"),
-        ("total_spins", "INTEGER DEFAULT 0"), ("pity_100", "INTEGER DEFAULT 0"),
-        ("pity_500", "INTEGER DEFAULT 0"), ("last_wheel", "INTEGER DEFAULT 0"),
-        ("last_vault", "INTEGER DEFAULT 0"), ("daily_streak", "INTEGER DEFAULT 0"),
-        ("last_daily", "INTEGER DEFAULT 0"), ("q_spins", "INTEGER DEFAULT 0"),
-        ("q_rare", "INTEGER DEFAULT 0"), ("q_crafts", "INTEGER DEFAULT 0"),
-        ("q_duels", "INTEGER DEFAULT 0"), ("q_claimed", "TEXT DEFAULT '[]'"),
-        ("ach_stats", "TEXT DEFAULT '{}'"), ("ach_claimed", "TEXT DEFAULT '[]'"),
-        ("albums_claimed", "TEXT DEFAULT '[]'"), ("promos_used", "TEXT DEFAULT '[]'"),
-        ("tax_shield_until", "INTEGER DEFAULT 0"), ("duel_wins", "INTEGER DEFAULT 0"),
-        ("auto_save_min_idx", "INTEGER DEFAULT 0"), ("sub_verified", "INTEGER DEFAULT 0")
-    ]:
-        if col not in u_cols:
-            try: cur.execute(f"ALTER TABLE users ADD COLUMN {col} {ctype}")
-            except Exception: pass
-
-    cur.execute("PRAGMA table_info(usernames)")
-    t_cols = [c[1] for c in cur.fetchall()]
-    for col, ctype in [
-        ("item_type", "TEXT DEFAULT 'username'"), ("quality_pct", "INTEGER DEFAULT 50"),
-        ("num_multi", "REAL DEFAULT 1.0"), ("is_equipped", "INTEGER DEFAULT 0"),
-        ("channel_slot", "INTEGER DEFAULT 0"), ("is_saved", "INTEGER DEFAULT 1"),
-        ("on_market", "INTEGER DEFAULT 0")
-    ]:
-        if col not in t_cols:
-            try: cur.execute(f"ALTER TABLE usernames ADD COLUMN {col} {ctype}")
-            except Exception: pass
-
-    cur.execute("DELETE FROM clans WHERE clan_id IN ('ton_whales', 'durov_syndicate', 'emerald_cartel')")
-    cur.execute("""
-        INSERT OR IGNORE INTO clans (clan_id, name, owner_id, level, treasury, members_count, max_members, created_at)
-        VALUES ('mint_general', 'MintGeneral', 0, 5, 1000000.0, 1, 1000, ?)
-    """, (int(time.time()),))
-
-    conn.commit()
-    conn.close()
-
-init_db()
-
 # ==========================================
-# СБАЛАНСИРОВАННЫЕ РЕДКОСТИ, ШАНСЫ И ФАКТОРЫ ИКСОВ
+# 10 РЕДКОСТЕЙ И УМНАЯ ОЦЕНКА 5-БУКВЕННЫХ НИКОВ БЕЗ ЦИФР
 # ==========================================
 RARITIES = [
     {"name": "Common",       "ru": "Обычный",      "w": 820000, "min_p": 10,       "max_p": 100,       "inc": 1.5,     "xp": 5,     "num_x": 2},
@@ -274,10 +310,10 @@ WORD_LORE = {
     "litvin": ("Медийный никнейм «litvin»", "×14"),
     "mellstroy": ("Хайп-индекс «mellstroy»", "×15"),
     "mrbeast": ("Мировой бренд «mrbeast»", "×16"),
-    "tiger": ("Хищный корень «tiger» (5 букв)", "×6,5"),
-    "ghost": ("Анонимный корень «ghost»", "×6,0"),
-    "alpha": ("Лидерский индекс «alpha»", "×7,2"),
-    "whale": ("Индекс крипто-кита «whale»", "×8,0")
+    "tiger": ("Хищный корень «tiger» (5 букв)", "×8,5"),
+    "ghost": ("Анонимный корень «ghost» (5 букв)", "×8,5"),
+    "alpha": ("Лидерский индекс «alpha» (5 букв)", "×8,5"),
+    "whale": ("Индекс крипто-кита «whale» (5 букв)", "×9,0")
 }
 
 WORDS = {
@@ -286,12 +322,13 @@ WORDS = {
     "Ultra-Mythic": ["cat", "dog", "bot", "nft", "god", "top", "ceo"],
     "Luxury": ["dubai", "money", "rich", "gold", "boss", "king", "stars"],
     "Mythic": ["star", "epic", "moon", "flow", "dark", "litvin", "mellstroy", "mrbeast"],
-    "Legendary": ["tiger", "ghost", "alpha", "prime", "whale", "wylsa", "subo", "buster", "hasbulla"],
+    "Legendary": ["tiger", "ghost", "alpha", "prime", "whale", "daner", "avusk", "leoon", "hasbulla"],
     "Epic": ["shadow", "crypto", "hacker", "sniper", "ninja", "blade", "phantom", "cyber"],
     "Rare": ["gamer", "player", "rocket", "market", "trade", "speed", "hunter", "matrix"]
 }
 
 RECENT_ROOTS = []
+LAST_NOTIFIED_MERCHANT_SLOT = -1
 
 def get_daily_hot_series():
     day_seed = int(time.time() // 86400)
@@ -304,18 +341,83 @@ def get_daily_hot_series():
     ]
     return series_list[day_seed % len(series_list)]
 
+# ==========================================
+# ТАЙНЫЙ СКУПЩИК РАЗ В 20 МИНУТ + ПУШИ В КАНАЛ И БОТА
+# ==========================================
 def get_active_merchant_offer():
-    slot_15m = int(time.time() // 900)
-    left_sec = 900 - (int(time.time()) % 900)
+    """
+    Цикл 20 минут (1200 секунд):
+    Первые 10 минут (0..600 сек) Скупщик в городе и принимает товар.
+    Вторые 10 минут (600..1200 сек) Скупщик уехал — таймер показывает, через сколько он вернется.
+    """
+    now = int(time.time())
+    slot_20m = now // 1200
+    phase = now % 1200
     offers = [
         {"rarity": "Rare",      "ru": "Редкий",      "bonus_mult": 1.65, "bonus_pct": 65, "title": "Тайный Скупщик охотится за Rare!"},
         {"rarity": "Epic",      "ru": "Эпический",   "bonus_mult": 1.75, "bonus_pct": 75, "title": "Арабский Шейх скупает Epic!"},
         {"rarity": "Uncommon",  "ru": "Необычный",   "bonus_mult": 1.80, "bonus_pct": 80, "title": "Оптовый Байер скупает Uncommon!"},
         {"rarity": "Legendary", "ru": "Легендарный", "bonus_mult": 1.60, "bonus_pct": 60, "title": "Киты TON скупают Legendary!"}
     ]
-    pick = dict(offers[slot_15m % len(offers)])
-    pick["left_sec"] = left_sec
+    pick = dict(offers[slot_20m % len(offers)])
+    if phase < 600:
+        pick["active"] = True
+        pick["left_sec"] = 600 - phase
+        pick["next_in_sec"] = 0
+    else:
+        pick["active"] = False
+        pick["left_sec"] = 0
+        pick["next_in_sec"] = 1200 - phase
+    pick["slot_id"] = slot_20m
     return pick
+
+async def merchant_notification_worker():
+    global LAST_NOTIFIED_MERCHANT_SLOT
+    await asyncio.sleep(5)
+    while True:
+        try:
+            m = get_active_merchant_offer()
+            if m["active"] and m["slot_id"] != LAST_NOTIFIED_MERCHANT_SLOT:
+                LAST_NOTIFIED_MERCHANT_SLOT = m["slot_id"]
+                kb = InlineKeyboardMarkup(inline_keyboard=[
+                    [InlineKeyboardButton(text="🕵️‍♂️ Продать Скупщику (+ бонус)", web_app=WebAppInfo(url=APP_URL))]
+                ])
+                text = (
+                    f"🕵️‍♂️ <b>{m['title']}</b>\n\n"
+                    f"В <b>MintTags</b> только что приехал Тайный Перекуп!\n"
+                    f"🔹 Принимает редкость: <b>{m['ru']} ({m['rarity']})</b>\n"
+                    f"💰 Наценка к рынку: <b>+{m['bonus_pct']}%</b>\n"
+                    f"⏳ Уедет ровно через: <b>10 минут</b>!\n\n"
+                    f"👇 Заходи в Сейф и сливай лоты по двойному прайсу:"
+                )
+                # 1. Отправка в канал новостей @MintTags_News (если бот админ в канале)
+                try:
+                    await bot.send_message(chat_id=NEWS_CHANNEL, text=text, reply_markup=kb, parse_mode="HTML")
+                except Exception:
+                    pass
+
+                # 2. Отправка в ЛС игрокам, включившим тумблер уведомлений Скупщика
+                try:
+                    conn = get_db()
+                    cur = conn.cursor()
+                    cur.execute("SELECT tg_user_id FROM users WHERE notify_merchant = 1 LIMIT 200")
+                    uids = [r[0] for r in cur.fetchall()]
+                    conn.close()
+                    for uid in uids:
+                        try:
+                            await bot.send_message(chat_id=uid, text=text, reply_markup=kb, parse_mode="HTML")
+                            await asyncio.sleep(0.05)
+                        except Exception:
+                            pass
+                except Exception:
+                    pass
+        except Exception:
+            pass
+        await asyncio.sleep(20)
+
+@app.on_event("startup")
+async def on_startup_tasks():
+    asyncio.create_task(merchant_notification_worker())
 
 def generate_live_nickname():
     syllables = ["ka", "mi", "ro", "va", "ze", "lu", "no", "ta", "ke", "si", "da", "ve", "xo", "ni", "ba", "le", "fa", "mo", "ri", "to"]
@@ -337,7 +439,6 @@ def calc_range_price(r_obj: dict, quality_pct: int, is_num: bool = False):
     return price, inc
 
 def build_factors_for_tag(tag: str, rarity: str, quality: int, is_num: bool, num_x: int) -> list[dict]:
-    """Генерирует красивые строчки факторов с иксами как на скриншоте Номерка"""
     factors = []
     clean = tag.replace("@", "").replace("+888 ", "").replace(" ", "")
 
@@ -350,8 +451,8 @@ def build_factors_for_tag(tag: str, rarity: str, quality: int, is_num: bool, num
             factors.append({"label": "2 одинаковые цифры", "mult": "×2,4"})
         if clean == clean[::-1] and len(clean) >= 4:
             factors.append({"label": "Зеркальный палиндром цифр", "mult": "×12"})
-        factors.append({"label": f"Множитель к доходу каналов", "mult": f"×{num_x}"})
-        factors.append({"label": f"Качество в тире {rarity}", "mult": f"×{round(1.0 + quality/100, 2)}".replace(".", ",")})
+        factors.append({"label": "Множитель к доходу каналов", "mult": f"×{num_x}"})
+        factors.append({"label": f"Индекс редкости внутри {rarity}", "mult": f"×{round(1.0 + quality/100, 2)}".replace(".", ",")})
     else:
         base_word = "".join(c for c in clean if c.isalpha())
         digits = "".join(c for c in clean if c.isdigit())
@@ -362,9 +463,14 @@ def build_factors_for_tag(tag: str, rarity: str, quality: int, is_num: bool, num
             factors.append({"label": f"Читаемый корень «{base_word[:8]}»", "mult": f"×{round(1.1 + quality/120, 1)}".replace(".", ",")})
 
         if "_" not in tag and not digits:
-            factors.append({"label": f"Чистые буквы без цифр ({len(base_word)} симв.)", "mult": "×3,5"})
+            if len(base_word) <= 4:
+                factors.append({"label": f"Ультра-короткий тег ({len(base_word)} симв. без цифр)", "mult": "×15,0"})
+            elif len(base_word) == 5:
+                factors.append({"label": "Чистый 5-буквенный ник (Без цифр и _)", "mult": "×8,5"})
+            else:
+                factors.append({"label": f"Чистые буквы без цифр ({len(base_word)} симв.)", "mult": "×4,0"})
         elif "_" not in tag and len(digits) == 1:
-            factors.append({"label": f"Индекс первой волны «{digits}» (2015 г.)", "mult": "×2,2"})
+            factors.append({"label": f"Индекс первой волны «{digits}» (2015 г.)", "mult": "×2,5"})
         elif len(digits) >= 2 and len(set(digits)) == 1:
             factors.append({"label": f"Одинаковые цифры «{digits}»", "mult": "×1,8"})
         elif "vip" in tag or "ton" in tag or "pro" in tag:
@@ -477,18 +583,26 @@ def roll_single_candidate(cur, item_type: str, tier_key: str, luck: float):
     quality = random.randint(2, 99)
     if rarity in ["Divine", "Exclusive", "Ultra-Mythic", "Luxury", "Mythic", "Legendary"]:
         tag = f"@{word}"
-        quality = max(55, 100 - len(word) * 5 + random.randint(0, 15))
+        quality = max(65, 100 - len(word) * 4 + random.randint(0, 15))
     elif rarity == "Epic":
-        num_s = random.randint(1, 9)
-        quality = max(25, 95 - num_s * 6)
-        tag = f"@{word}{num_s}"
+        # В Epic либо чистое 5-буквенное слово с высокой ценой, либо редкий корень с 1 цифрой
+        if random.random() < 0.35:
+            base5 = generate_live_nickname()[:5]
+            word = base5
+            tag = f"@{base5}"
+            quality = random.randint(85, 99)
+        else:
+            num_s = random.randint(1, 9)
+            quality = max(30, 95 - num_s * 6)
+            tag = f"@{word}{num_s}"
     elif rarity == "Rare":
         tag = f"@{word}_{random.choice(['vip', 'ton', 'pro', 'hq'])}"
     elif rarity == "Uncommon":
+        # В Uncommon ВСЕГДА есть двузначный суффикс (чтобы чистые 5-буквенные ники типа @daner никогда не стоили 300 G!)
         base = generate_live_nickname()
         word = base
-        suffix = random.choice(['', str(random.randint(11, 99))])
-        quality = random.randint(70, 99) if suffix == '' else random.randint(5, 69)
+        suffix = str(random.randint(10, 99))
+        quality = random.randint(25, 92)
         tag = f"@{base}{suffix}"
     else:
         base = generate_live_nickname()
@@ -599,7 +713,7 @@ class ReqMint(BaseModel): user_id: int; item_type: str = "username"; tier: str =
 class ReqAction(BaseModel): user_id: int; tag: str; action_type: str; slot: int = 1; init_data: str = ""
 class ReqCraft(BaseModel): user_id: int; tags: list[str]; init_data: str = ""
 class ReqDuel(BaseModel): user_id: int; tag: str; bet: float
-class ReqUpgradeItem(BaseModel): user_id: int; tag: str; target_mult: int # 2, 3, 5, 10
+class ReqUpgradeItem(BaseModel): user_id: int; tag: str; target_mult: int
 class ReqCrashBet(BaseModel): user_id: int; bet: float; target_x: float
 class ReqVaultHack(BaseModel): user_id: int; cell: int
 class ReqMarketCreate(BaseModel): user_id: int; username: str; tag: str; is_auction: int; price: float; hours: int = 3
@@ -633,6 +747,16 @@ async def check_channel_sub(uid: int):
         conn.close()
     return {"subscribed": is_sub}
 
+@app.post("/api/toggle_notify_merchant")
+def toggle_notify_merchant(data: ReqSimple):
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT notify_merchant FROM users WHERE tg_user_id = ?", (data.user_id,))
+    row = cur.fetchone()
+    new_val = 0 if (row and row[0] == 1) else 1
+    cur.execute("UPDATE users SET notify_merchant = ? WHERE tg_user_id = ?", (new_val, data.user_id))
+    conn.commit(); conn.close()
+    return {"notify_merchant": new_val}
+
 def apply_ref_bonus_and_check_3_friends(cur, ref_uid: int):
     now = int(time.time())
     cur.execute("SELECT refs_count, ref_3_rewarded, luck_until FROM users WHERE tg_user_id = ?", (ref_uid,))
@@ -643,10 +767,9 @@ def apply_ref_bonus_and_check_3_friends(cur, ref_uid: int):
     nc = old_cnt + 1
     rew = 25000.0 if nc == 1 else (75000.0 if nc == 2 else (250000.0 if nc == 5 else (5000000.0 if nc == 20 else 35000.0)))
     cur.execute("UPDATE users SET refs_count = ?, balance = balance + ? WHERE tg_user_id = ?", (nc, rew, ref_uid))
-    # Автоматическое задание со скриншота: за 3 друзей -> Удача x2 на 3 часа (10800 сек)!
     if nc >= 3 and (r3_done or 0) == 0:
         new_until = max(now, l_until or 0) + 10800
-        cur.execute("UPDATE users SET luck_multi = MAX(luck_multi, 2.0), luck_until = ?, ref_3_rewarded = 1 WHERE tg_user_id = ?", (new_until, ref_uid))
+        cur.execute("UPDATE users SET luck_multi = GREATEST(luck_multi, 2.0), luck_until = ?, ref_3_rewarded = 1 WHERE tg_user_id = ?" if cur.is_pg else "UPDATE users SET luck_multi = MAX(luck_multi, 2.0), luck_until = ?, ref_3_rewarded = 1 WHERE tg_user_id = ?", (new_until, ref_uid))
 
 @app.post("/api/login")
 def login(data: ReqLogin):
@@ -703,11 +826,11 @@ def get_state(uid: int):
     conn.commit()
 
     cur.execute("""
-        SELECT rowid, balance, level, xp, season_xp, season_claimed, smm_lvl, buyer_lvl, ai_boost,
+        SELECT member_number, balance, level, xp, season_xp, season_claimed, smm_lvl, buyer_lvl, ai_boost,
                luck_multi, luck_until, vip_until, max_hold, max_channels, refs_count, ref_3_rewarded, clan_id,
                total_spins, pity_100, pity_500, last_wheel, last_vault, daily_streak, last_daily,
                q_spins, q_rare, q_crafts, q_duels, q_claimed, ach_stats, ach_claimed,
-               albums_claimed, tax_shield_until, duel_wins, auto_save_min_idx, sub_verified
+               albums_claimed, tax_shield_until, duel_wins, auto_save_min_idx, sub_verified, notify_merchant
         FROM users WHERE tg_user_id = ?
     """, (uid,))
     u = cur.fetchone()
@@ -716,7 +839,7 @@ def get_state(uid: int):
 
     (mem_num, bal, lvl, xp, s_xp, s_cl, smm, buyer, ai_b, luck_m, luck_u, vip_u, max_h, max_ch,
      refs, ref3_rew, clan_id, tot_spins, p100, p500, l_wheel, l_vault, d_streak, l_daily, qs, qr, qc, qd, q_cl,
-     a_st, a_cl, alb_cl, tax_u, d_wins, auto_idx, sub_v) = u
+     a_st, a_cl, alb_cl, tax_u, d_wins, auto_idx, sub_v, notif_m) = u
 
     cur.execute("""
         SELECT tag, item_type, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_equipped, channel_slot
@@ -785,6 +908,7 @@ def get_state(uid: int):
         "duel_wins": d_wins or 0,
         "hot_series": get_daily_hot_series(),
         "merchant": get_active_merchant_offer(),
+        "notify_merchant": (notif_m or 0) == 1,
         "auto_save_min_idx": auto_idx, "sub_verified": sub_v,
         "my_rank": my_rank, "leaders": leaders, "clans": clans, "tags": tags, "market": market
     }
@@ -902,7 +1026,7 @@ def mint(data: ReqMint):
         conn.close()
 
 # ==========================================
-# НОВАЯ МИНИ-ИГРА #1: АПГРЕЙДЕР НОМЕРОВ (x2, x3, x5, x10)
+# МИНИ-ИГРА #1: АПГРЕЙДЕР НОМЕРОВ (x2, x3, x5, x10)
 # ==========================================
 UPGRADE_CHANCES = {2: 48, 3: 31, 5: 18, 10: 9}
 
@@ -926,7 +1050,6 @@ def minigame_upgrade_item(data: ReqUpgradeItem):
     win_sector_deg = (chance_pct / 100.0) * 360.0
     is_win = roll_deg <= win_sector_deg
 
-    # Удаляем старый предмет
     cur.execute("DELETE FROM usernames WHERE tag = ? AND owner_id = ?", (data.tag, data.user_id))
 
     if not is_win:
@@ -934,7 +1057,6 @@ def minigame_upgrade_item(data: ReqUpgradeItem):
         conn.commit(); conn.close()
         return {"win": False, "chance": chance_pct, "angle": round(roll_deg, 1), "message": f"💥 Промах! Стрелка остановилась вне зеленой зоны ({chance_pct}%). {data.tag} сгорел..."}
 
-    # Победа: создаем новый предмет стоимостью ровно в target_mult раз дороже!
     target_value = round(old_sell * data.target_mult)
     old_idx = next((i for i, r in enumerate(RARITIES) if r["name"] == rar), 0)
     step_up = 1 if data.target_mult == 2 else (2 if data.target_mult == 3 else (3 if data.target_mult == 5 else 4))
@@ -947,7 +1069,6 @@ def minigame_upgrade_item(data: ReqUpgradeItem):
         cand = roll_single_candidate(cur, "username", f"tier_{min(6, old_idx + step_up)}", 1.5)
         new_tag, inc, num_x, qual, reas_str = cand["tag"], new_rar_obj["inc"] * (data.target_mult * 0.6), 1.0, 90, cand["reasons"]
 
-    # Убеждаемся, что тег уникален
     cur.execute("SELECT 1 FROM usernames WHERE tag = ?", (new_tag,))
     if cur.fetchone():
         new_tag = f"{new_tag}_{random.randint(1,9)}" if itype == "username" else f"+888 {random.randint(100,999)} 777"
@@ -966,15 +1087,15 @@ def minigame_upgrade_item(data: ReqUpgradeItem):
     }
 
 # ==========================================
-# НОВАЯ МИНИ-ИГРА #2: TON РАКЕТКА (CRASH ИКСЫ)
+# МИНИ-ИГРА #2: TON РАКЕТКА (ЖЕСТКИЙ КРАШ ДО ×1200)
 # ==========================================
 @app.post("/api/minigame/rocket")
 def minigame_rocket(data: ReqCrashBet):
     check_rate(data.user_id, 6, 2.0)
     if data.bet < 200:
         raise HTTPException(400, "Минимальная ставка в Ракетке — 200 GRAM")
-    if data.target_x < 1.2 or data.target_x > 50.0:
-        raise HTTPException(400, "Выберите коэффициент от ×1.2 до ×50.0")
+    if data.target_x < 1.1 or data.target_x > 1200.0:
+        raise HTTPException(400, "Выберите коэффициент от ×1.1 до ×1200.0")
 
     conn = get_db(); cur = conn.cursor()
     cur.execute("SELECT balance FROM users WHERE tg_user_id = ?", (data.user_id,))
@@ -982,12 +1103,14 @@ def minigame_rocket(data: ReqCrashBet):
     if bal < data.bet:
         conn.close(); raise HTTPException(400, "Недостаточно GRAM для полета!")
 
-    # Честная формула краш-множителя с небольшим преимуществом клуба (4% мгновенный краш на 1.00x)
+    # Настоящее распределение с крутым наклоном:
+    # 8% мгновенный взрыв на 1.00x, ~62% взрываются до 2.00x, до 10x долетает ~6%, а до 1200x — около 0.03%!
     r = random.random()
-    if r < 0.05:
+    if r < 0.08:
         crash_point = 1.00
     else:
-        crash_point = round(min(100.0, 0.96 / (1.0 - r)), 2)
+        raw_x = 0.92 / ((1.0 - r) ** 1.18)
+        crash_point = round(min(1200.0, max(1.01, raw_x)), 2)
 
     win = crash_point >= data.target_x
     if win:
@@ -1003,7 +1126,7 @@ def minigame_rocket(data: ReqCrashBet):
     return {"win": win, "crash_x": crash_point, "target_x": data.target_x, "message": msg}
 
 # ==========================================
-# ДОП. ФИШКА: ВЗЛОМ КРИПТО-СЕЙФА И ПРОМОКОДЫ
+# ВЗЛОМ СЕЙФА И ПРОМОКОДЫ
 # ==========================================
 @app.post("/api/minigame/vault")
 def minigame_vault(data: ReqVaultHack):
@@ -1082,6 +1205,8 @@ def tag_action(data: ReqAction):
             final_price = round(final_price * (1.0 + hot["bonus_pct"] / 100.0))
         if data.action_type == "sell_merchant":
             merch = get_active_merchant_offer()
+            if not merch["active"]:
+                conn.close(); raise HTTPException(400, "Скупщик сейчас уехал! Дождитесь следующего визита.")
             if rar != merch["rarity"]:
                 conn.close(); raise HTTPException(400, f"Скупщик сейчас принимает только редкость {merch['rarity']}!")
             final_price = round(final_price * merch["bonus_mult"])
@@ -1210,7 +1335,8 @@ def clan_join(data: ReqClanAction):
     cur.execute("SELECT members_count, max_members FROM clans WHERE clan_id = ?", (data.clan_id,))
     cl = cur.fetchone()
     if not cl or cl[0] >= cl[1]: conn.close(); raise HTTPException(400, "Клан переполнен!")
-    if old_c: cur.execute("UPDATE clans SET members_count = MAX(0, members_count - 1) WHERE clan_id = ?", (old_c,))
+    if old_c:
+        cur.execute("UPDATE clans SET members_count = GREATEST(0, members_count - 1) WHERE clan_id = ?" if conn.is_pg else "UPDATE clans SET members_count = MAX(0, members_count - 1) WHERE clan_id = ?", (old_c,))
     cur.execute("UPDATE clans SET members_count = members_count + 1 WHERE clan_id = ?", (data.clan_id,))
     cur.execute("UPDATE users SET clan_id = ? WHERE tg_user_id = ?", (data.clan_id, data.user_id))
     conn.commit(); conn.close()
@@ -1222,7 +1348,7 @@ def clan_leave(data: ReqSimple):
     cur.execute("SELECT clan_id FROM users WHERE tg_user_id = ?", (data.user_id,))
     row = cur.fetchone()
     if not row or not row[0]: conn.close(); raise HTTPException(400, "Вы не в клане")
-    cur.execute("UPDATE clans SET members_count = MAX(0, members_count - 1) WHERE clan_id = ?", (row[0],))
+    cur.execute("UPDATE clans SET members_count = GREATEST(0, members_count - 1) WHERE clan_id = ?" if conn.is_pg else "UPDATE clans SET members_count = MAX(0, members_count - 1) WHERE clan_id = ?", (row[0],))
     cur.execute("UPDATE users SET clan_id = NULL WHERE tg_user_id = ?", (data.user_id,))
     conn.commit(); conn.close()
     return {"status": "ok"}
@@ -1384,7 +1510,6 @@ def claim_daily(data: ReqSimple):
     if (now - last_d) < 86400: conn.close(); raise HTTPException(400, "Подарок уже получен сегодня!")
     if (now - last_d) > 172800: streak = 0
     reward = DAILY_REWARDS[streak % 7]; new_streak = (streak % 7) + 1
-    # На 7-й день дополнительно даем VIP на сутки, как на референсе!
     new_vip = max(now, vip_u or 0) + 86400 if new_streak == 7 else (vip_u or 0)
     cur.execute("UPDATE users SET balance = balance + ?, daily_streak = ?, last_daily = ?, vip_until = ?, season_xp = season_xp + 25 WHERE tg_user_id = ?", (reward, new_streak, now, new_vip, data.user_id))
     conn.commit(); conn.close()
@@ -1499,7 +1624,7 @@ def activate_donate(data: ReqSimple):
     elif p == "hold_plus_50":
         cur.execute("UPDATE users SET max_hold = max_hold + 50 WHERE tg_user_id = ?", (data.user_id,))
     elif p == "channel_slot":
-        cur.execute("UPDATE users SET max_channels = MIN(15, max_channels + 1) WHERE tg_user_id = ?", (data.user_id,))
+        cur.execute("UPDATE users SET max_channels = LEAST(15, max_channels + 1) WHERE tg_user_id = ?" if conn.is_pg else "UPDATE users SET max_channels = MIN(15, max_channels + 1) WHERE tg_user_id = ?", (data.user_id,))
     elif p == "coins_10m":
         cur.execute("UPDATE users SET balance = balance + 2500000 WHERE tg_user_id = ?", (data.user_id,))
     elif p == "coins_100m":
