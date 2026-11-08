@@ -845,7 +845,7 @@ def ensure_unique_tag_clean(cur, cand: dict):
         cand["tag"] = f"+888 {random.randint(1000, 9999)} {random.randint(10, 99)}"
     else:
         base_g = cand["tag"].split("#")[0].strip()
-         badge = " [BLACKOUT]" if "[BLACKOUT]" in cand["tag"] else (" [MATCH]" if "[MATCH]" in cand["tag"] else "")
+        badge = " [BLACKOUT]" if "[BLACKOUT]" in cand["tag"] else (" [MATCH]" if "[MATCH]" in cand["tag"] else "")
         cand["tag"] = f"{base_g} #{random.randint(101, 9999)}{badge}"
     return cand
 
