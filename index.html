@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MintTags Global Empire — Fragment & NFT Edition</title>
+  <title>MintTags Global Empire v5.0 — Fragment & NFT Edition</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
@@ -31,203 +31,151 @@
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', Roboto, sans-serif; }
     body {
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      padding-bottom: 86px;
-      overflow-x: hidden;
-      background-image: radial-gradient(circle at 15% 5%, rgba(36, 161, 222, 0.11), transparent 35%), radial-gradient(circle at 85% 18%, rgba(214, 177, 107, 0.08), transparent 35%);
+      background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 88px; overflow-x: hidden;
+      background-image: radial-gradient(circle at 15% 5%, rgba(36, 161, 222, 0.12), transparent 35%), radial-gradient(circle at 85% 18%, rgba(214, 177, 107, 0.09), transparent 35%);
     }
-    /* Шапка приложения */
     .topbar {
-      position: sticky; top: 0; z-index: 50;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 16px;
-      background: rgba(17, 22, 34, 0.85);
-      backdrop-filter: blur(14px);
-      border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 50; display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 16px; background: rgba(17, 22, 34, 0.88); backdrop-filter: blur(14px); border-bottom: 1px solid var(--border);
     }
     .brand { display: flex; align-items: center; gap: 10px; }
     .brand-logo {
-      width: 34px; height: 34px; border-radius: 10px;
-      background: linear-gradient(135deg, var(--cyan), #1d4ed8);
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 14px rgba(36, 161, 222, 0.35);
+      width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, var(--cyan), #1d4ed8);
+      display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 14px rgba(36, 161, 222, 0.35);
     }
     .brand-title { font-weight: 800; font-size: 15px; letter-spacing: 0.3px; }
-    .brand-sub { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+    .brand-sub { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 5px; }
     .bal-group { display: flex; align-items: center; gap: 8px; }
     .bal-pill {
-      background: var(--surface-2); border: 1px solid var(--border);
-      padding: 6px 11px; border-radius: 999px;
-      font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 5px;
-      color: var(--gold);
+      background: var(--surface-2); border: 1px solid var(--border); padding: 6px 12px; border-radius: 999px;
+      font-weight: 800; font-size: 13px; color: var(--gold);
     }
     .icon-btn {
-      width: 34px; height: 34px; border-radius: 10px;
-      background: var(--surface-2); border: 1px solid var(--border);
+      width: 34px; height: 34px; border-radius: 10px; background: var(--surface-2); border: 1px solid var(--border);
       color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
-
-    /* Контейнеры и карточки */
     .container { max-width: 520px; margin: 0 auto; padding: 14px; }
     .view-sec { display: none; animation: fadeIn 0.2s ease; }
     .view-sec.active { display: block; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-card);
-      padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card);
+      padding: 14px; margin-bottom: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.22);
     }
-    .sec-title { font-size: 16px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .sec-title { font-size: 15px; font-weight: 800; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
     .sec-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4; }
 
-    /* Селекторы и кнопки */
     .seg-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
     .seg-btn {
-      background: var(--surface-2); border: 1px solid var(--border);
-      color: var(--text-secondary); padding: 9px 6px; border-radius: var(--radius-control);
-      font-size: 12px; font-weight: 700; text-align: center; cursor: pointer; transition: 0.15s;
+      background: var(--surface-2); border: 1px solid var(--border); color: var(--text-secondary);
+      padding: 9px 6px; border-radius: var(--radius-control); font-size: 12px; font-weight: 700; text-align: center; cursor: pointer; transition: 0.15s;
     }
     .seg-btn.active {
-      background: rgba(36, 161, 222, 0.16);
-      border-color: var(--cyan); color: var(--text);
-      box-shadow: 0 0 12px rgba(36, 161, 222, 0.2);
+      background: rgba(36, 161, 222, 0.16); border-color: var(--cyan); color: var(--text); box-shadow: 0 0 12px rgba(36, 161, 222, 0.2);
     }
     .btn-primary {
       width: 100%; padding: 13px; border-radius: var(--radius-control); border: none;
-      background: linear-gradient(135deg, var(--cyan), #0284c7);
-      color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;
-      box-shadow: 0 6px 18px rgba(36, 161, 222, 0.32); transition: 0.15s;
-      display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: linear-gradient(135deg, var(--cyan), #0284c7); color: #fff; font-weight: 800; font-size: 14px;
+      cursor: pointer; box-shadow: 0 6px 18px rgba(36, 161, 222, 0.32); display: flex; align-items: center; justify-content: center; gap: 8px;
     }
-    .btn-primary:active { transform: scale(0.98); }
     .btn-primary.lack { background: #334155; color: #94a3b8; box-shadow: none; }
-    .btn-gold {
-      background: linear-gradient(135deg, #d6b16b, #b48636);
-      color: #06080d; box-shadow: 0 6px 18px rgba(214, 177, 107, 0.3);
-    }
+    .btn-gold { background: linear-gradient(135deg, #d6b16b, #b48636); color: #06080d; box-shadow: 0 6px 18px rgba(214, 177, 107, 0.3); }
     .btn-sm {
       padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;
       border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer;
     }
 
-    /* Сетка Кейсов и NFT Сейфа */
     .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
     .nft-card {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-card); overflow: hidden;
-      display: flex; flex-direction: column; position: relative; transition: 0.2s;
+      background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-card);
+      overflow: hidden; display: flex; flex-direction: column; position: relative;
     }
     .nft-visual {
-      height: 135px; width: 100%; position: relative;
-      display: flex; align-items: center; justify-content: center;
-      background-size: cover; background-position: center; overflow: hidden;
+      height: 136px; width: 100%; position: relative; display: flex; align-items: center; justify-content: center; overflow: hidden;
     }
-    .nft-visual img.main-art {
-      width: 82%; height: 82%; object-fit: contain; z-index: 2;
-      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.55));
-      transition: transform 0.25s ease;
-    }
-    .nft-card:hover img.main-art { transform: scale(1.06); }
     .tier-badge {
-      position: absolute; top: 8px; left: 8px; z-index: 3;
-      padding: 3px 7px; border-radius: 6px; font-size: 10px; font-weight: 800;
-      background: rgba(6, 8, 13, 0.78); backdrop-filter: blur(6px);
-      border: 1px solid rgba(255,255,255,0.12);
+      position: absolute; top: 8px; left: 8px; z-index: 3; padding: 3px 7px; border-radius: 6px;
+      font-size: 10px; font-weight: 800; background: rgba(6, 8, 13, 0.78); border: 1px solid rgba(255,255,255,0.12);
     }
     .backdrop-pill {
-      position: absolute; bottom: 6px; right: 6px; z-index: 3;
-      padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 700;
-      background: rgba(0, 0, 0, 0.72); color: #cbd5e1;
+      position: absolute; bottom: 6px; right: 6px; z-index: 3; padding: 2px 6px; border-radius: 5px;
+      font-size: 9px; font-weight: 700; background: rgba(0, 0, 0, 0.72); color: #cbd5e1;
     }
     .nft-body { padding: 10px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
     .nft-title { font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
     .nft-meta { font-size: 10px; color: var(--text-secondary); }
     .nft-price { font-size: 13px; font-weight: 800; color: var(--gold); margin-top: auto; }
-    .nft-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 6px; }
+    .nft-actions { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 6px; }
 
-    /* Аукцион (Джекпот на билеты) */
     .raffle-hero {
       background: linear-gradient(145deg, rgba(36,161,222,0.16), rgba(214,177,107,0.12));
-      border: 1px solid rgba(214,177,107,0.35); border-radius: var(--radius-card);
-      padding: 16px; text-align: center; margin-bottom: 12px; position: relative;
+      border: 1px solid rgba(214,177,107,0.35); border-radius: var(--radius-card); padding: 16px; text-align: center; margin-bottom: 12px;
     }
-    .raffle-pot { font-size: 26px; font-weight: 900; color: var(--gold); margin: 6px 0; text-shadow: 0 0 18px rgba(214,177,107,0.35); }
+    .raffle-pot { font-size: 26px; font-weight: 900; color: var(--gold); margin: 6px 0; }
     .raffle-timer {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 4px 12px; border-radius: 99px; background: rgba(6,8,13,0.75);
-      border: 1px solid var(--border); font-size: 12px; font-weight: 800; color: var(--cyan);
+      display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 99px;
+      background: rgba(6,8,13,0.75); border: 1px solid var(--border); font-size: 12px; font-weight: 800; color: var(--cyan);
     }
     .part-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 9px 10px; border-radius: 9px; background: var(--surface-2);
-      margin-bottom: 6px; font-size: 12px; border: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between; padding: 9px 10px;
+      border-radius: 9px; background: var(--surface-2); margin-bottom: 6px; font-size: 12px; border: 1px solid var(--border);
     }
     .chance-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 4px; overflow: hidden; }
     .chance-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--emerald)); }
 
-    /* Нижняя навигация с векторными иконками */
     .bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
-      background: rgba(11, 15, 24, 0.92); backdrop-filter: blur(16px);
-      border-top: 1px solid var(--border);
-      display: grid; grid-template-columns: repeat(6, 1fr);
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 60; background: rgba(11, 15, 24, 0.94);
+      backdrop-filter: blur(16px); border-top: 1px solid var(--border); display: grid; grid-template-columns: repeat(6, 1fr);
       max-width: 520px; margin: 0 auto; padding: 6px 4px 10px;
     }
     .nav-item {
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      gap: 4px; color: var(--text-secondary); font-size: 10px; font-weight: 700;
-      cursor: pointer; padding: 4px 2px; border-radius: 8px; transition: 0.15s;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+      color: var(--text-secondary); font-size: 10px; font-weight: 700; cursor: pointer; padding: 4px 2px;
     }
     .nav-item.active { color: var(--cyan); }
-    .nav-item svg, .nav-item img { width: 20px; height: 20px; opacity: 0.7; transition: 0.15s; }
-    .nav-item.active svg, .nav-item.active img { opacity: 1; filter: drop-shadow(0 0 6px rgba(36,161,222,0.5)); }
 
-    /* Тумблеры настроек */
     .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .tgl {
-      width: 44px; height: 24px; border-radius: 99px; background: #334155;
-      position: relative; cursor: pointer; transition: 0.2s;
-    }
-    .tgl::after {
-      content: ''; position: absolute; top: 3px; left: 3px;
-      width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: 0.2s;
-    }
+    .tgl { width: 44px; height: 24px; border-radius: 99px; background: #334155; position: relative; cursor: pointer; transition: 0.2s; }
+    .tgl::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: 0.2s; }
     .tgl.on { background: var(--emerald); }
     .tgl.on::after { left: 23px; }
 
-    /* Модальное окно выпадения предмета */
     .modal-overlay {
-      position: fixed; inset: 0; z-index: 100;
-      background: rgba(0,0,0,0.82); backdrop-filter: blur(10px);
+      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.86); backdrop-filter: blur(12px);
       display: none; align-items: center; justify-content: center; padding: 18px;
     }
     .modal-overlay.show { display: flex; }
     .modal-box {
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: 18px; width: 100%; max-width: 360px; padding: 18px;
-      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      background: var(--surface); border: 1px solid var(--border); border-radius: 18px;
+      width: 100%; max-width: 370px; padding: 18px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.65);
     }
     input.inp {
-      width: 100%; padding: 10px 12px; border-radius: 9px;
-      border: 1px solid var(--border); background: var(--surface-2);
-      color: var(--text); font-size: 13px; margin-bottom: 8px; outline: none;
+      width: 100%; padding: 10px 12px; border-radius: 9px; border: 1px solid var(--border);
+      background: var(--surface-2); color: var(--text); font-size: 13px; margin-bottom: 8px; outline: none;
     }
   </style>
 </head>
 <body>
 
+  <!-- ОБЯЗАТЕЛЬНАЯ ПОДПИСКА (SUB-GATE LOCK SCREEN) -->
+  <div class="modal-overlay" id="subGateModal" style="z-index:250;">
+    <div class="modal-box">
+      <div style="font-size:44px;margin-bottom:8px;">📢</div>
+      <div style="font-size:18px;font-weight:900;margin-bottom:6px;">Обязательная подписка</div>
+      <div style="font-size:12px;color:var(--text-secondary);line-height:1.45;margin-bottom:14px;">
+        Для доступа к <b>MintTags Global Empire</b>, раздачам промокодов и NFT-аукционам подпишитесь на наш официальный канал! За подписку вы сразу получите <b>+25,000 GRAM</b>.
+      </div>
+      <div style="padding:10px;border-radius:10px;background:var(--surface-2);border:1px solid var(--border);font-weight:800;color:var(--cyan);margin-bottom:14px;" id="subGateChannelTxt">@durov</div>
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="app.openSubChannel()">1. ПОДПИСАТЬСЯ НА КАНАЛ ↗</button>
+      <button class="btn-primary btn-gold" onclick="app.verifySubGate()">2. Я ПОДПИСАЛСЯ (+25,000 G)</button>
+    </div>
+  </div>
+
   <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
   <header class="topbar">
     <div class="brand">
-      <div class="brand-logo">
-        <img src="/icons/ton.svg" style="width:20px;height:20px;filter:invert(1);" alt="TON" />
-      </div>
+      <div class="brand-logo">💎</div>
       <div>
         <div class="brand-title">MintTags Empire</div>
         <div class="brand-sub">
@@ -238,20 +186,20 @@
     </div>
     <div class="bal-group">
       <div class="bal-pill" id="topBal">0 G</div>
-      <button class="icon-btn" onclick="app.openSettings()" title="Настройки и Админка">⚙️</button>
+      <button class="icon-btn" onclick="app.openSettings()">⚙️</button>
     </div>
   </header>
 
   <main class="container">
 
-    <!-- 1. ВКЛАДКА: МИНТ (РУЛЕТКА ТЕГОВ / НОМЕРОВ / NFT) -->
+    <!-- 1. ВКЛАДКА: МИНТ + БОНУСЫ + ПРОМОКОДЫ -->
     <section id="view-mint" class="view-sec active">
       <div class="card">
         <div class="sec-title">
           <span>⚡ Генератор Fragment & NFT</span>
           <span id="pityTxt" style="font-size:11px;color:var(--cyan);">Гарант: 0 / 50</span>
         </div>
-        <div class="sec-sub">Выбивай редкие @username, анонимные номера +888 и оригинальные NFT-подарки с моделями и векторными фонами.</div>
+        <div class="sec-sub">Выбивай редкие @username, анонимные номера +888 и оригинальные NFT-подарки с векторными моделями и фонами.</div>
 
         <div class="seg-row">
           <div class="seg-btn active" id="type-username" onclick="app.setItemType('username')">@Username</div>
@@ -271,7 +219,21 @@
         </button>
       </div>
 
-      <!-- Смена страны и телефонного кода -->
+      <!-- Ежедневная награда и Промокоды -->
+      <div class="grid-2">
+        <div class="card" style="display:flex;flex-direction:column;justify-content:space-between;">
+          <div style="font-size:13px;font-weight:800;">🎁 Daily Бонус</div>
+          <div style="font-size:11px;color:var(--text-secondary);margin:4px 0;">+35,000 G каждые 24ч</div>
+          <button class="btn-primary btn-gold" id="dailyBtn" style="padding:9px;font-size:11px;" onclick="app.claimDaily()">Забрать 35K G</button>
+        </div>
+        <div class="card">
+          <div style="font-size:13px;font-weight:800;margin-bottom:4px;">🎟 Промокод</div>
+          <input type="text" id="promoInp" class="inp" placeholder="Код (напр. EMPIRE)" style="padding:7px;font-size:11px;margin-bottom:6px;" />
+          <button class="btn-primary" style="padding:8px;font-size:11px;" onclick="app.redeemPromo()">Активировать</button>
+        </div>
+      </div>
+
+      <!-- Смена страны -->
       <div class="card">
         <div class="sec-title">
           <span>🌍 Юрисдикция и Номер</span>
@@ -288,44 +250,53 @@
     <!-- 2. ВКЛАДКА: КЕЙСЫ И NFT БОКСЫ -->
     <section id="view-cases" class="view-sec">
       <div class="sec-title">📦 Премиум Контейнеры & NFT Box</div>
-      <div class="sec-sub">Эксклюзивные сундуки с 3D-артами. В <b>NFT Gift Box</b> падают только коллекционные подарки, а в <b>Всё или Ничего</b> — честный хардкор без халявных номеров!</div>
+      <div class="sec-sub">В <b>NFT Gift Box</b> 100% падают коллекционные подарки, а в <b>Всё или Ничего</b> — честный риск (на тире 0 только дешевые теги, джекпот дает редкие номера и гифты)!</div>
       <div class="grid-2" id="casesGrid"></div>
     </section>
 
-    <!-- 3. ВКЛАДКА: СЕЙФ И КРАФТ -->
+    <!-- 3. ВКЛАДКА: СЕЙФ, КРАФТ И ИМПЕРСКИЙ БАНК -->
     <section id="view-vault" class="view-sec">
+      <div class="card">
+        <div class="sec-title">
+          <span>🏦 Имперский Банк (+1.5% в час)</span>
+          <span style="color:var(--emerald);font-size:13px;font-weight:900;" id="bankDepTxt">Вклад: 0 G</span>
+        </div>
+        <div class="sec-sub">Храни GRAM в сейфе банка и получай пассивный доход каждую минуту!</div>
+        <input type="number" id="bankAmtInp" class="inp" placeholder="Сумма GRAM" value="50000" />
+        <div class="grid-2">
+          <button class="btn-sm" style="background:var(--emerald);color:#000;border:none;padding:9px;" onclick="app.bankAct('deposit')">📥 Вложить в Банк</button>
+          <button class="btn-sm" style="padding:9px;" onclick="app.bankAct('withdraw')">📤 Снять на баланс</button>
+        </div>
+      </div>
+
       <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <div style="font-size:14px;font-weight:800;">🔐 Мой Сейф Артефактов</div>
+          <div style="font-size:14px;font-weight:800;">🔐 Сейф Артефактов</div>
           <div style="font-size:11px;color:var(--text-secondary);" id="vaultStatsTxt">Предметов: 0 | Оценка: 0 G</div>
         </div>
-        <button class="btn-sm" id="craftModeBtn" onclick="app.toggleCraftMode()">⚒️ Крафт (3 в 1)</button>
+        <button class="btn-sm" onclick="app.toggleCraftMode()">⚒️ Крафт (3 в 1)</button>
       </div>
       <div id="craftNotice" class="card" style="display:none;border-color:var(--gold);background:rgba(214,177,107,0.1);">
-        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">Режим Крафта: выберите 3 предмета для слияния в NFT Gift тиром выше!</div>
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">Выберите 3 предмета для слияния в NFT Gift тиром выше!</div>
         <button class="btn-primary btn-gold" onclick="app.executeCraft()">Скрафтить NFT (<span id="craftCount">0</span>/3)</button>
       </div>
       <div class="grid-2" id="vaultGrid"></div>
     </section>
 
-    <!-- 4. ВКЛАДКА: МАРКЕТ И АУКЦИОН НА ДЕНЬГИ (БИЛЕТЫ) -->
+    <!-- 4. ВКЛАДКА: АУКЦИОН НА ДЕНЬГИ (БИЛЕТЫ) И МАРКЕТ -->
     <section id="view-market" class="view-sec">
       <div class="seg-row" style="grid-template-columns:repeat(2,1fr);">
         <div class="seg-btn active" id="mktTab-auction" onclick="app.switchMarketTab('auction')">🎟️ Джекпот-Аукцион</div>
         <div class="seg-btn" id="mktTab-lots" onclick="app.switchMarketTab('lots')">🛒 Маркет Игроков</div>
       </div>
 
-      <!-- ДЖЕКПОТ АУКЦИОН С БИЛЕТАМИ, ТАЙМЕРОМ И ШАНСАМИ -->
       <div id="subview-auction">
         <div class="raffle-hero">
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);">Текущий Банк Раунда #<span id="rafRoundId">1</span></div>
+          <div style="font-size:11px;text-transform:uppercase;color:var(--text-secondary);">Банк Раунда #<span id="rafRoundId">1</span></div>
           <div class="raffle-pot" id="rafPotTxt">100,000 G</div>
-          <div class="raffle-timer">
-            <span>⏱ До розыгрыша:</span>
-            <span id="rafTimerTxt">03:00</span>
-          </div>
+          <div class="raffle-timer">⏱ До розыгрыша: <span id="rafTimerTxt">03:00</span></div>
           <div style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
-            1 билет = <b>25,000 G</b>. Чем больше у тебя билетов, тем выше твой процент на забор всего банка! Когда таймер дойдет до 00:00 — победитель выбирается автоматически.
+            1 билет = <b>25,000 G</b>. Каждый билет пополняет банк и повышает твой процент шанса забрать всё по истечении таймера!
           </div>
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;">
             <button class="btn-primary" style="padding:10px;font-size:12px;" onclick="app.buyRaffleTickets(1)">+1 Бил. (25K)</button>
@@ -336,30 +307,29 @@
 
         <div class="card">
           <div class="sec-title">
-            <span>👥 Участники раунда</span>
-            <span style="font-size:11px;color:var(--text-secondary);">Всего билетов: <b id="rafTotalTickets">0</b></span>
+            <span>👥 Участники и шансы</span>
+            <span style="font-size:11px;color:var(--text-secondary);">Билетов в игре: <b id="rafTotalTickets">0</b></span>
           </div>
           <div id="rafParticipantsList"></div>
         </div>
 
         <div class="card">
-          <div class="sec-title">🏆 Последние победители</div>
+          <div class="sec-title">🏆 История победителей</div>
           <div id="rafHistoryList"></div>
         </div>
       </div>
 
-      <!-- P2P МАРКЕТ ИГРОКОВ -->
       <div id="subview-lots" style="display:none;">
         <div class="grid-2" id="marketGrid"></div>
       </div>
     </section>
 
-    <!-- 5. ВКЛАДКА: РАКЕТКА (CRASH С ВЕКТОРНЫМ КОРАБЛЕМ) -->
+    <!-- 5. ВКЛАДКА: РАКЕТКА (CRASH) -->
     <section id="view-rocket" class="view-sec">
       <div class="card">
         <div class="sec-title">
           <span>🚀 Crash Ракетка</span>
-          <span id="rocketStatusTxt" style="color:var(--cyan);font-size:13px;">Готова к взлету</span>
+          <span id="rocketStatusTxt" style="color:var(--cyan);font-size:12px;">Готова к взлету</span>
         </div>
         <canvas id="rocketCanvas" width="460" height="230" style="width:100%;height:210px;background:#080c14;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;"></canvas>
         <div class="grid-2" style="margin-bottom:10px;">
@@ -376,21 +346,21 @@
       </div>
     </section>
 
-    <!-- 6. ВКЛАДКА: МИРОВОЙ ТОП ИГРОКОВ -->
+    <!-- 6. ВКЛАДКА: ТОП ИГРОКОВ -->
     <section id="view-top" class="view-sec">
       <div class="card">
         <div class="sec-title">👑 Имперский Рейтинг Магнатов</div>
-        <div class="sec-sub">Суммарный капитал (Баланс GRAM + оценка всех NFT и номеров в Сейфе). Синяя галочка Telegram выдается владельцам верифицированных тегов!</div>
+        <div class="sec-sub">Суммарный капитал (Баланс + Банк + Сейф).</div>
         <div id="leaderboardList"></div>
       </div>
     </section>
 
   </main>
 
-  <!-- МОДАЛЬНОЕ ОКНО ДРОПА -->
+  <!-- МОДАЛЬНОЕ ОКНО ВЫПАДЕНИЯ ПРЕДМЕТА -->
   <div class="modal-overlay" id="dropModal">
     <div class="modal-box">
-      <div id="dropModalVisual" class="nft-visual" style="height:170px;border-radius:12px;margin-bottom:12px;"></div>
+      <div id="dropModalVisual" class="nft-visual" style="height:175px;border-radius:12px;margin-bottom:12px;"></div>
       <div id="dropModalTier" style="font-size:11px;font-weight:800;text-transform:uppercase;margin-bottom:4px;"></div>
       <div id="dropModalTitle" style="font-size:18px;font-weight:900;margin-bottom:4px;"></div>
       <div id="dropModalMeta" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;"></div>
@@ -399,18 +369,18 @@
     </div>
   </div>
 
-  <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК И АДМИН-ПАНЕЛИ -->
+  <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК И АДМИНКИ -->
   <div class="modal-overlay" id="settingsModal">
-    <div class="modal-box" style="text-align:left;">
+    <div class="modal-box" style="text-align:left;max-height:90vh;overflow-y:auto;">
       <div class="sec-title">
-        <span>⚙️ Настройки и Управление</span>
+        <span>⚙️ Настройки и Админ-пульт</span>
         <button class="btn-sm" onclick="document.getElementById('settingsModal').classList.remove('show')">✕</button>
       </div>
 
       <div class="setting-row">
         <div>
           <div style="font-size:13px;font-weight:700;">Сокращать нули</div>
-          <div style="font-size:11px;color:var(--text-secondary);">Формат 1.5M / 250K (сохраняется при релоуде)</div>
+          <div style="font-size:11px;color:var(--text-secondary);">Формат 1.5M / 250K (не сбрасывается!)</div>
         </div>
         <div class="tgl" id="tgl-compact_bal" onclick="app.toggleSetting('compact_bal')"></div>
       </div>
@@ -424,47 +394,64 @@
       </div>
 
       <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
-        <div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;">🛠 Панель Создателя (Тест / Админ)</div>
-        <input type="number" id="admAmountInp" class="inp" placeholder="Сумма GRAM или множитель удачи (1 = сброс)" value="1000000" />
+        <div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;">🛠 Управление (Админ-Панель)</div>
+        <input type="number" id="admAmountInp" class="inp" placeholder="Сумма GRAM или Удача (1 = сброс)" value="1000000" />
         <div class="grid-2">
           <button class="btn-sm" style="color:var(--emerald);" onclick="app.adminAct('give_gram')">+ Выдать GRAM</button>
           <button class="btn-sm" style="color:var(--cyan);" onclick="app.adminAct('give_luck')">🍀 Выдать Удачу</button>
         </div>
-        <button class="btn-sm" style="width:100%;margin-top:6px;color:var(--danger);border-color:rgba(239,68,68,0.4);" onclick="app.adminAct('reset_luck')">✖ Принудительно сбросить Удачу (x1.0)</button>
+        <button class="btn-sm" style="width:100%;margin-top:6px;color:var(--danger);border-color:rgba(239,68,68,0.45);" onclick="app.adminAct('reset_luck')">✖ Принудительно сбросить Удачу (x1.0)</button>
+
+        <div style="font-size:11px;color:var(--text-secondary);margin:10px 0 4px;">Канал для обязательной подписки или код промокода:</div>
+        <input type="text" id="admTextInp" class="inp" placeholder="@ваш_канал или код промокода" value="@durov" />
+        <div class="grid-2">
+          <button class="btn-sm" onclick="app.adminAct('set_channel')">📢 Задать Канал</button>
+          <button class="btn-sm" style="color:var(--gold);" onclick="app.adminAct('create_promo')">🎟 Создать Промо</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- НИЖНЕЕ МЕНЮ С ВЕКТОРНЫМИ ИКОНКАМИ -->
+  <!-- НИЖНЯЯ НАВИГАЦИЯ -->
   <nav class="bottom-nav">
-    <div class="nav-item active" id="nav-mint" onclick="app.nav('mint')">
-      <img src="/icons/ton.svg" style="filter:invert(1);" alt="" />
-      <span>Минт</span>
-    </div>
-    <div class="nav-item" id="nav-cases" onclick="app.nav('cases')">
-      <img src="/icons/cases.svg" style="filter:invert(1);" alt="" />
-      <span>Боксы</span>
-    </div>
-    <div class="nav-item" id="nav-vault" onclick="app.nav('vault')">
-      <img src="/icons/vault.svg" style="filter:invert(1);" alt="" />
-      <span>Сейф</span>
-    </div>
-    <div class="nav-item" id="nav-market" onclick="app.nav('market')">
-      <img src="/icons/market.svg" style="filter:invert(1);" alt="" />
-      <span>Аукцион</span>
-    </div>
-    <div class="nav-item" id="nav-rocket" onclick="app.nav('rocket')">
-      <span style="font-size:18px;line-height:20px;">🚀</span>
-      <span>Ракетка</span>
-    </div>
-    <div class="nav-item" id="nav-top" onclick="app.nav('top')">
-      <img src="/icons/top.svg" style="filter:invert(1);" alt="" />
-      <span>Топ</span>
-    </div>
+    <div class="nav-item active" id="nav-mint" onclick="app.nav('mint')"><span style="font-size:17px;">⚡</span><span>Минт</span></div>
+    <div class="nav-item" id="nav-cases" onclick="app.nav('cases')"><span style="font-size:17px;">📦</span><span>Боксы</span></div>
+    <div class="nav-item" id="nav-vault" onclick="app.nav('vault')"><span style="font-size:17px;">🔐</span><span>Сейф/Банк</span></div>
+    <div class="nav-item" id="nav-market" onclick="app.nav('market')"><span style="font-size:17px;">🎟️</span><span>Аукцион</span></div>
+    <div class="nav-item" id="nav-rocket" onclick="app.nav('rocket')"><span style="font-size:17px;">🚀</span><span>Ракетка</span></div>
+    <div class="nav-item" id="nav-top" onclick="app.nav('top')"><span style="font-size:17px;">👑</span><span>Топ</span></div>
   </nav>
-
   <script>
-    // Синяя галочка верификации Telegram
+    // ================= БАНК ВСТРОЕННЫХ SVG-МОДЕЛЕЙ И ФОНОВ =================
+    const SVG_BACKDROPS = {
+      "Black":           "radial-gradient(circle at 50% 40%, #363738 0%, #090a0c 100%)",
+      "Onyx Black":      "radial-gradient(circle at 50% 40%, #2b3036 0%, #050709 100%)",
+      "Pure Gold":       "radial-gradient(circle at 50% 35%, #f5d061 0%, #78550f 100%)",
+      "Satin Gold":      "radial-gradient(circle at 50% 35%, #d6b16b 0%, #523b12 100%)",
+      "Cyberpunk":       "radial-gradient(circle at 50% 35%, #8b5cf6 0%, #2a0c5c 100%)",
+      "Electric Purple": "radial-gradient(circle at 50% 35%, #ca70c6 0%, #440e6e 100%)",
+      "Neon Blue":       "radial-gradient(circle at 50% 35%, #3b82f6 0%, #172554 100%)",
+      "Pacific Cyan":    "radial-gradient(circle at 50% 35%, #24a1de 0%, #0b3454 100%)",
+      "Emerald":         "radial-gradient(circle at 50% 35%, #10b981 0%, #053b2c 100%)",
+      "Midnight Blue":   "radial-gradient(circle at 50% 35%, #3b4c6b 0%, #0b1120 100%)",
+      "Platinum":        "radial-gradient(circle at 50% 35%, #b8b6b0 0%, #3d3c38 100%)",
+      "Burgundy":        "radial-gradient(circle at 50% 35%, #be123c 0%, #3b0714 100%)"
+    };
+
+    const SVG_MODELS = {
+      pepe: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><defs><linearGradient id="gPepe" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFE082"/><stop offset="50%" stop-color="#D6B16B"/><stop offset="100%" stop-color="#8D6E2A"/></linearGradient></defs><rect x="20" y="14" width="80" height="94" rx="12" fill="#06080d" stroke="url(#gPepe)" stroke-width="2.2"/><path d="M44 28 L50 16 L60 24 L70 16 L76 28 Z" fill="url(#gPepe)"/><ellipse cx="60" cy="64" rx="27" ry="23" fill="url(#gPepe)"/><circle cx="48" cy="46" r="9.5" fill="url(#gPepe)" stroke="#5c4312" stroke-width="1.5"/><circle cx="72" cy="46" r="9.5" fill="url(#gPepe)" stroke="#5c4312" stroke-width="1.5"/><circle cx="48" cy="46" r="4.8" fill="#090c10"/><circle cx="72" cy="46" r="4.8" fill="#090c10"/><circle cx="46" cy="44" r="1.8" fill="#fff"/><circle cx="70" cy="44" r="1.8" fill="#fff"/><path d="M41 67 Q60 75 79 67" stroke="#422f09" stroke-width="3.8" stroke-linecap="round"/><ellipse cx="44" cy="91" rx="10" ry="11" fill="url(#gPepe)"/><ellipse cx="76" cy="91" rx="10" ry="11" fill="url(#gPepe)"/></svg>`,
+      watch: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><path d="M44 12 H76 L80 32 H40 Z" fill="#334155"/><path d="M40 88 H80 L76 108 H44 Z" fill="#334155"/><circle cx="60" cy="60" r="34" fill="#0b1120" stroke="#94a3b8" stroke-width="4"/><circle cx="60" cy="60" r="28" stroke="#24a1de" stroke-width="2" stroke-dasharray="4 4"/><circle cx="60" cy="72" r="8.5" stroke="#d6b16b" stroke-width="2"/><path d="M60 60 L46 48 M60 60 L76 46" stroke="#24a1de" stroke-width="3.2" stroke-linecap="round"/><circle cx="60" cy="60" r="3.5" fill="#fff"/></svg>`,
+      cap: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><path d="M24 68 C24 42 40 30 60 30 C80 30 96 42 96 68 Z" fill="#111622" stroke="#24a1de" stroke-width="2.8"/><path d="M18 68 Q60 82 104 66 Q96 86 58 84 Q24 82 18 68 Z" fill="#1e293b" stroke="#24a1de" stroke-width="2.2"/><path d="M48 52 L74 42 L65 64 L58 56 Z" fill="#24a1de"/></svg>`,
+      redo: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><path d="M28 90 C26 50 40 28 60 28 C80 28 94 50 92 90 Z" fill="#1e293b" stroke="#24a1de" stroke-width="2.5"/><circle cx="60" cy="62" r="20" fill="#f8fafc"/><path d="M44 46 L48 31 L56 44 Z M76 46 L72 31 L64 44 Z" fill="#f8fafc"/><circle cx="53" cy="58" r="3.2" fill="#0f172a"/><circle cx="67" cy="58" r="3.2" fill="#0f172a"/><ellipse cx="60" cy="65" rx="4.2" ry="3" fill="#0f172a"/></svg>`,
+      car: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><path d="M16 70 L32 48 H84 L104 70 V84 H16 Z" fill="#111622" stroke="#d6b16b" stroke-width="2.8"/><circle cx="36" cy="84" r="11" fill="#090d16" stroke="#d6b16b" stroke-width="3"/><circle cx="84" cy="84" r="11" fill="#090d16" stroke="#d6b16b" stroke-width="3"/></svg>`,
+      oscar: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><circle cx="60" cy="28" r="11" fill="#d6b16b"/><path d="M45 42 H75 L68 86 H52 Z" fill="#d6b16b"/><rect x="38" y="86" width="44" height="14" rx="4" fill="#475569" stroke="#d6b16b" stroke-width="2"/></svg>`,
+      shard: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><polygon points="60,14 90,60 60,106 30,60" fill="#ef4444" stroke="#fca5a5" stroke-width="2"/><polygon points="60,14 90,60 60,60" fill="#fca5a5" opacity="0.5"/></svg>`,
+      ring: `<svg viewBox="0 0 120 120" width="90" height="90" fill="none"><circle cx="60" cy="68" r="24" stroke="#d6b16b" stroke-width="6"/><polygon points="60,22 76,38 60,48 44,38" fill="#38bdf8" stroke="#e0f2fe" stroke-width="1.5"/></svg>`,
+      case_all_in: `<svg viewBox="0 0 120 120" width="92" height="92" fill="none"><polygon points="60,14 102,36 102,84 60,106 18,84 18,36" fill="rgba(15,23,42,0.88)" stroke="#ef4444" stroke-width="2.5"/><polygon points="60,30 78,60 60,90 42,60" fill="#ef4444"/></svg>`,
+      case_sheikh: `<svg viewBox="0 0 120 120" width="92" height="92" fill="none"><rect x="18" y="36" width="84" height="58" rx="8" fill="#0f172a" stroke="#d6b16b" stroke-width="3"/><path d="M46 36 V26 C46 22 74 22 74 26 V36" stroke="#d6b16b" stroke-width="3.5"/><rect x="26" y="44" width="68" height="42" rx="4" fill="#064e3b"/><circle cx="60" cy="65" r="11" fill="#d6b16b"/></svg>`,
+      case_durov: `<svg viewBox="0 0 120 120" width="92" height="92" fill="none"><rect x="20" y="40" width="80" height="54" rx="8" fill="#0b111e" stroke="#24a1de" stroke-width="3"/><path d="M16 40 L28 24 H92 L104 40 Z" fill="#162238" stroke="#24a1de" stroke-width="2.5"/><polygon points="50,62 74,48 66,74 58,65" fill="#24a1de"/></svg>`
+    };
+
     function getVerifiedSvg() {
       return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;flex-shrink:0;"><path d="M12 2L14.8 4.5L18.5 4.2L19.8 7.7L23 9.7L21.7 13.2L23 16.7L19.8 18.7L18.5 22.2L14.8 21.9L12 24.4L9.2 21.9L5.5 22.2L4.2 18.7L1 16.7L2.3 13.2L1 9.7L4.2 7.7L5.5 4.2L9.2 4.5L12 2Z" fill="#24A1DE"/><path d="M9.5 12.5L11.2 14.2L15.2 10.2" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
     }
@@ -477,9 +464,8 @@
       spinMult: 1,
       craftMode: false,
       craftSelected: [],
-      raffleTimerInterval: null,
       cfg: {
-        // ИСПРАВЛЕНО: чтение compact_bal прямо при инициализации из localStorage!
+        // ЖЕЛЕЗОБЕТОННОЕ СОХРАНЕНИЕ СОКРАЩЕНИЯ НУЛЕЙ ПРИ ПЕРЕЗАГРУЗКЕ
         compact_bal: localStorage.getItem('mt_compact_bal') === '1'
       },
 
@@ -501,18 +487,14 @@
           }
         }
 
-        // Синхронизируем состояние переключателей в UI
         document.getElementById('tgl-compact_bal')?.classList.toggle('on', this.cfg.compact_bal);
-        if (localStorage.getItem('mt_theme') === 'light') {
-          this.toggleTheme(true);
-        }
+        if (localStorage.getItem('mt_theme') === 'light') this.toggleTheme(true);
 
         await this.loadState();
         this.drawRocketFrame(1.0, 0, false);
 
-        // Живой таймер обратного отсчета для аукциона
-        this.raffleTimerInterval = setInterval(() => {
-          if (this.s && this.s.raffle) {
+        setInterval(() => {
+          if (this.s?.raffle) {
             if (this.s.raffle.seconds_left > 0) {
               this.s.raffle.seconds_left--;
               this.updateRaffleTimerUI();
@@ -532,11 +514,16 @@
         return Math.floor(n).toString();
       },
 
-      toggleSetting(key) {
+      async toggleSetting(key) {
         this.cfg[key] = !this.cfg[key];
         document.getElementById('tgl-' + key)?.classList.toggle('on', this.cfg[key]);
         if (key === 'compact_bal') {
           localStorage.setItem('mt_compact_bal', this.cfg.compact_bal ? '1' : '0');
+          await fetch('/api/user/pref', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, compact_pref: this.cfg.compact_bal ? 1 : 0 })
+          });
         }
         this.renderAll();
       },
@@ -570,19 +557,57 @@
             body: JSON.stringify({ user_id: this.userId, username: this.username })
           });
           this.s = await res.json();
+
+          // Если в localStorage еще не было записи, берем сохраненную настройку с сервера
+          if (localStorage.getItem('mt_compact_bal') === null && this.s?.user?.compact_pref === 1) {
+            this.cfg.compact_bal = true;
+            localStorage.setItem('mt_compact_bal', '1');
+          }
+          document.getElementById('tgl-compact_bal')?.classList.toggle('on', this.cfg.compact_bal);
+
           this.renderAll();
         } catch (e) {
           console.error('State error:', e);
         }
       },
 
+      openSubChannel() {
+        const ch = (this.s?.sub_gate?.channel || '@durov').replace('@', '');
+        const url = `https://t.me/${ch}`;
+        if (window.Telegram?.WebApp?.openTelegramLink) window.Telegram.WebApp.openTelegramLink(url);
+        else window.open(url, '_blank');
+      },
+
+      async verifySubGate() {
+        const res = await fetch('/api/sub/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, username: this.username })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Подписка не найдена!');
+        document.getElementById('subGateModal').classList.remove('show');
+        if (data.bonus > 0) alert(`🎉 Спасибо за подписку! Начислено +${data.bonus.toLocaleString()} GRAM!`);
+        await this.loadState();
+      },
+
       renderAll() {
         if (!this.s) return;
         const u = this.s.user;
+
+        // Проверка обязательной подписки
+        const sg = this.s.sub_gate;
+        if (sg && sg.enabled && !sg.is_subscribed) {
+          document.getElementById('subGateChannelTxt').innerText = sg.channel;
+          document.getElementById('subGateModal').classList.add('show');
+        } else {
+          document.getElementById('subGateModal').classList.remove('show');
+        }
+
         document.getElementById('topBal').innerText = this.formatCompact(u.balance) + ' G';
         document.getElementById('pityTxt').innerText = `Гарант: ${u.pity_counter || 0} / 50`;
+        document.getElementById('bankDepTxt').innerText = `Вклад: ${this.formatCompact(u.bank_deposit || 0)} G`;
 
-        // Отображение удачи
         const luckBadge = document.getElementById('topLuckBadge');
         if (u.luck_multi > 1.0 && this.s.luck_remaining > 0) {
           const mins = Math.ceil(this.s.luck_remaining / 60);
@@ -593,11 +618,20 @@
           luckBadge.style.color = 'var(--text-secondary)';
         }
 
-        // Страна
+        const dBtn = document.getElementById('dailyBtn');
+        if (this.s.daily_remaining > 0) {
+          const hrs = Math.ceil(this.s.daily_remaining / 3600);
+          dBtn.innerText = `⏳ Через ${hrs}ч`;
+          dBtn.classList.add('lack');
+        } else {
+          dBtn.innerText = `Забрать 35K G`;
+          dBtn.classList.remove('lack');
+        }
+
         const cMap = this.s.countries || {};
         const curC = cMap[u.country_code];
         document.getElementById('topCountryFlag').innerText = curC ? curC.flag : '🌐';
-        document.getElementById('curPhoneTxt').innerText = u.national_phone || 'Бесплатный первый выбор';
+        document.getElementById('curPhoneTxt').innerText = u.national_phone || 'Первый выбор бесплатно';
 
         const sel = document.getElementById('countrySelect');
         if (sel && sel.options.length === 0) {
@@ -620,17 +654,13 @@
 
       setItemType(t) {
         this.itemType = t;
-        ['username', 'number', 'gift'].forEach(k => {
-          document.getElementById('type-' + k)?.classList.toggle('active', k === t);
-        });
+        ['username', 'number', 'gift'].forEach(k => document.getElementById('type-' + k)?.classList.toggle('active', k === t));
         this.updateSpinBtn();
       },
 
       setSpinMult(m) {
         this.spinMult = m;
-        [1, 5, 10].forEach(k => {
-          document.getElementById('mult-' + k)?.classList.toggle('active', k === m);
-        });
+        [1, 5, 10].forEach(k => document.getElementById('mult-' + k)?.classList.toggle('active', k === m));
         this.updateSpinBtn();
       },
 
@@ -642,45 +672,37 @@
       updateSpinBtn() {
         const cost = this.getSpinCost();
         document.getElementById('spinCostTxt').innerText = `(${this.formatCompact(cost)} G)`;
-        const btn = document.getElementById('mainSpinBtn');
-        const lack = this.s && this.s.user.balance < cost;
-        btn.classList.toggle('lack', lack);
+        document.getElementById('mainSpinBtn').classList.toggle('lack', this.s && this.s.user.balance < cost);
       },
 
       async doSpin() {
-        try {
-          const res = await fetch('/api/spin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: this.userId, item_type: this.itemType, mult: this.spinMult })
-          });
-          const data = await res.json();
-          if (!res.ok) return alert(data.detail || 'Ошибка');
-          await this.loadState();
-          this.showDropModal(data.item);
-        } catch (e) {
-          alert('Ошибка сети');
-        }
+        const res = await fetch('/api/spin', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, item_type: this.itemType, mult: this.spinMult })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка');
+        await this.loadState();
+        this.showDropModal(data.item);
       },
 
-      getVisualHtml(item, heightPx = 135) {
+      getVisualHtml(item, heightPx = 136) {
         const rInfo = (this.s?.rarities || [])[item.tier] || { name: 'Common', color: '#94a3b8' };
-        const bgStyle = item.backdrop_file
-          ? `background-image: url('${item.backdrop_file}');`
-          : `background: radial-gradient(circle, ${rInfo.color}33, #090d16);`;
+        const bgGrad = SVG_BACKDROPS[item.backdrop] || `radial-gradient(circle, ${rInfo.color}33, #090d16)`;
 
         let centerArt = '';
         if (item.type === 'gift') {
-          const imgSrc = item.icon_url || '/assets/genesis-pepe.webp';
-          centerArt = `<img src="${imgSrc}" class="main-art" alt="${item.tag}" />`;
+          const svgCode = SVG_MODELS[item.svg_id] || SVG_MODELS.pepe;
+          centerArt = `<div style="z-index:2;filter:drop-shadow(0 8px 16px rgba(0,0,0,0.55));">${svgCode}</div>`;
         } else if (item.type === 'number') {
-          centerArt = `<div style="z-index:2;font-weight:900;font-size:15px;color:#fff;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid ${rInfo.color};">📞 ${item.tag}</div>`;
+          centerArt = `<div style="z-index:2;font-weight:900;font-size:14px;color:#fff;padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.5);border:1px solid ${rInfo.color};">📞 ${item.tag}</div>`;
         } else {
-          centerArt = `<div style="z-index:2;font-weight:900;font-size:16px;color:#fff;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid ${rInfo.color};">${item.tag}</div>`;
+          centerArt = `<div style="z-index:2;font-weight:900;font-size:15px;color:#fff;padding:6px 12px;border-radius:8px;background:rgba(0,0,0,0.5);border:1px solid ${rInfo.color};">${item.tag}</div>`;
         }
 
         return `
-          <div class="nft-visual" style="height:${heightPx}px;${bgStyle}">
+          <div class="nft-visual" style="height:${heightPx}px;background:${bgGrad};">
             <span class="tier-badge" style="color:${rInfo.color};border-color:${rInfo.color}55;">${rInfo.name}</span>
             ${centerArt}
             ${item.backdrop ? `<span class="backdrop-pill">🎨 ${item.backdrop}</span>` : ''}
@@ -707,7 +729,7 @@
           <div class="nft-card">
             <div class="nft-visual" style="background:radial-gradient(circle, ${c.accent}28, #06080d);">
               <span class="tier-badge" style="color:${c.accent};">BOX</span>
-              <img src="${c.img}" class="main-art" alt="${c.name}" />
+              <div style="z-index:2;">${SVG_MODELS[c.svg_key] || SVG_MODELS.case_durov}</div>
             </div>
             <div class="nft-body">
               <div class="nft-title">${c.name}</div>
@@ -720,19 +742,15 @@
       },
 
       async openCase(caseId) {
-        try {
-          const res = await fetch('/api/case/open', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ user_id: this.userId, case_id: caseId })
-          });
-          const data = await res.json();
-          if (!res.ok) return alert(data.detail || 'Ошибка открытия кейса');
-          await this.loadState();
-          this.showDropModal(data.item);
-        } catch (e) {
-          alert('Ошибка соединения');
-        }
+        const res = await fetch('/api/case/open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, case_id: caseId })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка');
+        await this.loadState();
+        this.showDropModal(data.item);
       },
 
       renderVault() {
@@ -743,7 +761,7 @@
         document.getElementById('vaultStatsTxt').innerText = `Предметов: ${inv.length} | Оценка: ${this.formatCompact(totalVal)} G`;
 
         if (inv.length === 0) {
-          grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">Сейф пуст. Сминтите первый артефакт или откройте NFT Gift Box!</div>`;
+          grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">Сейф пуст. Сминтите первый артефакт или откройте Бокс!</div>`;
           return;
         }
 
@@ -763,7 +781,8 @@
                 ` : `
                   <div class="nft-actions">
                     <button class="btn-sm" onclick="app.sellItem(${item.id})">Продать</button>
-                    <button class="btn-sm" style="color:var(--cyan);" onclick="app.verifyItem(${item.id})">${item.verified ? 'Вериф. ✓' : 'Галочка'}</button>
+                    <button class="btn-sm" style="color:var(--cyan);" onclick="app.verifyItem(${item.id})">${item.verified ? '✓' : 'Галочка'}</button>
+                    <button class="btn-sm" style="color:var(--danger);" onclick="app.shredItem(${item.id})" title="Шредер (+Удача)">♻️</button>
                   </div>
                   <button class="btn-sm" style="width:100%;margin-top:4px;" onclick="app.listOnMarket(${item.id}, ${item.price})">На Маркет</button>
                 `}
@@ -797,7 +816,7 @@
           body: JSON.stringify({ user_id: this.userId, item_ids: this.craftSelected })
         });
         const data = await res.json();
-        if (!res.ok) return alert(data.detail || 'Ошибка крафта');
+        if (!res.ok) return alert(data.detail || 'Ошибка');
         this.craftMode = false;
         this.craftSelected = [];
         document.getElementById('craftNotice').style.display = 'none';
@@ -812,6 +831,19 @@
           body: JSON.stringify({ user_id: this.userId, item_id: id })
         });
         if (res.ok) await this.loadState();
+      },
+
+      async shredItem(id) {
+        const res = await fetch('/api/item/shred', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, item_id: id })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          await this.loadState();
+          alert(`♻️ Предмет распылен в Шредере! Ваша Удача повышена до x${data.new_luck} на 1 час!`);
+        }
       },
 
       async verifyItem(id) {
@@ -834,6 +866,45 @@
           body: JSON.stringify({ user_id: this.userId, item_id: id, price: Number(val) })
         });
         if (res.ok) await this.loadState();
+      },
+
+      async bankAct(action) {
+        const amount = Number(document.getElementById('bankAmtInp').value || 0);
+        const res = await fetch('/api/bank/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, action, amount })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка Банка');
+        await this.loadState();
+      },
+
+      async claimDaily() {
+        const res = await fetch('/api/daily/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Еще рано');
+        alert(`🎁 Получено +${data.reward.toLocaleString()} GRAM!`);
+        await this.loadState();
+      },
+
+      async redeemPromo() {
+        const code = document.getElementById('promoInp').value;
+        if (!code) return;
+        const res = await fetch('/api/promo/redeem', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, code })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка промокода');
+        alert(`🎉 Промокод активирован! +${data.reward.toLocaleString()} GRAM!`);
+        document.getElementById('promoInp').value = '';
+        await this.loadState();
       },
 
       switchMarketTab(tab) {
@@ -878,7 +949,7 @@
 
         const hList = document.getElementById('rafHistoryList');
         if (!r.history || r.history.length === 0) {
-          hList.innerHTML = `<div style="font-size:11px;color:var(--text-secondary);">История розыгрышей появится после завершения первого раунда.</div>`;
+          hList.innerHTML = `<div style="font-size:11px;color:var(--text-secondary);">История появится после завершения первого раунда.</div>`;
         } else {
           hList.innerHTML = r.history.map(h => `
             <div class="part-row">
@@ -905,7 +976,7 @@
         if (!grid || !this.s) return;
         const lots = this.s.market || [];
         if (lots.length === 0) {
-          grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">На маркете пока нет активных лотов. Выставите предмет из Сейфа!</div>`;
+          grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">На маркете пока нет активных лотов.</div>`;
           return;
         }
         grid.innerHTML = lots.map(item => `
@@ -946,7 +1017,6 @@
         await this.loadState();
       },
 
-      // ОТРИСОВКА РАКЕТКИ С ПОЛНОЦЕННЫМ ВЕКТОРНЫМ КОРАБЛЕМ И ПЛАМЕНЕМ
       drawRocketFrame(mult, elapsedSec, crashed = false) {
         const canvas = document.getElementById('rocketCanvas');
         if (!canvas) return;
@@ -954,7 +1024,6 @@
         const w = canvas.width, h = canvas.height;
         ctx.clearRect(0, 0, w, h);
 
-        // Сетка координат
         ctx.strokeStyle = 'rgba(255,255,255,0.05)';
         ctx.lineWidth = 1;
         for (let x = 40; x < w; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
@@ -964,7 +1033,6 @@
         const rx = 45 + prog * (w - 110);
         const ry = (h - 35) - Math.pow(prog, 1.35) * (h - 85);
 
-        // Линия траектории
         ctx.beginPath();
         ctx.moveTo(35, h - 30);
         ctx.quadraticCurveTo(rx * 0.55, h - 30, rx, ry);
@@ -972,13 +1040,11 @@
         ctx.lineWidth = 3.5;
         ctx.stroke();
 
-        // Векторный корпус ракеты на конце графика
         ctx.save();
         ctx.translate(rx, ry);
         ctx.rotate(Math.PI / 4);
 
         if (!crashed) {
-          // Пламя из сопла
           ctx.beginPath();
           ctx.moveTo(-6, 10);
           ctx.lineTo(0, 22 + Math.random() * 10);
@@ -988,14 +1054,12 @@
           ctx.fill();
         }
 
-        // Крылья
         ctx.fillStyle = crashed ? '#ef4444' : '#24a1de';
         ctx.beginPath();
         ctx.moveTo(-12, 10); ctx.lineTo(-6, 0); ctx.lineTo(-6, 10);
         ctx.moveTo(12, 10); ctx.lineTo(6, 0); ctx.lineTo(6, 10);
         ctx.fill();
 
-        // Корпус ракеты
         ctx.beginPath();
         ctx.moveTo(0, -18);
         ctx.lineTo(8, 10);
@@ -1004,14 +1068,12 @@
         ctx.fillStyle = crashed ? '#7f1d1d' : '#f8fafc';
         ctx.fill();
 
-        // Иллюминатор
         ctx.beginPath();
         ctx.arc(0, -3, 3.2, 0, Math.PI * 2);
         ctx.fillStyle = '#24a1de';
         ctx.fill();
         ctx.restore();
 
-        // Крупный множитель в центре
         ctx.fillStyle = crashed ? '#ef4444' : '#ffffff';
         ctx.font = '900 34px Inter, sans-serif';
         ctx.textAlign = 'center';
@@ -1062,7 +1124,7 @@
         const cMap = this.s.countries || {};
         box.innerHTML = list.map((r, i) => {
           const flag = cMap[r.country_code]?.flag || '🌐';
-          const netWorth = Number(r.balance || 0) + Number(r.inv_val || 0);
+          const netWorth = Number(r.balance || 0) + Number(r.bank_deposit || 0) + Number(r.inv_val || 0);
           return `
             <div class="part-row">
               <div style="display:flex;align-items:center;gap:8px;font-weight:700;">
@@ -1078,10 +1140,11 @@
 
       async adminAct(action) {
         const amount = Number(document.getElementById('admAmountInp').value || 0);
+        const text_val = document.getElementById('admTextInp')?.value || '';
         const res = await fetch('/api/admin/action', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ admin_id: this.userId, target_id: this.userId, action, amount })
+          body: JSON.stringify({ admin_id: this.userId, target_id: this.userId, action, amount, text_val })
         });
         const data = await res.json();
         if (!res.ok) return alert(data.detail || 'Ошибка');
