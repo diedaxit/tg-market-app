@@ -3,1130 +3,950 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>MintTagsApp | Медиа Империя</title>
+  <title>MintTags Global Empire — Fragment & NFT Edition</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #070a0f;
-      --panel: #0e131d;
-      --card: #121824;
-      --border: rgba(255, 255, 255, 0.07);
-      --green: #10b981;
-      --green-btn: #18b779;
-      --gold: #f59e0b;
-      --cyan: #22d3ee;
+      --bg: #06080d;
+      --surface: #111622;
+      --surface-2: #161d2e;
+      --border: rgba(255, 255, 255, 0.08);
+      --cyan: #24a1de;
+      --emerald: #10b981;
+      --gold: #d6b16b;
+      --mythic: #ec8cbd;
       --danger: #ef4444;
-      --text: #f8fafc;
-      --muted: #64748b;
+      --radius-card: 14px;
+      --radius-control: 9px;
+      --text: #f4f6fa;
+      --text-secondary: #94a4b9;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'SF Pro Display', Roboto, sans-serif; }
-    body { background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 88px; overflow-x: hidden; }
-    .app-wrap { max-width: 480px; margin: 0 auto; padding: 10px 12px; }
-
-    /* ВЕРХНЯЯ ПАНЕЛЬ КАК НА СКРИНШОТЕ */
-    .hud-bar {
+    body.light-theme {
+      --bg: #f1f5f9;
+      --surface: #ffffff;
+      --surface-2: #e2e8f0;
+      --border: rgba(15, 23, 42, 0.1);
+      --text: #0f172a;
+      --text-secondary: #64748b;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', Roboto, sans-serif; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding-bottom: 86px;
+      overflow-x: hidden;
+      background-image: radial-gradient(circle at 15% 5%, rgba(36, 161, 222, 0.11), transparent 35%), radial-gradient(circle at 85% 18%, rgba(214, 177, 107, 0.08), transparent 35%);
+    }
+    /* Шапка приложения */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
       display: flex; align-items: center; justify-content: space-between;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 16px; padding: 10px 12px; margin-bottom: 12px;
+      padding: 12px 16px;
+      background: rgba(17, 22, 34, 0.85);
+      backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--border);
     }
-    .hud-pills { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .pill {
-      display: inline-flex; align-items: center; gap: 5px;
-      padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: 800;
-      background: #161e2e; border: 1px solid rgba(255,255,255,0.08); color: #fff; cursor: pointer;
+    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-logo {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: linear-gradient(135deg, var(--cyan), #1d4ed8);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 14px rgba(36, 161, 222, 0.35);
     }
-    .pill.luck { border-color: rgba(16, 185, 129, 0.35); color: #f59e0b; }
-    .pill.stars { border-color: rgba(245, 158, 11, 0.45); color: #f59e0b; background: rgba(245, 158, 11, 0.08); }
-    .hud-bal-box { text-align: right; }
-    .hud-inc { font-size: 11px; font-weight: 700; color: var(--green); margin-bottom: 2px; }
-    .hud-bal { font-size: 19px; font-weight: 900; letter-spacing: -0.5px; color: #ffffff; }
-
-    /* ПЕРЕКЛЮЧАТЕЛИ ВКЛАДОК И ПОДВКЛАДОК */
-    .mode-bar {
-      display: flex; align-items: center; gap: 6px;
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 14px; padding: 5px; margin-bottom: 12px; overflow-x: auto;
+    .brand-title { font-weight: 800; font-size: 15px; letter-spacing: 0.3px; }
+    .brand-sub { font-size: 11px; color: var(--text-secondary); display: flex; align-items: center; gap: 4px; }
+    .bal-group { display: flex; align-items: center; gap: 8px; }
+    .bal-pill {
+      background: var(--surface-2); border: 1px solid var(--border);
+      padding: 6px 11px; border-radius: 999px;
+      font-weight: 700; font-size: 13px; display: flex; align-items: center; gap: 5px;
+      color: var(--gold);
     }
-    .mode-tab {
-      flex: 1; text-align: center; padding: 9px 8px; border-radius: 10px;
-      font-size: 11px; font-weight: 900; color: var(--muted); cursor: pointer; white-space: nowrap; transition: 0.15s;
-    }
-    .mode-tab.active { background: #192234; color: #ffffff; }
-    .mode-boxes-btn {
-      background: linear-gradient(135deg, #f59e0b, #d97706); color: #070a0f;
-      padding: 9px 14px; border-radius: 10px; font-size: 11px; font-weight: 900; cursor: pointer; white-space: nowrap;
+    .icon-btn {
+      width: 34px; height: 34px; border-radius: 10px;
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text); display: flex; align-items: center; justify-content: center; cursor: pointer;
     }
 
-    /* ЦЕНТРАЛЬНЫЙ БЛОК РЕЕСТРА И КАРТОЧЕК */
-    .registry-box {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 18px; padding: 14px; margin-bottom: 12px;
-    }
-    .reg-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
-    .reg-title { font-size: 13px; font-weight: 800; color: #94a3b8; }
-    .reg-cost { font-size: 15px; font-weight: 900; color: var(--green); }
-
-    /* 10 ДЕЛЕНИЙ ГАРАНТА */
-    .pity-Segments { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; margin-bottom: 14px; }
-    .pity-seg { height: 5px; border-radius: 3px; background: #1c2536; transition: 0.2s; }
-    .pity-seg.filled { background: var(--green); box-shadow: 0 0 8px rgba(16, 185, 129, 0.5); }
-
-    /* КАРТОЧКА ТЕГА КАК НА СКРИНШОТЕ */
-    .drop-card {
-      display: flex; align-items: center; justify-content: space-between;
-      background: var(--card); border: 1px solid rgba(255,255,255,0.05);
-      border-left: 4px solid var(--cyan); border-radius: 14px;
-      padding: 11px 12px; margin-bottom: 9px; animation: slideIn 0.2s ease;
-    }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-    .drop-info { flex: 1; min-width: 0; padding-right: 8px; }
-    .drop-tag { font-size: 15px; font-weight: 900; color: var(--cyan); display: flex; align-items: center; gap: 6px; }
-    .drop-sub { font-size: 11px; color: #64748b; margin-top: 3px; font-weight: 600; }
-    .drop-btns { display: flex; align-items: center; gap: 5px; flex-shrink: 0; flex-wrap: wrap; justify-content: flex-end; }
-    .btn-to-safe {
-      background: var(--green-btn); color: #051b11; border: none;
-      padding: 8px 11px; border-radius: 10px; font-size: 11px; font-weight: 900; cursor: pointer;
-    }
-    .btn-sell-now {
-      background: #1a2232; border: 1px solid rgba(245, 158, 11, 0.28); color: #fbbf24;
-      padding: 8px 10px; border-radius: 10px; font-size: 11px; font-weight: 800; cursor: pointer;
-    }
-    .btn-mini {
-      background: #1e293b; border: 1px solid var(--border); color: #cbd5e1;
-      padding: 6px 8px; border-radius: 8px; font-size: 10px; font-weight: 800; cursor: pointer;
-    }
-
-    /* ВИТРИНА СЛАВЫ (3 СЛОТА) */
-    .showcase-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-    .showcase-slot {
-      background: linear-gradient(145deg, #161f30, #0d121c); border: 1px dashed rgba(245, 158, 11, 0.45);
-      border-radius: 14px; padding: 10px 6px; text-align: center; min-height: 92px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-    }
-
-    /* НИЖНИЙ ПУЛЬТ ПРОКРУТА */
-    .controls-row { display: flex; gap: 8px; margin-bottom: 10px; }
-    .ctrl-select {
-      flex: 1; background: var(--panel); border: 1px solid var(--border);
-      color: #fff; padding: 11px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; outline: none;
-    }
-    .ctrl-select.gold-txt { color: #f59e0b; }
-    .mult-btn {
-      background: rgba(16, 185, 129, 0.12); border: 1px solid var(--green);
-      color: var(--green); padding: 0 16px; border-radius: 12px; font-size: 13px; font-weight: 900; cursor: pointer;
-    }
-    .spin-big-btn {
-      width: 100%; background: var(--green-btn); border: none; border-radius: 16px;
-      padding: 15px; display: flex; align-items: center; justify-content: center; gap: 10px;
-      cursor: pointer; box-shadow: 0 6px 20px rgba(24, 183, 121, 0.3); transition: 0.15s;
-    }
-    .spin-big-btn:active { transform: scale(0.98); }
-    .spin-big-txt { font-size: 15px; font-weight: 900; color: #04140d; text-transform: uppercase; }
-    .spin-big-cost {
-      background: rgba(0, 0, 0, 0.22); color: #ffffff;
-      padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: 800;
-    }
-
-    .view-sec { display: none; }
+    /* Контейнеры и карточки */
+    .container { max-width: 520px; margin: 0 auto; padding: 14px; }
+    .view-sec { display: none; animation: fadeIn 0.2s ease; }
     .view-sec.active { display: block; }
-    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .case-card {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 16px; overflow: hidden; display: flex; flex-direction: column;
-    }
-    .case-art {
-      height: 140px; background: #040609; display: flex; align-items: center; justify-content: center;
-      position: relative; background-size: cover; background-position: center;
-    }
-    .case-art img { width: 84%; height: 84%; object-fit: contain; }
-    .case-body { padding: 12px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* НИЖНЕЕ МЕНЮ (5 ВКЛАДОК КАК НА СКРИНШОТЕ) */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-card);
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.22);
+    }
+    .sec-title { font-size: 16px; font-weight: 800; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .sec-sub { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4; }
+
+    /* Селекторы и кнопки */
+    .seg-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+    .seg-btn {
+      background: var(--surface-2); border: 1px solid var(--border);
+      color: var(--text-secondary); padding: 9px 6px; border-radius: var(--radius-control);
+      font-size: 12px; font-weight: 700; text-align: center; cursor: pointer; transition: 0.15s;
+    }
+    .seg-btn.active {
+      background: rgba(36, 161, 222, 0.16);
+      border-color: var(--cyan); color: var(--text);
+      box-shadow: 0 0 12px rgba(36, 161, 222, 0.2);
+    }
+    .btn-primary {
+      width: 100%; padding: 13px; border-radius: var(--radius-control); border: none;
+      background: linear-gradient(135deg, var(--cyan), #0284c7);
+      color: #fff; font-weight: 800; font-size: 14px; cursor: pointer;
+      box-shadow: 0 6px 18px rgba(36, 161, 222, 0.32); transition: 0.15s;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-primary:active { transform: scale(0.98); }
+    .btn-primary.lack { background: #334155; color: #94a3b8; box-shadow: none; }
+    .btn-gold {
+      background: linear-gradient(135deg, #d6b16b, #b48636);
+      color: #06080d; box-shadow: 0 6px 18px rgba(214, 177, 107, 0.3);
+    }
+    .btn-sm {
+      padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 700;
+      border: 1px solid var(--border); background: var(--surface-2); color: var(--text); cursor: pointer;
+    }
+
+    /* Сетка Кейсов и NFT Сейфа */
+    .grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .nft-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-card); overflow: hidden;
+      display: flex; flex-direction: column; position: relative; transition: 0.2s;
+    }
+    .nft-visual {
+      height: 135px; width: 100%; position: relative;
+      display: flex; align-items: center; justify-content: center;
+      background-size: cover; background-position: center; overflow: hidden;
+    }
+    .nft-visual img.main-art {
+      width: 82%; height: 82%; object-fit: contain; z-index: 2;
+      filter: drop-shadow(0 8px 16px rgba(0,0,0,0.55));
+      transition: transform 0.25s ease;
+    }
+    .nft-card:hover img.main-art { transform: scale(1.06); }
+    .tier-badge {
+      position: absolute; top: 8px; left: 8px; z-index: 3;
+      padding: 3px 7px; border-radius: 6px; font-size: 10px; font-weight: 800;
+      background: rgba(6, 8, 13, 0.78); backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.12);
+    }
+    .backdrop-pill {
+      position: absolute; bottom: 6px; right: 6px; z-index: 3;
+      padding: 2px 6px; border-radius: 5px; font-size: 9px; font-weight: 700;
+      background: rgba(0, 0, 0, 0.72); color: #cbd5e1;
+    }
+    .nft-body { padding: 10px; display: flex; flex-direction: column; gap: 5px; flex: 1; }
+    .nft-title { font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px; }
+    .nft-meta { font-size: 10px; color: var(--text-secondary); }
+    .nft-price { font-size: 13px; font-weight: 800; color: var(--gold); margin-top: auto; }
+    .nft-actions { display: grid; grid-template-columns: repeat(2, 1fr); gap: 5px; margin-top: 6px; }
+
+    /* Аукцион (Джекпот на билеты) */
+    .raffle-hero {
+      background: linear-gradient(145deg, rgba(36,161,222,0.16), rgba(214,177,107,0.12));
+      border: 1px solid rgba(214,177,107,0.35); border-radius: var(--radius-card);
+      padding: 16px; text-align: center; margin-bottom: 12px; position: relative;
+    }
+    .raffle-pot { font-size: 26px; font-weight: 900; color: var(--gold); margin: 6px 0; text-shadow: 0 0 18px rgba(214,177,107,0.35); }
+    .raffle-timer {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 4px 12px; border-radius: 99px; background: rgba(6,8,13,0.75);
+      border: 1px solid var(--border); font-size: 12px; font-weight: 800; color: var(--cyan);
+    }
+    .part-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 9px 10px; border-radius: 9px; background: var(--surface-2);
+      margin-bottom: 6px; font-size: 12px; border: 1px solid var(--border);
+    }
+    .chance-bar { height: 4px; border-radius: 2px; background: rgba(255,255,255,0.08); margin-top: 4px; overflow: hidden; }
+    .chance-fill { height: 100%; background: linear-gradient(90deg, var(--cyan), var(--emerald)); }
+
+    /* Нижняя навигация с векторными иконками */
     .bottom-nav {
       position: fixed; bottom: 0; left: 0; right: 0; z-index: 60;
-      background: #090d14; border-top: 1px solid var(--border);
-      display: grid; grid-template-columns: repeat(5, 1fr);
-      max-width: 480px; margin: 0 auto; padding: 8px 4px 12px;
+      background: rgba(11, 15, 24, 0.92); backdrop-filter: blur(16px);
+      border-top: 1px solid var(--border);
+      display: grid; grid-template-columns: repeat(6, 1fr);
+      max-width: 520px; margin: 0 auto; padding: 6px 4px 10px;
     }
-    .nav-btn {
-      display: flex; flex-direction: column; align-items: center; gap: 4px;
-      color: #64748b; font-size: 10px; font-weight: 700; cursor: pointer;
+    .nav-item {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; color: var(--text-secondary); font-size: 10px; font-weight: 700;
+      cursor: pointer; padding: 4px 2px; border-radius: 8px; transition: 0.15s;
     }
-    .nav-btn.active { color: var(--green); }
-    .nav-icon { font-size: 18px; line-height: 20px; }
+    .nav-item.active { color: var(--cyan); }
+    .nav-item svg, .nav-item img { width: 20px; height: 20px; opacity: 0.7; transition: 0.15s; }
+    .nav-item.active svg, .nav-item.active img { opacity: 1; filter: drop-shadow(0 0 6px rgba(36,161,222,0.5)); }
 
-    /* МОДАЛКИ И ТУМБЛЕРЫ */
+    /* Тумблеры настроек */
+    .setting-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
+    .tgl {
+      width: 44px; height: 24px; border-radius: 99px; background: #334155;
+      position: relative; cursor: pointer; transition: 0.2s;
+    }
+    .tgl::after {
+      content: ''; position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: 0.2s;
+    }
+    .tgl.on { background: var(--emerald); }
+    .tgl.on::after { left: 23px; }
+
+    /* Модальное окно выпадения предмета */
     .modal-overlay {
-      position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,0.86);
-      backdrop-filter: blur(8px); display: none; align-items: center; justify-content: center; padding: 16px;
+      position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,0.82); backdrop-filter: blur(10px);
+      display: none; align-items: center; justify-content: center; padding: 18px;
     }
     .modal-overlay.show { display: flex; }
     .modal-box {
-      background: var(--panel); border: 1px solid var(--border);
-      border-radius: 18px; width: 100%; max-width: 370px; padding: 18px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 18px; width: 100%; max-width: 360px; padding: 18px;
+      text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.6);
     }
-    .tgl-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--border); }
-    .tgl { width: 44px; height: 24px; border-radius: 99px; background: #1e293b; position: relative; cursor: pointer; }
-    .tgl::after { content: ''; position: absolute; top: 3px; left: 3px; width: 18px; height: 18px; border-radius: 50%; background: #fff; transition: 0.2s; }
-    .tgl.on { background: var(--green); }
-    .tgl.on::after { left: 23px; }
-    .inp { width: 100%; padding: 10px; border-radius: 10px; border: 1px solid var(--border); background: #141c2b; color: #fff; margin-bottom: 8px; outline: none; }
+    input.inp {
+      width: 100%; padding: 10px 12px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--surface-2);
+      color: var(--text); font-size: 13px; margin-bottom: 8px; outline: none;
+    }
   </style>
 </head>
 <body>
 
-  <!-- ОБЯЗАТЕЛЬНАЯ ПОДПИСКА (SUB-GATE) -->
-  <div class="modal-overlay" id="subGateModal" style="z-index:200;">
-    <div class="modal-box" style="text-align:center;">
-      <div style="font-size:42px;margin-bottom:8px;">📢</div>
-      <div style="font-size:18px;font-weight:900;margin-bottom:6px;">Обязательная подписка</div>
-      <div style="font-size:12px;color:#94a3b8;margin-bottom:14px;line-height:1.4;">
-        Для входа в <b>MintTagsApp | Медиа Империя</b> подпишитесь на наш официальный канал! За подписку вы сразу получите <b>+250,000 GRAM</b>.
+  <!-- ВЕРХНЯЯ ПАНЕЛЬ -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="/icons/ton.svg" style="width:20px;height:20px;filter:invert(1);" alt="TON" />
       </div>
-      <div id="subChannelName" style="padding:10px;background:#141c2b;border-radius:10px;color:var(--cyan);font-weight:900;margin-bottom:12px;">@durov</div>
-      <button class="spin-big-btn" style="margin-bottom:8px;padding:12px;" onclick="app.openSubChannel()">
-        <span class="spin-big-txt">1. ПОДПИСАТЬСЯ НА КАНАЛ</span>
-      </button>
-      <button class="btn-sell-now" style="width:100%;padding:12px;" onclick="app.checkSubGate()">2. ПРОВЕРИТЬ ПОДПИСКУ (+250K G)</button>
+      <div>
+        <div class="brand-title">MintTags Empire</div>
+        <div class="brand-sub">
+          <span id="topCountryFlag">🌐</span>
+          <span id="topLuckBadge" style="color:var(--emerald);font-weight:700;">Удача x1.0</span>
+        </div>
+      </div>
     </div>
-  </div>
+    <div class="bal-group">
+      <div class="bal-pill" id="topBal">0 G</div>
+      <button class="icon-btn" onclick="app.openSettings()" title="Настройки и Админка">⚙️</button>
+    </div>
+  </header>
 
-  <div class="app-wrap">
+  <main class="container">
 
-    <!-- ВЕРХНИЙ HUD-БАР КАК НА СКРИНШОТЕ -->
-    <header class="hud-bar">
-      <div class="hud-pills">
-        <div class="pill" onclick="app.nav('more')">
-          <span id="hudFlag">🇷🇺</span>
-          <span id="hudLevel">УР.1</span>
+    <!-- 1. ВКЛАДКА: МИНТ (РУЛЕТКА ТЕГОВ / НОМЕРОВ / NFT) -->
+    <section id="view-mint" class="view-sec active">
+      <div class="card">
+        <div class="sec-title">
+          <span>⚡ Генератор Fragment & NFT</span>
+          <span id="pityTxt" style="font-size:11px;color:var(--cyan);">Гарант: 0 / 50</span>
         </div>
-        <div class="pill luck" onclick="app.nav('more')">
-          <span>🍀</span>
-          <span id="hudLuck">x1.0</span>
-        </div>
-        <div class="pill stars" onclick="app.nav('more')">
-          <span>⭐</span>
-          <span id="hudStars">0 +</span>
-        </div>
-      </div>
-      <div class="hud-bal-box">
-        <div class="hud-inc" id="hudInc">Доход +0/с</div>
-        <div class="hud-bal"><span id="hudBal">150 000</span> G</div>
-      </div>
-    </header>
+        <div class="sec-sub">Выбивай редкие @username, анонимные номера +888 и оригинальные NFT-подарки с моделями и векторными фонами.</div>
 
-    <!-- ================= 1. ВКЛАДКА: ИГРАТЬ (РЕЕСТР + БОКСЫ + РАКЕТКА) ================= -->
-    <section id="view-play" class="view-sec active">
-      <div class="mode-bar">
-        <div class="mode-tab active" id="mtab-username" onclick="app.switchPlayMode('username')">@USERNAME</div>
-        <div class="mode-tab" id="mtab-number" onclick="app.switchPlayMode('number')">+888 НОМЕРА</div>
-        <div class="mode-tab" id="mtab-rocket" onclick="app.switchPlayMode('rocket')">🚀 РАКЕТКА</div>
-        <div class="mode-boxes-btn" onclick="app.switchPlayMode('boxes')">БОКСЫ</div>
-      </div>
-
-      <!-- Подрежим 1.1: Реестр Fragment -->
-      <div id="subplay-spinner">
-        <div class="registry-box" style="min-height:350px;">
-          <div class="reg-head">
-            <span class="reg-title">Реестр Fragment: <span id="regPackLabel">LUXURY+</span></span>
-            <span class="reg-cost" id="regPityTxt">0/10</span>
-          </div>
-          <div class="pity-Segments" id="pityBar"></div>
-          <div id="dropsContainer"></div>
+        <div class="seg-row">
+          <div class="seg-btn active" id="type-username" onclick="app.setItemType('username')">@Username</div>
+          <div class="seg-btn" id="type-number" onclick="app.setItemType('number')">+888 Номер</div>
+          <div class="seg-btn" id="type-gift" onclick="app.setItemType('gift')">🐸 NFT Gift</div>
         </div>
 
-        <div class="controls-row">
-          <select id="selType" class="ctrl-select" onchange="app.syncControls()">
-            <option value="username">@USERNAME</option>
-            <option value="number">+888 НОМЕР</option>
-            <option value="gift">🐸 NFT GIFT</option>
-          </select>
-          <select id="selPack" class="ctrl-select gold-txt" onchange="app.syncControls()">
-            <option value="standard">STANDARD</option>
-            <option value="luxury" selected>LUXURY+</option>
-            <option value="royal">ROYAL</option>
-          </select>
-          <button class="mult-btn" id="multBtn" onclick="app.toggleMult()">5x</button>
+        <div class="seg-row">
+          <div class="seg-btn active" id="mult-1" onclick="app.setSpinMult(1)">x1 Ставка</div>
+          <div class="seg-btn" id="mult-5" onclick="app.setSpinMult(5)">x5 Ценность</div>
+          <div class="seg-btn" id="mult-10" onclick="app.setSpinMult(10)">x10 Магнат</div>
         </div>
 
-        <button class="spin-big-btn" onclick="app.doSpin()">
-          <span class="spin-big-txt">КРУТИТЬ ЕЩЁ</span>
-          <span class="spin-big-cost" id="spinBtnCost">17 500 000 GRAM</span>
+        <button class="btn-primary" id="mainSpinBtn" onclick="app.doSpin()">
+          <span>СМИНТИТЬ АРТЕФАКТ</span>
+          <span id="spinCostTxt">(1,500 G)</span>
         </button>
       </div>
 
-      <!-- Подрежим 1.2: БОКСЫ -->
-      <div id="subplay-boxes" style="display:none;">
-        <div class="grid-2" id="boxesGrid"></div>
-      </div>
-
-      <!-- Подрежим 1.3: CRASH РАКЕТКА -->
-      <div id="subplay-rocket" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head">
-            <span class="reg-title">🚀 Crash Ракетка</span>
-            <span class="reg-cost" id="rocketMsg">Готова к взлету</span>
-          </div>
-          <canvas id="rocketCanvas" width="440" height="210" style="width:100%;height:195px;background:#05080d;border-radius:12px;margin-bottom:10px;"></canvas>
-          <div style="display:flex;gap:8px;margin-bottom:8px;">
-            <input type="number" id="rBet" class="inp" value="25000" style="margin:0;" placeholder="Ставка G" />
-            <input type="number" id="rMult" class="inp" value="2.0" step="0.1" style="margin:0;" placeholder="Авто-вывод x" />
-          </div>
-          <button class="spin-big-btn" id="rBtn" style="padding:13px;" onclick="app.playRocket()">
-            <span class="spin-big-txt">ЗАПУСТИТЬ РАКЕТУ 🚀</span>
-          </button>
+      <!-- Смена страны и телефонного кода -->
+      <div class="card">
+        <div class="sec-title">
+          <span>🌍 Юрисдикция и Номер</span>
+          <span id="curPhoneTxt" style="font-size:11px;color:var(--gold);">Не выбран</span>
+        </div>
+        <div class="sec-sub">Первый выбор страны бесплатный. Смена существующей юрисдикции стоит <b>500,000 G</b>.</div>
+        <div style="display:flex;gap:8px;">
+          <select id="countrySelect" class="inp" style="margin:0;flex:1;"></select>
+          <button class="btn-sm" style="background:var(--cyan);color:#fff;border:none;padding:0 16px;" onclick="app.changeCountry()">Сменить</button>
         </div>
       </div>
     </section>
 
-    <!-- ================= 2. ВКЛАДКА: ХРАНИЛИЩЕ (СЕЙФ + ВИТРИНА СЛАВЫ + АПГРЕЙДЕР + КРАФТ) ================= -->
-    <section id="view-storage" class="view-sec">
-      <div class="mode-bar">
-        <div class="mode-tab active" id="stab-safe" onclick="app.switchStorageTab('safe')">🔐 СЕЙФ & СЛАВА</div>
-        <div class="mode-tab" id="stab-upgrader" onclick="app.switchStorageTab('upgrader')">⚡ АПГРЕЙДЕР</div>
-        <div class="mode-tab" id="stab-craft" onclick="app.switchStorageTab('craft')">⚒️ КРАФТ 3в1</div>
-      </div>
-
-      <!-- 2.1: Сейф и Витрина Славы -->
-      <div id="substorage-safe">
-        <div class="registry-box" style="padding:12px;">
-          <div class="reg-head">
-            <span class="reg-title">🏆 Витрина Славы (Бонус +25% к доходу)</span>
-            <span class="reg-cost" id="showcaseCount">0/3</span>
-          </div>
-          <div class="showcase-grid" id="showcaseGrid"></div>
-        </div>
-
-        <div class="registry-box">
-          <div class="reg-head">
-            <span class="reg-title">🔐 Хранилище Артефактов</span>
-            <span class="reg-cost" id="safeCountTxt">0 предм.</span>
-          </div>
-          <div id="storageList"></div>
-        </div>
-      </div>
-
-      <!-- 2.2: Апгрейдер -->
-      <div id="substorage-upgrader" style="display:none;">
-        <div class="registry-box" style="text-align:center;">
-          <div class="reg-head">
-            <span class="reg-title">⚡ Апгрейдер редкости</span>
-            <span class="reg-cost" id="upgChanceTxt">Шанс 50%</span>
-          </div>
-          <div style="font-size:12px;color:#64748b;margin-bottom:12px;">Выберите предмет из Сейфа и попытайтесь повысить его тир! При неудаче предмет сгорает.</div>
-          <select id="upgItemSelect" class="ctrl-select" style="width:100%;margin-bottom:10px;"></select>
-          <div class="mode-bar" style="margin-bottom:12px;">
-            <div class="mode-tab" id="uch-25" onclick="app.setUpgChance(25)">25% (+2 Тира)</div>
-            <div class="mode-tab active" id="uch-50" onclick="app.setUpgChance(50)">50% (+1 Тир)</div>
-            <div class="mode-tab" id="uch-75" onclick="app.setUpgChance(75)">75% (Надежный)</div>
-          </div>
-          <button class="spin-big-btn" onclick="app.doUpgrade()">
-            <span class="spin-big-txt">ЗАПУСТИТЬ АПГРЕЙД ⚡</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- 2.3: Крафт 3 в 1 -->
-      <div id="substorage-craft" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head">
-            <span class="reg-title">⚒️ Алхимия Крафта (3 предм. → NFT Gift)</span>
-            <span class="reg-cost"><span id="craftSelCnt">0</span>/3</span>
-          </div>
-          <button class="spin-big-btn" style="margin-bottom:12px;padding:12px;" onclick="app.doCraft()">
-            <span class="spin-big-txt">СКРАФТИТЬ ЭКСКЛЮЗИВНЫЙ NFT</span>
-          </button>
-          <div id="craftItemsList"></div>
-        </div>
-      </div>
+    <!-- 2. ВКЛАДКА: КЕЙСЫ И NFT БОКСЫ -->
+    <section id="view-cases" class="view-sec">
+      <div class="sec-title">📦 Премиум Контейнеры & NFT Box</div>
+      <div class="sec-sub">Эксклюзивные сундуки с 3D-артами. В <b>NFT Gift Box</b> падают только коллекционные подарки, а в <b>Всё или Ничего</b> — честный хардкор без халявных номеров!</div>
+      <div class="grid-2" id="casesGrid"></div>
     </section>
 
-    <!-- ================= 3. ВКЛАДКА: РЫНОК (АУКЦИОН НА ДЕНЬГИ + МАРКЕТ ИГРОКОВ + БАНК) ================= -->
+    <!-- 3. ВКЛАДКА: СЕЙФ И КРАФТ -->
+    <section id="view-vault" class="view-sec">
+      <div class="card" style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <div style="font-size:14px;font-weight:800;">🔐 Мой Сейф Артефактов</div>
+          <div style="font-size:11px;color:var(--text-secondary);" id="vaultStatsTxt">Предметов: 0 | Оценка: 0 G</div>
+        </div>
+        <button class="btn-sm" id="craftModeBtn" onclick="app.toggleCraftMode()">⚒️ Крафт (3 в 1)</button>
+      </div>
+      <div id="craftNotice" class="card" style="display:none;border-color:var(--gold);background:rgba(214,177,107,0.1);">
+        <div style="font-size:12px;font-weight:700;color:var(--gold);margin-bottom:6px;">Режим Крафта: выберите 3 предмета для слияния в NFT Gift тиром выше!</div>
+        <button class="btn-primary btn-gold" onclick="app.executeCraft()">Скрафтить NFT (<span id="craftCount">0</span>/3)</button>
+      </div>
+      <div class="grid-2" id="vaultGrid"></div>
+    </section>
+
+    <!-- 4. ВКЛАДКА: МАРКЕТ И АУКЦИОН НА ДЕНЬГИ (БИЛЕТЫ) -->
     <section id="view-market" class="view-sec">
-      <div class="mode-bar">
-        <div class="mode-tab active" id="mkt-raffle" onclick="app.switchMktTab('raffle')">🎟️ АУКЦИОН</div>
-        <div class="mode-tab" id="mkt-p2p" onclick="app.switchMktTab('p2p')">🛒 МАРКЕТ</div>
-        <div class="mode-tab" id="mkt-bank" onclick="app.switchMktTab('bank')">🏦 БАНК</div>
+      <div class="seg-row" style="grid-template-columns:repeat(2,1fr);">
+        <div class="seg-btn active" id="mktTab-auction" onclick="app.switchMarketTab('auction')">🎟️ Джекпот-Аукцион</div>
+        <div class="seg-btn" id="mktTab-lots" onclick="app.switchMarketTab('lots')">🛒 Маркет Игроков</div>
       </div>
 
-      <!-- 3.1: Джекпот-Аукцион на билеты -->
-      <div id="submkt-raffle">
-        <div class="registry-box">
-          <div class="reg-head">
-            <span class="reg-title">🎟️ Джекпот-Аукцион Раунд #<span id="rafId">1</span></span>
-            <span class="reg-cost" id="rafTimer">03:00</span>
+      <!-- ДЖЕКПОТ АУКЦИОН С БИЛЕТАМИ, ТАЙМЕРОМ И ШАНСАМИ -->
+      <div id="subview-auction">
+        <div class="raffle-hero">
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-secondary);">Текущий Банк Раунда #<span id="rafRoundId">1</span></div>
+          <div class="raffle-pot" id="rafPotTxt">100,000 G</div>
+          <div class="raffle-timer">
+            <span>⏱ До розыгрыша:</span>
+            <span id="rafTimerTxt">03:00</span>
           </div>
-          <div style="text-align:center;padding:10px 0;">
-            <div style="font-size:11px;color:#94a3b8;">ОБЩИЙ БАНК РАУНДА</div>
-            <div style="font-size:28px;font-weight:900;color:#fbbf24;margin:4px 0;" id="rafPot">100 000 G</div>
-            <div style="font-size:11px;color:#64748b;margin-bottom:12px;">1 билет = 25,000 G. Больше билетов — выше твой процент забрать весь банк!</div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn-to-safe" style="flex:1;padding:10px;" onclick="app.buyTickets(1)">+1 Бил. (25K)</button>
-              <button class="btn-to-safe" style="flex:1;padding:10px;" onclick="app.buyTickets(5)">+5 Бил. (125K)</button>
-              <button class="btn-sell-now" style="flex:1;padding:10px;" onclick="app.buyTickets(20)">+20 Бил. (500K)</button>
-            </div>
+          <div style="font-size:11px;color:var(--text-secondary);margin-top:8px;">
+            1 билет = <b>25,000 G</b>. Чем больше у тебя билетов, тем выше твой процент на забор всего банка! Когда таймер дойдет до 00:00 — победитель выбирается автоматически.
           </div>
-          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
-            <div style="font-size:12px;font-weight:800;margin-bottom:6px;">Участники раунда (Билетов: <span id="rafTotalT">0</span>):</div>
-            <div id="rafParts"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;">
+            <button class="btn-primary" style="padding:10px;font-size:12px;" onclick="app.buyRaffleTickets(1)">+1 Бил. (25K)</button>
+            <button class="btn-primary" style="padding:10px;font-size:12px;" onclick="app.buyRaffleTickets(5)">+5 Бил. (125K)</button>
+            <button class="btn-primary btn-gold" style="padding:10px;font-size:12px;" onclick="app.buyRaffleTickets(20)">+20 Бил. (500K)</button>
           </div>
-          <div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
-            <div style="font-size:12px;font-weight:800;margin-bottom:6px;">🏆 Последние победители:</div>
-            <div id="rafHistory"></div>
+        </div>
+
+        <div class="card">
+          <div class="sec-title">
+            <span>👥 Участники раунда</span>
+            <span style="font-size:11px;color:var(--text-secondary);">Всего билетов: <b id="rafTotalTickets">0</b></span>
           </div>
+          <div id="rafParticipantsList"></div>
+        </div>
+
+        <div class="card">
+          <div class="sec-title">🏆 Последние победители</div>
+          <div id="rafHistoryList"></div>
         </div>
       </div>
 
-      <!-- 3.2: P2P Маркет -->
-      <div id="submkt-p2p" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head"><span class="reg-title">🛒 Лоты игроков на продаже</span></div>
-          <div id="p2pList"></div>
-        </div>
-      </div>
-
-      <!-- 3.3: Имперский Банк -->
-      <div id="submkt-bank" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head">
-            <span class="reg-title">🏦 Имперский Депозит (+1.5% в час)</span>
-            <span class="reg-cost" id="bankDepVal">0 G</span>
-          </div>
-          <input type="number" id="bankInp" class="inp" value="100000" placeholder="Сумма GRAM" />
-          <div class="grid-2">
-            <button class="btn-to-safe" style="padding:11px;" onclick="app.bankAct('deposit')">📥 Пополнить</button>
-            <button class="btn-sell-now" style="padding:11px;" onclick="app.bankAct('withdraw')">📤 Снять</button>
-          </div>
-        </div>
+      <!-- P2P МАРКЕТ ИГРОКОВ -->
+      <div id="subview-lots" style="display:none;">
+        <div class="grid-2" id="marketGrid"></div>
       </div>
     </section>
 
-    <!-- ================= 4. ВКЛАДКА: ДРУЗЬЯ, МЕДИА-КАНАЛ, PVP БОИ И ТОП ================= -->
-    <section id="view-friends" class="view-sec">
-      <div class="mode-bar">
-        <div class="mode-tab active" id="ftab-pvp" onclick="app.switchFriendsTab('pvp')">⚔️ PVP БОИ</div>
-        <div class="mode-tab" id="ftab-channel" onclick="app.switchFriendsTab('channel')">📢 КАНАЛ & КЛАН</div>
-        <div class="mode-tab" id="ftab-top" onclick="app.switchFriendsTab('top')">👑 ТОП</div>
-      </div>
-
-      <!-- 4.1: PvP Бои (Арена) -->
-      <div id="subfriends-pvp">
-        <div class="registry-box" style="text-align:center;">
-          <div class="reg-head">
-            <span class="reg-title">⚔️ Арена Битв за Капитал</span>
-            <span class="reg-cost">Побед: <span id="pvpWinsTxt">0</span></span>
-          </div>
-          <div style="font-size:12px;color:#64748b;margin-bottom:12px;">Сразитесь с другим магнатом! Предметы на вашей Витрине Славы повышают шанс победы до 60%!</div>
-          <input type="number" id="pvpBetInp" class="inp" value="50000" placeholder="Ставка на бой (GRAM)" />
-          <button class="spin-big-btn" onclick="app.doPvpBattle()">
-            <span class="spin-big-txt">ВСТУПИТЬ В БОЙ ⚔️</span>
-          </button>
-          <div id="pvpResultBox" style="margin-top:12px;font-size:13px;font-weight:800;"></div>
+    <!-- 5. ВКЛАДКА: РАКЕТКА (CRASH С ВЕКТОРНЫМ КОРАБЛЕМ) -->
+    <section id="view-rocket" class="view-sec">
+      <div class="card">
+        <div class="sec-title">
+          <span>🚀 Crash Ракетка</span>
+          <span id="rocketStatusTxt" style="color:var(--cyan);font-size:13px;">Готова к взлету</span>
         </div>
-      </div>
-
-      <!-- 4.2: Медиа-Канал и Клан -->
-      <div id="subfriends-channel" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head">
-            <span class="reg-title">📢 Мой Медиа-Канал</span>
-            <span class="reg-cost" id="subsMultTxt">Буст дохода x1.0</span>
+        <canvas id="rocketCanvas" width="460" height="230" style="width:100%;height:210px;background:#080c14;border-radius:12px;border:1px solid var(--border);margin-bottom:12px;"></canvas>
+        <div class="grid-2" style="margin-bottom:10px;">
+          <div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Ставка (GRAM)</div>
+            <input type="number" id="rocketBetInp" class="inp" value="25000" min="1000" style="margin:0;" />
           </div>
-          <div style="font-size:12px;color:#94a3b8;margin-bottom:8px;">Подписчиков: <b id="subsCntTxt" style="color:#fff;">0</b></div>
-          <button class="spin-big-btn" style="padding:12px;margin-bottom:12px;" onclick="app.channelAct('buy_subs')">
-            <span class="spin-big-txt">КУПИТЬ РЕКЛАМУ (+1.2K–3.5K САБОВ)</span>
-            <span class="spin-big-cost">250K G</span>
-          </button>
-          <div style="display:flex;gap:6px;">
-            <input type="text" id="clanInp" class="inp" style="margin:0;" placeholder="Тег клана (напр. ROYAL)" />
-            <button class="btn-to-safe" onclick="app.channelAct('set_clan')">Вступить в Клан</button>
+          <div>
+            <div style="font-size:11px;color:var(--text-secondary);margin-bottom:4px;">Авто-вывод (Икс)</div>
+            <input type="number" id="rocketMultInp" class="inp" value="2.0" step="0.1" min="1.1" max="50" style="margin:0;" />
           </div>
         </div>
-      </div>
-
-      <!-- 4.3: Мировой Топ -->
-      <div id="subfriends-top" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head"><span class="reg-title">👑 Рейтинг Империи</span></div>
-          <div id="topList"></div>
-        </div>
+        <button class="btn-primary" id="rocketPlayBtn" onclick="app.playRocket()">ЗАПУСТИТЬ РАКЕТУ 🚀</button>
       </div>
     </section>
 
-    <!-- ================= 5. ВКЛАДКА: ЕЩЁ (ДОСТИЖЕНИЯ, ПРОМОКОДЫ, НАСТРОЙКИ, АДМИНКА) ================= -->
-    <section id="view-more" class="view-sec">
-      <div class="mode-bar">
-        <div class="mode-tab active" id="etab-ach" onclick="app.switchMoreTab('ach')">🏅 ДОСТИЖЕНИЯ</div>
-        <div class="mode-tab" id="etab-cfg" onclick="app.switchMoreTab('cfg')">⚙️ НАСТРОЙКИ & АДМИН</div>
-      </div>
-
-      <!-- 5.1: Достижения -->
-      <div id="submore-ach">
-        <div class="registry-box">
-          <div class="reg-head"><span class="reg-title">🏅 Зал Достижений Империи</span></div>
-          <div id="achList"></div>
-        </div>
-      </div>
-
-      <!-- 5.2: Настройки, Промокоды, Смена страны и Админ-пульт -->
-      <div id="submore-cfg" style="display:none;">
-        <div class="registry-box">
-          <div class="reg-head"><span class="reg-title">⚙️ Настройки и Управление</span></div>
-
-          <div class="tgl-row">
-            <div>
-              <div style="font-size:13px;font-weight:800;">Сокращать нули</div>
-              <div style="font-size:11px;color:#64748b;">Формат 142.6B / 17.5M (не сбрасывается!)</div>
-            </div>
-            <div class="tgl" id="tgl-compact" onclick="app.toggleCompact()"></div>
-          </div>
-
-          <div style="margin-top:12px;">
-            <div style="font-size:12px;font-weight:800;margin-bottom:6px;">🎟 Активация промокода (попробуй EMPIRE):</div>
-            <div style="display:flex;gap:6px;">
-              <input type="text" id="promoCodeInp" class="inp" style="margin:0;" placeholder="Введите промокод" />
-              <button class="btn-to-safe" onclick="app.redeemPromo()">OK</button>
-            </div>
-          </div>
-
-          <div style="margin-top:12px;">
-            <div style="font-size:12px;font-weight:800;margin-bottom:6px;">🌍 Смена страны (500,000 GRAM):</div>
-            <div style="display:flex;gap:6px;">
-              <select id="countrySel" class="ctrl-select"></select>
-              <button class="btn-to-safe" onclick="app.saveCountry()">Сменить</button>
-            </div>
-          </div>
-
-          <div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--border);">
-            <div style="font-size:13px;font-weight:900;color:#fbbf24;margin-bottom:8px;">🛠 Админ-Панель Создателя</div>
-            <input type="number" id="admAmt" class="inp" value="10000000" placeholder="Сумма GRAM или множитель удачи" />
-            <div class="grid-2" style="margin-bottom:8px;">
-              <button class="btn-to-safe" onclick="app.adminAct('give_gram')">+ Выдать GRAM</button>
-              <button class="btn-sell-now" onclick="app.adminAct('give_luck')">🍀 Выдать Удачу</button>
-            </div>
-            <button class="btn-sell-now" style="width:100%;color:#ef4444;border-color:#ef4444;margin-bottom:10px;" onclick="app.adminAct('reset_luck')">
-              ✖ Принудительно сбросить Удачу (x1.0)
-            </button>
-            <input type="text" id="admChan" class="inp" value="@durov" placeholder="@канал подписки или код нового промо" />
-            <div class="grid-2">
-              <button class="btn-to-safe" onclick="app.adminAct('set_channel')">📢 Задать Канал</button>
-              <button class="btn-sell-now" onclick="app.adminAct('create_promo')">🎟 Создать Промо</button>
-            </div>
-          </div>
-        </div>
+    <!-- 6. ВКЛАДКА: МИРОВОЙ ТОП ИГРОКОВ -->
+    <section id="view-top" class="view-sec">
+      <div class="card">
+        <div class="sec-title">👑 Имперский Рейтинг Магнатов</div>
+        <div class="sec-sub">Суммарный капитал (Баланс GRAM + оценка всех NFT и номеров в Сейфе). Синяя галочка Telegram выдается владельцам верифицированных тегов!</div>
+        <div id="leaderboardList"></div>
       </div>
     </section>
 
+  </main>
+
+  <!-- МОДАЛЬНОЕ ОКНО ДРОПА -->
+  <div class="modal-overlay" id="dropModal">
+    <div class="modal-box">
+      <div id="dropModalVisual" class="nft-visual" style="height:170px;border-radius:12px;margin-bottom:12px;"></div>
+      <div id="dropModalTier" style="font-size:11px;font-weight:800;text-transform:uppercase;margin-bottom:4px;"></div>
+      <div id="dropModalTitle" style="font-size:18px;font-weight:900;margin-bottom:4px;"></div>
+      <div id="dropModalMeta" style="font-size:12px;color:var(--text-secondary);margin-bottom:10px;"></div>
+      <div id="dropModalPrice" style="font-size:18px;font-weight:900;color:var(--gold);margin-bottom:14px;"></div>
+      <button class="btn-primary" onclick="document.getElementById('dropModal').classList.remove('show')">В СЕЙФ</button>
+    </div>
   </div>
 
-  <!-- НИЖНЕЕ МЕНЮ (5 ВКЛАДОК КАК НА СКРИНШОТЕ) -->
+  <!-- МОДАЛЬНОЕ ОКНО НАСТРОЕК И АДМИН-ПАНЕЛИ -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal-box" style="text-align:left;">
+      <div class="sec-title">
+        <span>⚙️ Настройки и Управление</span>
+        <button class="btn-sm" onclick="document.getElementById('settingsModal').classList.remove('show')">✕</button>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div style="font-size:13px;font-weight:700;">Сокращать нули</div>
+          <div style="font-size:11px;color:var(--text-secondary);">Формат 1.5M / 250K (сохраняется при релоуде)</div>
+        </div>
+        <div class="tgl" id="tgl-compact_bal" onclick="app.toggleSetting('compact_bal')"></div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div style="font-size:13px;font-weight:700;">Светлая тема</div>
+          <div style="font-size:11px;color:var(--text-secondary);">Переключить оформление</div>
+        </div>
+        <div class="tgl" id="tgl-theme" onclick="app.toggleTheme()"></div>
+      </div>
+
+      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border);">
+        <div style="font-size:12px;font-weight:800;color:var(--gold);margin-bottom:8px;">🛠 Панель Создателя (Тест / Админ)</div>
+        <input type="number" id="admAmountInp" class="inp" placeholder="Сумма GRAM или множитель удачи (1 = сброс)" value="1000000" />
+        <div class="grid-2">
+          <button class="btn-sm" style="color:var(--emerald);" onclick="app.adminAct('give_gram')">+ Выдать GRAM</button>
+          <button class="btn-sm" style="color:var(--cyan);" onclick="app.adminAct('give_luck')">🍀 Выдать Удачу</button>
+        </div>
+        <button class="btn-sm" style="width:100%;margin-top:6px;color:var(--danger);border-color:rgba(239,68,68,0.4);" onclick="app.adminAct('reset_luck')">✖ Принудительно сбросить Удачу (x1.0)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- НИЖНЕЕ МЕНЮ С ВЕКТОРНЫМИ ИКОНКАМИ -->
   <nav class="bottom-nav">
-    <div class="nav-btn active" id="nav-play" onclick="app.nav('play')"><span class="nav-icon">▷</span><span>Играть</span></div>
-    <div class="nav-btn" id="nav-storage" onclick="app.nav('storage')"><span class="nav-icon">回</span><span>Хранилище</span></div>
-    <div class="nav-btn" id="nav-market" onclick="app.nav('market')"><span class="nav-icon">🏛</span><span>Рынок</span></div>
-    <div class="nav-btn" id="nav-friends" onclick="app.nav('friends')"><span class="nav-icon">👥</span><span>Друзья</span></div>
-    <div class="nav-btn" id="nav-more" onclick="app.nav('more')"><span class="nav-icon">品</span><span>Ещё</span></div>
+    <div class="nav-item active" id="nav-mint" onclick="app.nav('mint')">
+      <img src="/icons/ton.svg" style="filter:invert(1);" alt="" />
+      <span>Минт</span>
+    </div>
+    <div class="nav-item" id="nav-cases" onclick="app.nav('cases')">
+      <img src="/icons/cases.svg" style="filter:invert(1);" alt="" />
+      <span>Боксы</span>
+    </div>
+    <div class="nav-item" id="nav-vault" onclick="app.nav('vault')">
+      <img src="/icons/vault.svg" style="filter:invert(1);" alt="" />
+      <span>Сейф</span>
+    </div>
+    <div class="nav-item" id="nav-market" onclick="app.nav('market')">
+      <img src="/icons/market.svg" style="filter:invert(1);" alt="" />
+      <span>Аукцион</span>
+    </div>
+    <div class="nav-item" id="nav-rocket" onclick="app.nav('rocket')">
+      <span style="font-size:18px;line-height:20px;">🚀</span>
+      <span>Ракетка</span>
+    </div>
+    <div class="nav-item" id="nav-top" onclick="app.nav('top')">
+      <img src="/icons/top.svg" style="filter:invert(1);" alt="" />
+      <span>Топ</span>
+    </div>
   </nav>
+
   <script>
+    // Синяя галочка верификации Telegram
+    function getVerifiedSvg() {
+      return `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;flex-shrink:0;"><path d="M12 2L14.8 4.5L18.5 4.2L19.8 7.7L23 9.7L21.7 13.2L23 16.7L19.8 18.7L18.5 22.2L14.8 21.9L12 24.4L9.2 21.9L5.5 22.2L4.2 18.7L1 16.7L2.3 13.2L1 9.7L4.2 7.7L5.5 4.2L9.2 4.5L12 2Z" fill="#24A1DE"/><path d="M9.5 12.5L11.2 14.2L15.2 10.2" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+    }
+
     const app = {
       userId: 10001,
-      username: 'Player',
+      username: 'Founder',
       s: null,
-      spinCount: 5,
-      upgChance: 50,
-      craftSel: [],
-      // Чтение настройки сокращения нулей прямо на старте из localStorage
-      compact: localStorage.getItem('mt_compact_bal') === '1',
+      itemType: 'username',
+      spinMult: 1,
+      craftMode: false,
+      craftSelected: [],
+      raffleTimerInterval: null,
+      cfg: {
+        // ИСПРАВЛЕНО: чтение compact_bal прямо при инициализации из localStorage!
+        compact_bal: localStorage.getItem('mt_compact_bal') === '1'
+      },
 
       async init() {
         const tg = window.Telegram?.WebApp;
         if (tg) {
-          tg.ready(); tg.expand();
+          tg.ready();
+          tg.expand();
           if (tg.initDataUnsafe?.user) {
             this.userId = tg.initDataUnsafe.user.id;
             this.username = tg.initDataUnsafe.user.username || tg.initDataUnsafe.user.first_name || 'Player';
           }
         } else {
-          const saved = localStorage.getItem('mt_uid');
-          if (saved) this.userId = parseInt(saved);
-          else { this.userId = Math.floor(100000 + Math.random() * 900000); localStorage.setItem('mt_uid', this.userId); }
+          const savedId = localStorage.getItem('mt_uid');
+          if (savedId) this.userId = parseInt(savedId);
+          else {
+            this.userId = Math.floor(100000 + Math.random() * 900000);
+            localStorage.setItem('mt_uid', this.userId);
+          }
         }
 
-        document.getElementById('tgl-compact')?.classList.toggle('on', this.compact);
+        // Синхронизируем состояние переключателей в UI
+        document.getElementById('tgl-compact_bal')?.classList.toggle('on', this.cfg.compact_bal);
+        if (localStorage.getItem('mt_theme') === 'light') {
+          this.toggleTheme(true);
+        }
+
         await this.loadState();
         this.drawRocketFrame(1.0, 0, false);
 
-        // Живой таймер аукциона и автообновление пассивного дохода
-        setInterval(() => {
-          if (this.s?.user?.income_per_sec > 0) {
-            this.s.user.balance += this.s.user.income_per_sec;
-            document.getElementById('hudBal').innerText = this.fmt(this.s.user.balance);
-          }
-          if (this.s?.raffle) {
+        // Живой таймер обратного отсчета для аукциона
+        this.raffleTimerInterval = setInterval(() => {
+          if (this.s && this.s.raffle) {
             if (this.s.raffle.seconds_left > 0) {
               this.s.raffle.seconds_left--;
-              const m = String(Math.floor(this.s.raffle.seconds_left / 60)).padStart(2, '0');
-              const sec = String(this.s.raffle.seconds_left % 60).padStart(2, '0');
-              document.getElementById('rafTimer').innerText = `${m}:${sec}`;
-            } else { this.loadState(); }
+              this.updateRaffleTimerUI();
+            } else {
+              this.loadState();
+            }
           }
         }, 1000);
       },
 
-      fmt(num) {
+      formatCompact(num) {
         const n = Number(num || 0);
-        if (!this.compact) return Math.floor(n).toLocaleString('ru-RU');
+        if (!this.cfg.compact_bal) return Math.floor(n).toLocaleString('ru-RU');
         if (n >= 1e9) return (n / 1e9).toFixed(2) + 'B';
         if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
         if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
         return Math.floor(n).toString();
       },
 
-      async toggleCompact() {
-        this.compact = !this.compact;
-        localStorage.setItem('mt_compact_bal', this.compact ? '1' : '0');
-        document.getElementById('tgl-compact')?.classList.toggle('on', this.compact);
-        await fetch('/api/user/pref', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, compact_pref: this.compact ? 1 : 0 })
-        });
+      toggleSetting(key) {
+        this.cfg[key] = !this.cfg[key];
+        document.getElementById('tgl-' + key)?.classList.toggle('on', this.cfg[key]);
+        if (key === 'compact_bal') {
+          localStorage.setItem('mt_compact_bal', this.cfg.compact_bal ? '1' : '0');
+        }
         this.renderAll();
+      },
+
+      toggleTheme(forceLight = false) {
+        const b = document.body;
+        if (forceLight) b.classList.add('light-theme');
+        else b.classList.toggle('light-theme');
+        const isL = b.classList.contains('light-theme');
+        localStorage.setItem('mt_theme', isL ? 'light' : 'dark');
+        document.getElementById('tgl-theme')?.classList.toggle('on', isL);
+      },
+
+      openSettings() {
+        document.getElementById('settingsModal').classList.add('show');
+      },
+
+      nav(tab) {
+        document.querySelectorAll('.view-sec').forEach(el => el.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+        document.getElementById('view-' + tab)?.classList.add('active');
+        document.getElementById('nav-' + tab)?.classList.add('active');
+        if (tab === 'rocket') this.drawRocketFrame(1.0, 0, false);
       },
 
       async loadState() {
-        const res = await fetch('/api/state', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, username: this.username })
-        });
-        this.s = await res.json();
-        if (localStorage.getItem('mt_compact_bal') === null && this.s?.user?.compact_pref === 1) {
-          this.compact = true;
-          localStorage.setItem('mt_compact_bal', '1');
+        try {
+          const res = await fetch('/api/state', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, username: this.username })
+          });
+          this.s = await res.json();
+          this.renderAll();
+        } catch (e) {
+          console.error('State error:', e);
         }
-        document.getElementById('tgl-compact')?.classList.toggle('on', this.compact);
-        this.renderAll();
-      },
-
-      openSubChannel() {
-        const ch = (this.s?.sub_gate?.channel || '@durov').replace('@', '');
-        const url = `https://t.me/${ch}`;
-        if (window.Telegram?.WebApp?.openTelegramLink) window.Telegram.WebApp.openTelegramLink(url);
-        else window.open(url, '_blank');
-      },
-
-      async checkSubGate() {
-        const res = await fetch('/api/sub/check', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, username: this.username })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Подписка не найдена!');
-        document.getElementById('subGateModal').classList.remove('show');
-        if (d.bonus > 0) alert(`🎉 Начислено +${d.bonus.toLocaleString()} GRAM за подписку!`);
-        await this.loadState();
       },
 
       renderAll() {
         if (!this.s) return;
         const u = this.s.user;
+        document.getElementById('topBal').innerText = this.formatCompact(u.balance) + ' G';
+        document.getElementById('pityTxt').innerText = `Гарант: ${u.pity_counter || 0} / 50`;
 
-        if (this.s.sub_gate?.enabled && !this.s.sub_gate?.is_subscribed) {
-          document.getElementById('subChannelName').innerText = this.s.sub_gate.channel;
-          document.getElementById('subGateModal').classList.add('show');
+        // Отображение удачи
+        const luckBadge = document.getElementById('topLuckBadge');
+        if (u.luck_multi > 1.0 && this.s.luck_remaining > 0) {
+          const mins = Math.ceil(this.s.luck_remaining / 60);
+          luckBadge.innerText = `🍀 Удача x${u.luck_multi} (${mins}м)`;
+          luckBadge.style.color = '#10b981';
         } else {
-          document.getElementById('subGateModal').classList.remove('show');
+          luckBadge.innerText = `Удача x1.0`;
+          luckBadge.style.color = 'var(--text-secondary)';
         }
 
+        // Страна
         const cMap = this.s.countries || {};
-        document.getElementById('hudFlag').innerText = cMap[u.country_code]?.flag || '🇷🇺';
-        document.getElementById('hudLevel').innerText = `УР.${u.level || 1}`;
-        document.getElementById('hudLuck').innerText = `x${Number(u.luck_multi || 1).toFixed(2)}`;
-        document.getElementById('hudStars').innerText = `${u.stars_balance || 0} +`;
-        document.getElementById('hudInc').innerText = `Доход +${this.fmt(u.income_per_sec || 0)}/с`;
-        document.getElementById('hudBal').innerText = this.fmt(u.balance);
+        const curC = cMap[u.country_code];
+        document.getElementById('topCountryFlag').innerText = curC ? curC.flag : '🌐';
+        document.getElementById('curPhoneTxt').innerText = u.national_phone || 'Бесплатный первый выбор';
 
-        const p = (u.pity_counter || 0) % 10;
-        document.getElementById('regPityTxt').innerText = `${p}/10`;
-        document.getElementById('pityBar').innerHTML = Array.from({ length: 10 }, (_, i) =>
-          `<div class="pity-seg ${i < p ? 'filled' : ''}"></div>`
-        ).join('');
-
-        document.getElementById('bankDepVal').innerText = `${this.fmt(u.bank_deposit || 0)} G`;
-        document.getElementById('pvpWinsTxt').innerText = u.pvp_wins || 0;
-        document.getElementById('subsCntTxt').innerText = (u.subs_count || 0).toLocaleString();
-        document.getElementById('subsMultTxt').innerText = `Буст дохода x${u.subs_mult || 1.0}`;
-
-        this.syncControls();
-        this.renderDrops();
-        this.renderBoxes();
-        this.renderStorage();
-        this.renderUpgraderAndCraft();
-        this.renderRaffle();
-        this.renderP2PMarket();
-        this.renderTop();
-        this.renderAchievements();
-
-        const cSel = document.getElementById('countrySel');
-        if (cSel && cSel.options.length === 0) {
-          Object.entries(cMap).forEach(([k, v]) => {
-            const o = document.createElement('option');
-            o.value = k; o.innerText = `${v.flag} ${v.name} (${v.prefix})`;
-            cSel.appendChild(o);
+        const sel = document.getElementById('countrySelect');
+        if (sel && sel.options.length === 0) {
+          Object.entries(cMap).forEach(([code, info]) => {
+            const opt = document.createElement('option');
+            opt.value = code;
+            opt.innerText = `${info.flag} ${info.name} (${info.prefix})`;
+            sel.appendChild(opt);
           });
         }
-        if (u.country_code) cSel.value = u.country_code;
+        if (u.country_code) sel.value = u.country_code;
+
+        this.updateSpinBtn();
+        this.renderCases();
+        this.renderVault();
+        this.renderRaffle();
+        this.renderMarket();
+        this.renderLeaderboard();
       },
 
-      switchPlayMode(m) {
-        ['username', 'number', 'rocket'].forEach(k => document.getElementById('mtab-' + k)?.classList.toggle('active', k === m));
-        document.getElementById('subplay-spinner').style.display = (m === 'username' || m === 'number') ? 'block' : 'none';
-        document.getElementById('subplay-boxes').style.display = m === 'boxes' ? 'block' : 'none';
-        document.getElementById('subplay-rocket').style.display = m === 'rocket' ? 'block' : 'none';
-        if (m === 'username' || m === 'number') {
-          document.getElementById('selType').value = m;
-          this.syncControls();
-        }
-        if (m === 'rocket') this.drawRocketFrame(1.0, 0, false);
-      },
-
-      switchStorageTab(t) {
-        ['safe', 'upgrader', 'craft'].forEach(k => {
-          document.getElementById('stab-' + k)?.classList.toggle('active', k === t);
-          document.getElementById('substorage-' + k).style.display = k === t ? 'block' : 'none';
+      setItemType(t) {
+        this.itemType = t;
+        ['username', 'number', 'gift'].forEach(k => {
+          document.getElementById('type-' + k)?.classList.toggle('active', k === t);
         });
+        this.updateSpinBtn();
       },
 
-      switchMktTab(t) {
-        ['raffle', 'p2p', 'bank'].forEach(k => {
-          document.getElementById('mkt-' + k)?.classList.toggle('active', k === t);
-          document.getElementById('submkt-' + k).style.display = k === t ? 'block' : 'none';
+      setSpinMult(m) {
+        this.spinMult = m;
+        [1, 5, 10].forEach(k => {
+          document.getElementById('mult-' + k)?.classList.toggle('active', k === m);
         });
+        this.updateSpinBtn();
       },
 
-      switchFriendsTab(t) {
-        ['pvp', 'channel', 'top'].forEach(k => {
-          document.getElementById('ftab-' + k)?.classList.toggle('active', k === t);
-          document.getElementById('subfriends-' + k).style.display = k === t ? 'block' : 'none';
-        });
+      getSpinCost() {
+        const base = { username: 1500, number: 35000, gift: 75000 }[this.itemType] || 1500;
+        return base * this.spinMult;
       },
 
-      switchMoreTab(t) {
-        ['ach', 'cfg'].forEach(k => {
-          document.getElementById('etab-' + k)?.classList.toggle('active', k === t);
-          document.getElementById('submore-' + k).style.display = k === t ? 'block' : 'none';
-        });
-      },
-
-      toggleMult() {
-        this.spinCount = this.spinCount === 5 ? 1 : 5;
-        document.getElementById('multBtn').innerText = `${this.spinCount}x`;
-        this.syncControls();
-      },
-
-      syncControls() {
-        const pk = document.getElementById('selPack').value;
-        const pInfo = (this.s?.pack_tiers || {})[pk] || { name: 'LUXURY+', cost: 3500000 };
-        document.getElementById('regPackLabel').innerText = pInfo.name;
-        const total = pInfo.cost * this.spinCount;
-        document.getElementById('spinBtnCost').innerText = `${this.fmt(total)} GRAM`;
+      updateSpinBtn() {
+        const cost = this.getSpinCost();
+        document.getElementById('spinCostTxt').innerText = `(${this.formatCompact(cost)} G)`;
+        const btn = document.getElementById('mainSpinBtn');
+        const lack = this.s && this.s.user.balance < cost;
+        btn.classList.toggle('lack', lack);
       },
 
       async doSpin() {
-        const item_type = document.getElementById('selType').value;
-        const pack_tier = document.getElementById('selPack').value;
-        const res = await fetch('/api/spin', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_type, pack_tier, count: this.spinCount })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        await this.loadState();
-      },
-
-      renderDrops() {
-        const box = document.getElementById('dropsContainer');
-        const list = this.s?.recent_drops || [];
-        if (list.length === 0) {
-          box.innerHTML = `<div style="text-align:center;color:#64748b;padding:55px 10px;font-size:13px;">Нажмите «КРУТИТЬ ЕЩЁ», чтобы сгенерировать партию тегов или NFT!</div>`;
-          return;
+        try {
+          const res = await fetch('/api/spin', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, item_type: this.itemType, mult: this.spinMult })
+          });
+          const data = await res.json();
+          if (!res.ok) return alert(data.detail || 'Ошибка');
+          await this.loadState();
+          this.showDropModal(data.item);
+        } catch (e) {
+          alert('Ошибка сети');
         }
-        box.innerHTML = list.map(item => {
-          const rColor = (this.s.rarities[item.tier] || {}).color || '#22d3ee';
-          return `
-            <div class="drop-card" style="border-left-color:${rColor};">
-              <div class="drop-info">
-                <div class="drop-tag" style="color:${rColor};">
-                  ${item.icon_url ? `<img src="${item.icon_url}" style="width:24px;height:24px;border-radius:6px;object-fit:cover;" onerror="this.style.display='none'"/>` : ''}
-                  <span>${item.tag}</span>
-                </div>
-                <div class="drop-sub">${item.rarity_name} • +${this.fmt(item.income)}/с • ${item.quality}%</div>
-              </div>
-              <div class="drop-btns">
-                <button class="btn-to-safe" onclick="app.toSafe(${item.id})">В Сейф</button>
-                <button class="btn-sell-now" onclick="app.sellItem(${item.id})">+${this.fmt(item.price)}</button>
-              </div>
-            </div>
-          `;
-        }).join('');
       },
 
-      async toSafe(id) {
-        await fetch('/api/item/to_safe', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_id: id })
-        });
-        await this.loadState();
+      getVisualHtml(item, heightPx = 135) {
+        const rInfo = (this.s?.rarities || [])[item.tier] || { name: 'Common', color: '#94a3b8' };
+        const bgStyle = item.backdrop_file
+          ? `background-image: url('${item.backdrop_file}');`
+          : `background: radial-gradient(circle, ${rInfo.color}33, #090d16);`;
+
+        let centerArt = '';
+        if (item.type === 'gift') {
+          const imgSrc = item.icon_url || '/assets/genesis-pepe.webp';
+          centerArt = `<img src="${imgSrc}" class="main-art" alt="${item.tag}" />`;
+        } else if (item.type === 'number') {
+          centerArt = `<div style="z-index:2;font-weight:900;font-size:15px;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.8);padding:6px 10px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid ${rInfo.color};">📞 ${item.tag}</div>`;
+        } else {
+          centerArt = `<div style="z-index:2;font-weight:900;font-size:16px;color:#fff;text-shadow:0 4px 12px rgba(0,0,0,0.8);padding:6px 12px;border-radius:8px;background:rgba(0,0,0,0.45);border:1px solid ${rInfo.color};">${item.tag}</div>`;
+        }
+
+        return `
+          <div class="nft-visual" style="height:${heightPx}px;${bgStyle}">
+            <span class="tier-badge" style="color:${rInfo.color};border-color:${rInfo.color}55;">${rInfo.name}</span>
+            ${centerArt}
+            ${item.backdrop ? `<span class="backdrop-pill">🎨 ${item.backdrop}</span>` : ''}
+          </div>
+        `;
       },
 
-      async sellItem(id) {
-        await fetch('/api/item/sell', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_id: id })
-        });
-        await this.loadState();
+      showDropModal(item) {
+        const rInfo = (this.s?.rarities || [])[item.tier] || { name: 'Common', color: '#94a3b8' };
+        document.getElementById('dropModalVisual').outerHTML = this.getVisualHtml(item, 175).replace('class="nft-visual"', 'id="dropModalVisual" class="nft-visual" style="height:175px;border-radius:12px;margin-bottom:12px;"');
+        const tierEl = document.getElementById('dropModalTier');
+        tierEl.innerText = `${rInfo.name} Tier #${item.tier}`;
+        tierEl.style.color = rInfo.color;
+        document.getElementById('dropModalTitle').innerHTML = `${item.tag} ${item.verified ? getVerifiedSvg() : ''}`;
+        document.getElementById('dropModalMeta').innerText = item.model_name ? `Модель: ${item.model_name} • Фон: ${item.backdrop}` : `Фон: ${item.backdrop || 'Classic'}`;
+        document.getElementById('dropModalPrice').innerText = `Оценка: ${this.formatCompact(item.price)} G`;
+        document.getElementById('dropModal').classList.add('show');
       },
 
-      renderBoxes() {
-        const grid = document.getElementById('boxesGrid');
+      renderCases() {
+        const grid = document.getElementById('casesGrid');
         if (!grid || !this.s?.cases) return;
         grid.innerHTML = Object.values(this.s.cases).map(c => `
-          <div class="case-card">
-            <div class="case-art">
-              <img src="${c.img}" alt="${c.name}" onerror="this.outerHTML='<div style=font-size:44px>📦</div>'" />
+          <div class="nft-card">
+            <div class="nft-visual" style="background:radial-gradient(circle, ${c.accent}28, #06080d);">
+              <span class="tier-badge" style="color:${c.accent};">BOX</span>
+              <img src="${c.img}" class="main-art" alt="${c.name}" />
             </div>
-            <div class="case-body">
-              <div style="font-size:14px;font-weight:900;">${c.name}</div>
-              <div style="font-size:11px;color:#64748b;line-height:1.35;">${c.desc}</div>
-              <div style="font-size:14px;font-weight:900;color:#fbbf24;margin-top:auto;">${this.fmt(c.price)} G</div>
-              <button class="btn-to-safe" style="width:100%;margin-top:6px;" onclick="app.openCase('${c.id}')">Открыть Бокс</button>
+            <div class="nft-body">
+              <div class="nft-title">${c.name}</div>
+              <div class="nft-meta" style="line-height:1.35;">${c.desc}</div>
+              <div class="nft-price" style="margin-top:6px;">${this.formatCompact(c.price)} G</div>
+              <button class="btn-primary" style="margin-top:6px;padding:9px;font-size:12px;" onclick="app.openCase('${c.id}')">Открыть Бокс</button>
             </div>
           </div>
         `).join('');
       },
 
-      async openCase(cid) {
-        const res = await fetch('/api/case/open', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, case_id: cid })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        alert(`🎉 Выпало: ${d.item.tag}\nРедкость: ${d.item.rarity_name}\nОценка: ${this.fmt(d.item.price)} G\nПредмет отправлен в Хранилище!`);
-        await this.loadState();
+      async openCase(caseId) {
+        try {
+          const res = await fetch('/api/case/open', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, case_id: caseId })
+          });
+          const data = await res.json();
+          if (!res.ok) return alert(data.detail || 'Ошибка открытия кейса');
+          await this.loadState();
+          this.showDropModal(data.item);
+        } catch (e) {
+          alert('Ошибка соединения');
+        }
       },
 
-      renderStorage() {
-        const inv = this.s?.inventory || [];
-        document.getElementById('safeCountTxt').innerText = `${inv.length} предм.`;
+      renderVault() {
+        const grid = document.getElementById('vaultGrid');
+        if (!grid || !this.s) return;
+        const inv = this.s.inventory || [];
+        const totalVal = inv.reduce((acc, x) => acc + Number(x.price || 0), 0);
+        document.getElementById('vaultStatsTxt').innerText = `Предметов: ${inv.length} | Оценка: ${this.formatCompact(totalVal)} G`;
 
-        // Витрина Славы (3 слота)
-        const showItems = inv.filter(x => x.in_showcase === 1);
-        document.getElementById('showcaseCount').innerText = `${showItems.length}/3`;
-        const sGrid = document.getElementById('showcaseGrid');
-        sGrid.innerHTML = Array.from({ length: 3 }, (_, idx) => {
-          const it = showItems[idx];
-          if (!it) return `<div class="showcase-slot"><span style="font-size:20px;opacity:0.4;">🏆</span><span style="font-size:10px;color:#64748b;margin-top:4px;">Пустой слот</span></div>`;
-          return `
-            <div class="showcase-slot" style="border-style:solid;border-color:#fbbf24;cursor:pointer;" onclick="app.toggleShowcase(${it.id})">
-              <div style="font-size:11px;font-weight:900;color:#fbbf24;overflow:hidden;text-overflow:ellipsis;max-width:100%;">${it.tag}</div>
-              <div style="font-size:10px;color:var(--green);margin-top:4px;">+${this.fmt(it.income * 1.25)}/с</div>
-              <div style="font-size:9px;color:#94a3b8;margin-top:4px;">Снять ✕</div>
-            </div>
-          `;
-        }).join('');
-
-        const box = document.getElementById('storageList');
         if (inv.length === 0) {
-          box.innerHTML = `<div style="text-align:center;color:#64748b;padding:40px 10px;font-size:13px;">В Хранилище пусто. Сохраняйте выгодные теги кнопкой «В Сейф»!</div>`;
+          grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">Сейф пуст. Сминтите первый артефакт или откройте NFT Gift Box!</div>`;
           return;
         }
-        box.innerHTML = inv.map(item => {
-          const rColor = (this.s.rarities[item.tier] || {}).color || '#22d3ee';
+
+        grid.innerHTML = inv.map(item => {
+          const isSel = this.craftSelected.includes(item.id);
           return `
-            <div class="drop-card" style="border-left-color:${rColor};background-image:url('${item.backdrop_file || ''}');background-size:cover;">
-              <div class="drop-info">
-                <div class="drop-tag" style="color:#fff;">
-                  ${item.icon_url ? `<img src="${item.icon_url}" style="width:26px;height:26px;border-radius:6px;object-fit:cover;" onerror="this.style.display='none'"/>` : ''}
-                  <span>${item.tag} ${item.verified ? '☑️' : ''}</span>
-                </div>
-                <div class="drop-sub" style="color:#cbd5e1;">${item.rarity_name} • Доход +${this.fmt(item.income)}/с</div>
-              </div>
-              <div class="drop-btns">
-                <button class="btn-mini" onclick="app.toggleShowcase(${item.id})">${item.in_showcase ? '★ В Славе' : '☆ Слава'}</button>
-                <button class="btn-mini" onclick="app.verifyItem(${item.id})">☑️ Вериф</button>
-                <button class="btn-mini" onclick="app.listMarket(${item.id}, ${item.price})">🛒 Маркет</button>
-                <button class="btn-mini" style="color:#ef4444;" onclick="app.shredItem(${item.id})">♻️</button>
-                <button class="btn-sell-now" onclick="app.sellItem(${item.id})">+${this.fmt(item.price)}</button>
+            <div class="nft-card" style="${isSel ? 'border:2px solid var(--gold);' : ''}">
+              ${this.getVisualHtml(item)}
+              <div class="nft-body">
+                <div class="nft-title">${item.tag} ${item.verified ? getVerifiedSvg() : ''}</div>
+                <div class="nft-meta">${item.model_name ? `Модель: ${item.model_name}` : `Тип: ${item.type.toUpperCase()}`}</div>
+                <div class="nft-price">${this.formatCompact(item.price)} G</div>
+                ${this.craftMode ? `
+                  <button class="btn-sm" style="margin-top:6px;background:${isSel ? 'var(--gold)' : 'var(--surface-2)'};color:${isSel ? '#000' : 'var(--text)'};" onclick="app.selectForCraft(${item.id})">
+                    ${isSel ? '✓ Выбрано' : '+ В крафт'}
+                  </button>
+                ` : `
+                  <div class="nft-actions">
+                    <button class="btn-sm" onclick="app.sellItem(${item.id})">Продать</button>
+                    <button class="btn-sm" style="color:var(--cyan);" onclick="app.verifyItem(${item.id})">${item.verified ? 'Вериф. ✓' : 'Галочка'}</button>
+                  </div>
+                  <button class="btn-sm" style="width:100%;margin-top:4px;" onclick="app.listOnMarket(${item.id}, ${item.price})">На Маркет</button>
+                `}
               </div>
             </div>
           `;
         }).join('');
       },
 
-      async toggleShowcase(id) {
-        const res = await fetch('/api/item/showcase', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+      toggleCraftMode() {
+        this.craftMode = !this.craftMode;
+        this.craftSelected = [];
+        document.getElementById('craftNotice').style.display = this.craftMode ? 'block' : 'none';
+        document.getElementById('craftCount').innerText = '0';
+        this.renderVault();
+      },
+
+      selectForCraft(id) {
+        const idx = this.craftSelected.indexOf(id);
+        if (idx >= 0) this.craftSelected.splice(idx, 1);
+        else if (this.craftSelected.length < 3) this.craftSelected.push(id);
+        document.getElementById('craftCount').innerText = this.craftSelected.length;
+        this.renderVault();
+      },
+
+      async executeCraft() {
+        if (this.craftSelected.length !== 3) return alert('Выберите ровно 3 предмета!');
+        const res = await fetch('/api/craft', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, item_ids: this.craftSelected })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка крафта');
+        this.craftMode = false;
+        this.craftSelected = [];
+        document.getElementById('craftNotice').style.display = 'none';
+        await this.loadState();
+        this.showDropModal(data.item);
+      },
+
+      async sellItem(id) {
+        const res = await fetch('/api/item/sell', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: this.userId, item_id: id })
         });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        await this.loadState();
+        if (res.ok) await this.loadState();
       },
 
       async verifyItem(id) {
         const res = await fetch('/api/item/verify', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: this.userId, item_id: id })
         });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка');
         await this.loadState();
       },
 
-      async shredItem(id) {
-        const res = await fetch('/api/item/shred', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_id: id })
+      async listOnMarket(id, basePrice) {
+        const val = prompt('Укажите цену продажи в GRAM:', Math.floor(basePrice * 1.2));
+        if (!val) return;
+        const res = await fetch('/api/market/list', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, item_id: id, price: Number(val) })
         });
-        const d = await res.json();
-        if (res.ok) {
-          alert(`♻️ Предмет распылен! Удача повышена до x${d.new_luck} на 1 час!`);
-          await this.loadState();
-        }
+        if (res.ok) await this.loadState();
       },
 
-      async listMarket(id, baseP) {
-        const p = prompt('Цена продажи на Маркете (GRAM):', Math.floor(baseP * 1.25));
-        if (!p) return;
-        await fetch('/api/market/list', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_id: id, price: Number(p) })
-        });
-        await this.loadState();
+      switchMarketTab(tab) {
+        document.getElementById('mktTab-auction').classList.toggle('active', tab === 'auction');
+        document.getElementById('mktTab-lots').classList.toggle('active', tab === 'lots');
+        document.getElementById('subview-auction').style.display = tab === 'auction' ? 'block' : 'none';
+        document.getElementById('subview-lots').style.display = tab === 'lots' ? 'block' : 'none';
       },
 
-      renderUpgraderAndCraft() {
-        const inv = this.s?.inventory || [];
-        const uSel = document.getElementById('upgItemSelect');
-        if (uSel) {
-          uSel.innerHTML = inv.length
-            ? inv.map(x => `<option value="${x.id}">${x.tag} (${x.rarity_name} — ${this.fmt(x.price)} G)</option>`).join('')
-            : `<option value="">Нет предметов в Сейфе</option>`;
-        }
-
-        const cList = document.getElementById('craftItemsList');
-        if (cList) {
-          cList.innerHTML = inv.map(x => {
-            const sel = this.craftSel.includes(x.id);
-            return `
-              <div class="drop-card" style="border-left-color:${sel ? '#fbbf24' : '#334155'};cursor:pointer;" onclick="app.toggleCraftItem(${x.id})">
-                <div class="drop-info">
-                  <div class="drop-tag">${x.tag}</div>
-                  <div class="drop-sub">${x.rarity_name}</div>
-                </div>
-                <div style="font-weight:900;color:${sel ? '#fbbf24' : '#64748b'};">${sel ? '✓ ВЫБРАНО' : '+ ВЫБРАТЬ'}</div>
-              </div>
-            `;
-          }).join('');
-        }
-      },
-
-      setUpgChance(c) {
-        this.upgChance = c;
-        [25, 50, 75].forEach(k => document.getElementById('uch-' + k)?.classList.toggle('active', k === c));
-        document.getElementById('upgChanceTxt').innerText = `Шанс ${c}%`;
-      },
-
-      async doUpgrade() {
-        const item_id = Number(document.getElementById('upgItemSelect').value || 0);
-        if (!item_id) return alert('Выберите предмет из Сейфа!');
-        const res = await fetch('/api/upgrade', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_id, chance_pct: this.upgChance })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        if (d.won) alert(`⚡ УСПЕХ! Предмет улучшен до: ${d.item.tag} (${d.item.rarity_name})!`);
-        else alert(`💥 Неудача! Предмет сгорел при попытке апгрейда.`);
-        await this.loadState();
-      },
-
-      toggleCraftItem(id) {
-        const i = this.craftSel.indexOf(id);
-        if (i >= 0) this.craftSel.splice(i, 1);
-        else if (this.craftSel.length < 3) this.craftSel.push(id);
-        document.getElementById('craftSelCnt').innerText = this.craftSel.length;
-        this.renderUpgraderAndCraft();
-      },
-
-      async doCraft() {
-        if (this.craftSel.length !== 3) return alert('Выберите ровно 3 предмета!');
-        const res = await fetch('/api/craft', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, item_ids: this.craftSel })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        this.craftSel = [];
-        document.getElementById('craftSelCnt').innerText = '0';
-        alert(`⚒️ Скрафчен новый NFT: ${d.item.tag} (${d.item.rarity_name})!`);
-        await this.loadState();
+      updateRaffleTimerUI() {
+        const sec = this.s?.raffle?.seconds_left || 0;
+        const m = String(Math.floor(sec / 60)).padStart(2, '0');
+        const s = String(sec % 60).padStart(2, '0');
+        const el = document.getElementById('rafTimerTxt');
+        if (el) el.innerText = `${m}:${s}`;
       },
 
       renderRaffle() {
         const r = this.s?.raffle;
         if (!r) return;
-        document.getElementById('rafId').innerText = r.round_id;
-        document.getElementById('rafPot').innerText = `${this.fmt(r.pot)} G`;
-        document.getElementById('rafTotalT').innerText = r.total_tickets;
+        document.getElementById('rafRoundId').innerText = r.round_id;
+        document.getElementById('rafPotTxt').innerText = this.formatCompact(r.pot) + ' G';
+        document.getElementById('rafTotalTickets').innerText = r.total_tickets;
+        this.updateRaffleTimerUI();
 
-        const pBox = document.getElementById('rafParts');
-        pBox.innerHTML = (!r.participants || r.participants.length === 0)
-          ? `<div style="font-size:12px;color:#64748b;">Ставок пока нет. Купите билет первым!</div>`
-          : r.participants.map(p => `
-              <div style="display:flex;justify-content:space-between;font-size:12px;padding:6px 0;border-bottom:1px solid var(--border);">
-                <span>👤 ${p.username}</span>
-                <span style="color:#fbbf24;font-weight:800;">🎟️ ${p.tickets} бил. (${p.chance}% шанс)</span>
-              </div>
-            `).join('');
-
-        const hBox = document.getElementById('rafHistory');
-        if (hBox) {
-          hBox.innerHTML = (!r.history || r.history.length === 0)
-            ? `<div style="font-size:11px;color:#64748b;">История появится после завершения раунда.</div>`
-            : r.history.map(h => `
-                <div style="display:flex;justify-content:space-between;font-size:11px;padding:4px 0;">
-                  <span>Раунд #${h.round_id}: <b>${h.winner_name}</b></span>
-                  <span style="color:var(--green);font-weight:800;">+${this.fmt(h.win_amount)} G (${h.win_chance}%)</span>
+        const pList = document.getElementById('rafParticipantsList');
+        if (!r.participants || r.participants.length === 0) {
+          pList.innerHTML = `<div style="font-size:12px;color:var(--text-secondary);text-align:center;padding:10px;">Пока никто не купил билеты. Купи первым и забери весь банк!</div>`;
+        } else {
+          pList.innerHTML = r.participants.map(p => `
+            <div class="part-row">
+              <div style="flex:1;">
+                <div style="display:flex;justify-content:space-between;font-weight:700;">
+                  <span>👤 ${p.username} ${p.user_id === this.userId ? '(Вы)' : ''}</span>
+                  <span style="color:var(--gold);">🎟️ ${p.tickets} бил. (${p.chance}%)</span>
                 </div>
-              `).join('');
+                <div class="chance-bar"><div class="chance-fill" style="width:${p.chance}%;"></div></div>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        const hList = document.getElementById('rafHistoryList');
+        if (!r.history || r.history.length === 0) {
+          hList.innerHTML = `<div style="font-size:11px;color:var(--text-secondary);">История розыгрышей появится после завершения первого раунда.</div>`;
+        } else {
+          hList.innerHTML = r.history.map(h => `
+            <div class="part-row">
+              <span>Раунд #${h.round_id}: <b>${h.winner_name}</b></span>
+              <span style="color:var(--emerald);font-weight:800;">+${this.formatCompact(h.win_amount)} G (${h.win_chance}%)</span>
+            </div>
+          `).join('');
         }
       },
 
-      async buyTickets(cnt) {
+      async buyRaffleTickets(count) {
         const res = await fetch('/api/raffle/buy', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, username: this.username, tickets_count: cnt })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, username: this.username, tickets_count: count })
         });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка покупки билетов');
         await this.loadState();
       },
 
-      renderP2PMarket() {
-        const box = document.getElementById('p2pList');
-        const lots = this.s?.market || [];
-        if (!box) return;
+      renderMarket() {
+        const grid = document.getElementById('marketGrid');
+        if (!grid || !this.s) return;
+        const lots = this.s.market || [];
         if (lots.length === 0) {
-          box.innerHTML = `<div style="font-size:12px;color:#64748b;text-align:center;padding:24px;">На Маркете пока нет лотов. Выставите свой предмет из Хранилища!</div>`;
+          grid.innerHTML = `<div class="card" style="grid-column:1/-1;text-align:center;color:var(--text-secondary);">На маркете пока нет активных лотов. Выставите предмет из Сейфа!</div>`;
           return;
         }
-        box.innerHTML = lots.map(item => `
-          <div class="drop-card">
-            <div class="drop-info">
-              <div class="drop-tag">${item.tag} ${item.verified ? '☑️' : ''}</div>
-              <div class="drop-sub">${item.rarity_name} • Доход +${this.fmt(item.income)}/с</div>
+        grid.innerHTML = lots.map(item => `
+          <div class="nft-card">
+            ${this.getVisualHtml(item)}
+            <div class="nft-body">
+              <div class="nft-title">${item.tag} ${item.verified ? getVerifiedSvg() : ''}</div>
+              <div class="nft-meta">${item.model_name || item.type.toUpperCase()}</div>
+              <div class="nft-price">${this.formatCompact(item.market_price)} G</div>
+              <button class="btn-primary" style="margin-top:6px;padding:8px;font-size:11px;" onclick="app.buyMarketLot(${item.id})">
+                ${item.owner_id === this.userId ? 'Снять с продажи' : 'Купить лот'}
+              </button>
             </div>
-            <button class="btn-to-safe" onclick="app.buyMarketLot(${item.id})">
-              ${item.owner_id === this.userId ? 'Снять' : `Купить ${this.fmt(item.market_price)} G`}
-            </button>
           </div>
         `).join('');
       },
 
       async buyMarketLot(id) {
         const res = await fetch('/api/market/buy', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: this.userId, item_id: id })
         });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка');
         await this.loadState();
       },
 
-      async bankAct(action) {
-        const amount = Number(document.getElementById('bankInp').value || 0);
-        const res = await fetch('/api/bank/action', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, action, amount })
+      async changeCountry() {
+        const code = document.getElementById('countrySelect').value;
+        const res = await fetch('/api/country/select', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, country_code: code })
         });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка смены страны');
         await this.loadState();
       },
 
-      async doPvpBattle() {
-        const bet_gram = Number(document.getElementById('pvpBetInp').value || 0);
-        const res = await fetch('/api/pvp/battle', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, bet_gram })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        const box = document.getElementById('pvpResultBox');
-        box.style.color = d.won ? '#10b981' : '#ef4444';
-        box.innerText = d.won
-          ? `🏆 ПОБЕДА над ${d.enemy}! Вы забрали +${this.fmt(d.profit)} GRAM!`
-          : `💀 Поражение в бою с ${d.enemy} (${this.fmt(d.profit)} G)`;
-        await this.loadState();
-      },
-
-      async channelAct(action) {
-        const text_val = document.getElementById('clanInp')?.value || '';
-        const res = await fetch('/api/channel/action', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, action, text_val })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        await this.loadState();
-      },
-
-      renderAchievements() {
-        const box = document.getElementById('achList');
-        if (!box || !this.s) return;
-        const claimed = this.s.claimed_achs || [];
-        box.innerHTML = (this.s.achievements || []).map(a => {
-          const done = claimed.includes(a.id);
-          return `
-            <div class="drop-card" style="border-left-color:${done ? '#10b981' : '#f59e0b'};">
-              <div class="drop-info">
-                <div class="drop-tag" style="color:#fff;">🏅 ${a.title}</div>
-                <div class="drop-sub">${a.desc} • Награда: +${this.fmt(a.reward_g)} G и ⭐${a.reward_s}</div>
-              </div>
-              <button class="btn-to-safe" style="opacity:${done ? 0.5 : 1};" onclick="app.claimAch('${a.id}')">
-                ${done ? 'Получено ✓' : 'Забрать'}
-              </button>
-            </div>
-          `;
-        }).join('');
-      },
-
-      async claimAch(ach_id) {
-        const res = await fetch('/api/ach/claim', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, ach_id })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Еще не выполнено');
-        alert(`🏅 Достижение выполнено! +${this.fmt(d.reward_g)} GRAM и +${d.reward_s} ⭐!`);
-        await this.loadState();
-      },
-
-      async redeemPromo() {
-        const code = document.getElementById('promoCodeInp').value;
-        if (!code) return;
-        const res = await fetch('/api/promo/redeem', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, code })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        alert(`🎉 Промокод активирован! +${this.fmt(d.reward)} GRAM!`);
-        document.getElementById('promoCodeInp').value = '';
-        await this.loadState();
-      },
-
+      // ОТРИСОВКА РАКЕТКИ С ПОЛНОЦЕННЫМ ВЕКТОРНЫМ КОРАБЛЕМ И ПЛАМЕНЕМ
       drawRocketFrame(mult, elapsedSec, crashed = false) {
         const canvas = document.getElementById('rocketCanvas');
         if (!canvas) return;
@@ -1134,101 +954,139 @@
         const w = canvas.width, h = canvas.height;
         ctx.clearRect(0, 0, w, h);
 
-        const prog = Math.min(1, elapsedSec / 4.0);
-        const rx = 40 + prog * (w - 95);
-        const ry = (h - 30) - Math.pow(prog, 1.35) * (h - 75);
+        // Сетка координат
+        ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+        ctx.lineWidth = 1;
+        for (let x = 40; x < w; x += 60) { ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, h); ctx.stroke(); }
+        for (let y = 30; y < h; y += 45) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(w, y); ctx.stroke(); }
 
+        const prog = Math.min(1, elapsedSec / 4.0);
+        const rx = 45 + prog * (w - 110);
+        const ry = (h - 35) - Math.pow(prog, 1.35) * (h - 85);
+
+        // Линия траектории
         ctx.beginPath();
-        ctx.moveTo(30, h - 25);
-        ctx.quadraticCurveTo(rx * 0.55, h - 25, rx, ry);
-        ctx.strokeStyle = crashed ? '#ef4444' : '#18b779';
+        ctx.moveTo(35, h - 30);
+        ctx.quadraticCurveTo(rx * 0.55, h - 30, rx, ry);
+        ctx.strokeStyle = crashed ? '#ef4444' : '#24a1de';
         ctx.lineWidth = 3.5;
         ctx.stroke();
 
-        ctx.font = '26px sans-serif';
-        ctx.fillText(crashed ? '💥' : '🚀', rx - 14, ry + 10);
+        // Векторный корпус ракеты на конце графика
+        ctx.save();
+        ctx.translate(rx, ry);
+        ctx.rotate(Math.PI / 4);
 
+        if (!crashed) {
+          // Пламя из сопла
+          ctx.beginPath();
+          ctx.moveTo(-6, 10);
+          ctx.lineTo(0, 22 + Math.random() * 10);
+          ctx.lineTo(6, 10);
+          ctx.closePath();
+          ctx.fillStyle = '#f59e0b';
+          ctx.fill();
+        }
+
+        // Крылья
+        ctx.fillStyle = crashed ? '#ef4444' : '#24a1de';
+        ctx.beginPath();
+        ctx.moveTo(-12, 10); ctx.lineTo(-6, 0); ctx.lineTo(-6, 10);
+        ctx.moveTo(12, 10); ctx.lineTo(6, 0); ctx.lineTo(6, 10);
+        ctx.fill();
+
+        // Корпус ракеты
+        ctx.beginPath();
+        ctx.moveTo(0, -18);
+        ctx.lineTo(8, 10);
+        ctx.lineTo(-8, 10);
+        ctx.closePath();
+        ctx.fillStyle = crashed ? '#7f1d1d' : '#f8fafc';
+        ctx.fill();
+
+        // Иллюминатор
+        ctx.beginPath();
+        ctx.arc(0, -3, 3.2, 0, Math.PI * 2);
+        ctx.fillStyle = '#24a1de';
+        ctx.fill();
+        ctx.restore();
+
+        // Крупный множитель в центре
         ctx.fillStyle = crashed ? '#ef4444' : '#ffffff';
-        ctx.font = '900 30px Inter, sans-serif';
+        ctx.font = '900 34px Inter, sans-serif';
         ctx.textAlign = 'center';
-        ctx.fillText(mult.toFixed(2) + 'x', w / 2, 55);
+        ctx.fillText(mult.toFixed(2) + 'x', w / 2, 65);
       },
 
       async playRocket() {
-        const bet = Number(document.getElementById('rBet').value || 0);
-        const target = Number(document.getElementById('rMult').value || 2.0);
-        const btn = document.getElementById('rBtn');
+        const bet = Number(document.getElementById('rocketBetInp').value || 0);
+        const target = Number(document.getElementById('rocketMultInp').value || 2.0);
+        const btn = document.getElementById('rocketPlayBtn');
         btn.disabled = true;
 
         const res = await fetch('/api/rocket/play', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ user_id: this.userId, bet, cashout_mult: target })
         });
-        const d = await res.json();
-        if (!res.ok) { btn.disabled = false; return alert(d.detail || 'Ошибка'); }
+        const data = await res.json();
+        if (!res.ok) {
+          btn.disabled = false;
+          return alert(data.detail || 'Ошибка');
+        }
 
-        const endM = d.won ? target : d.crash_point;
+        const endMult = data.won ? target : data.crash_point;
         const start = performance.now();
-        const anim = (now) => {
-          const p = Math.min(1, (now - start) / 1600);
-          const cur = 1.0 + (endM - 1.0) * p;
-          this.drawRocketFrame(cur, p * 3.8, p === 1 && !d.won);
-          if (p < 1) requestAnimationFrame(anim);
+        const duration = 1800;
+
+        const animate = (now) => {
+          const p = Math.min(1, (now - start) / duration);
+          const curM = 1.0 + (endMult - 1.0) * p;
+          this.drawRocketFrame(curM, p * 3.8, p === 1 && !data.won);
+          if (p < 1) requestAnimationFrame(animate);
           else {
-            document.getElementById('rocketMsg').innerText = d.won ? `+${this.fmt(d.profit)} G!` : `Краш ${d.crash_point}x`;
+            document.getElementById('rocketStatusTxt').innerText = data.won
+              ? `✅ Победа! +${this.formatCompact(data.profit)} G (Краш был на ${data.crash_point}x)`
+              : `💥 Взрыв на ${data.crash_point}x!`;
             btn.disabled = false;
             this.loadState();
           }
         };
-        requestAnimationFrame(anim);
+        requestAnimationFrame(animate);
       },
 
-      renderTop() {
-        const box = document.getElementById('topList');
-        const list = this.s?.leaderboard || [];
-        const cMap = this.s?.countries || {};
-        box.innerHTML = list.map((r, i) => `
-          <div class="drop-card" style="border-left-color:#fbbf24;">
-            <div class="drop-info">
-              <div class="drop-tag" style="color:#fff;">
-                #${i + 1} ${cMap[r.country_code]?.flag || '🇷🇺'} ${r.username} ${r.clan_name ? `[${r.clan_name}]` : ''}
+      renderLeaderboard() {
+        const box = document.getElementById('leaderboardList');
+        if (!box || !this.s) return;
+        const list = this.s.leaderboard || [];
+        const cMap = this.s.countries || {};
+        box.innerHTML = list.map((r, i) => {
+          const flag = cMap[r.country_code]?.flag || '🌐';
+          const netWorth = Number(r.balance || 0) + Number(r.inv_val || 0);
+          return `
+            <div class="part-row">
+              <div style="display:flex;align-items:center;gap:8px;font-weight:700;">
+                <span style="color:var(--gold);width:22px;">#${i + 1}</span>
+                <span>${flag} ${r.username}</span>
+                ${r.has_verified ? getVerifiedSvg() : ''}
               </div>
-              <div class="drop-sub">УР.${Math.max(1, Math.floor((r.xp || 100) / 100))} • Сабов: ${(r.subs_count || 0).toLocaleString()}</div>
+              <div style="font-weight:800;color:var(--emerald);">${this.formatCompact(netWorth)} G</div>
             </div>
-            <div style="font-weight:900;color:var(--green);">${this.fmt(Number(r.balance) + Number(r.inv_val))} G</div>
-          </div>
-        `).join('');
-      },
-
-      async saveCountry() {
-        const code = document.getElementById('countrySel').value;
-        const res = await fetch('/api/country/select', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: this.userId, country_code: code })
-        });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        await this.loadState();
+          `;
+        }).join('');
       },
 
       async adminAct(action) {
-        const amount = Number(document.getElementById('admAmt').value || 0);
-        const text_val = document.getElementById('admChan').value || '';
+        const amount = Number(document.getElementById('admAmountInp').value || 0);
         const res = await fetch('/api/admin/action', {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ admin_id: this.userId, target_id: this.userId, action, amount, text_val })
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ admin_id: this.userId, target_id: this.userId, action, amount })
         });
-        const d = await res.json();
-        if (!res.ok) return alert(d.detail || 'Ошибка');
-        alert(d.message);
+        const data = await res.json();
+        if (!res.ok) return alert(data.detail || 'Ошибка');
+        alert(data.message);
         await this.loadState();
-      },
-
-      nav(tab) {
-        ['play', 'storage', 'market', 'friends', 'more'].forEach(t => {
-          document.getElementById('view-' + t)?.classList.toggle('active', t === tab);
-          document.getElementById('nav-' + t)?.classList.toggle('active', t === tab);
-        });
       }
     };
 
