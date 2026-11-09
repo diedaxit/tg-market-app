@@ -12,6 +12,7 @@ from urllib.parse import parse_qsl
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from aiogram.types import LabeledPrice, InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from bot import bot, APP_URL
@@ -26,9 +27,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Раздача папок с картинками, иконками и фонами с GitHub
+if os.path.isdir("assets"):
+    app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+if os.path.isdir("icons"):
+    app.mount("/icons", StaticFiles(directory="icons"), name="icons")
+if os.path.isdir("backdrops"):
+    app.mount("/backdrops", StaticFiles(directory="backdrops"), name="backdrops")
+
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 DB_NAME = "market.db"
 NEWS_CHANNEL = "@MintTags_News"
+COUNTRY_CHANGE_FEE_GRAM = 500000.0
 
 # СПИСОК ГЛАВНЫХ РАЗРАБОТЧИКОВ (ПОЛНЫЙ ДОСТУП К АДМИНКЕ В НАСТРОЙКАХ)
 ADMIN_USERNAMES = {"hatebeinsober21"}
@@ -116,11 +126,11 @@ def get_db():
     return ConnWrapper(raw, False, False)
 
 # ==========================================
-# ЧЕСТНАЯ ВОЛАТИЛЬНАЯ ЭКОНОМИКА (БЕЗ ГАРАНТИРОВАННОГО ОКУПА 90%, КАЧЕЛИ 0.45x - 1.65x + ПРОК ТИРА ВЫШЕ)
+# ЧЕСТНАЯ ВОЛАТИЛЬНАЯ ЭКОНОМИКА
 # ==========================================
 BASE_PRICE_GRAM = 50.0
 DIVINE_SERVER_LIMIT = 75
-MAX_PASSIVE_PER_SEC = 2000000.0  # Потолок поднят с 350К до 2,000,000 G/с для эндгейма!
+MAX_PASSIVE_PER_SEC = 2000000.0
 VIP_STYLE_COST_GRAM = 50000000.0
 
 RARITIES = [
@@ -137,24 +147,24 @@ RARITIES = [
 ]
 
 SPIN_TIERS = {
-    "tier_0": {"min_idx": 0, "u_cost": 600,      "n_cost": 45000,     "title": "Обычный+"},
-    "tier_1": {"min_idx": 1, "u_cost": 2200,     "n_cost": 140000,    "title": "Необычный+"},
-    "tier_2": {"min_idx": 2, "u_cost": 8500,     "n_cost": 450000,    "title": "Редкий+"},
-    "tier_3": {"min_idx": 3, "u_cost": 35000,    "n_cost": 1800000,   "title": "Эпический+"},
-    "tier_4": {"min_idx": 4, "u_cost": 160000,   "n_cost": 7500000,   "title": "Легендарный+"},
-    "tier_5": {"min_idx": 5, "u_cost": 750000,   "n_cost": 32000000,  "title": "Мифический+"},
-    "tier_6": {"min_idx": 6, "u_cost": 3500000,  "n_cost": 120000000, "title": "Luxury+"}
+    "tier_0": {"min_idx": 0, "u_cost": 600,     "n_cost": 45000,     "title": "Обычный+"},
+    "tier_1": {"min_idx": 1, "u_cost": 2200,    "n_cost": 140000,    "title": "Необычный+"},
+    "tier_2": {"min_idx": 2, "u_cost": 8500,    "n_cost": 450000,    "title": "Редкий+"},
+    "tier_3": {"min_idx": 3, "u_cost": 35000,   "n_cost": 1800000,   "title": "Эпический+"},
+    "tier_4": {"min_idx": 4, "u_cost": 160000,  "n_cost": 7500000,   "title": "Легендарный+"},
+    "tier_5": {"min_idx": 5, "u_cost": 750000,  "n_cost": 32000000,  "title": "Мифический+"},
+    "tier_6": {"min_idx": 6, "u_cost": 3500000, "n_cost": 120000000, "title": "Luxury+"}
 }
 
 COUNTRIES = {
-    "RU": {"name": "Россия",     "flag": "🇷🇺", "prefix": "+7 9"},
-    "UA": {"name": "Украина",    "flag": "🇺🇦", "prefix": "+380 9"},
-    "BY": {"name": "Беларусь",   "flag": "🇧🇾", "prefix": "+375 29"},
-    "KZ": {"name": "Казахстан",  "flag": "🇰🇿", "prefix": "+7 70"},
-    "UZ": {"name": "Узбекистан", "flag": "🇺🇿", "prefix": "+998 90"},
-    "US": {"name": "США",        "flag": "🇺🇸", "prefix": "+1 305"},
-    "AE": {"name": "ОАЭ (Дубай)","flag": "🇦🇪", "prefix": "+971 50"},
-    "CN": {"name": "Китай",      "flag": "🇨🇳", "prefix": "+86 13"}
+    "RU": {"name": "Россия",      "flag": "🇷🇺", "prefix": "+7 9"},
+    "UA": {"name": "Украина",     "flag": "🇺🇦", "prefix": "+380 9"},
+    "BY": {"name": "Беларусь",    "flag": "🇧🇾", "prefix": "+375 29"},
+    "KZ": {"name": "Казахстан",   "flag": "🇰🇿", "prefix": "+7 70"},
+    "UZ": {"name": "Узбекистан",  "flag": "🇺🇿", "prefix": "+998 90"},
+    "US": {"name": "США",         "flag": "🇺🇸", "prefix": "+1 305"},
+    "AE": {"name": "ОАЭ (Дубай)", "flag": "🇦🇪", "prefix": "+971 50"},
+    "CN": {"name": "Китай",       "flag": "🇨🇳", "prefix": "+86 13"}
 }
 
 def generate_national_phone(country_code: str) -> str:
@@ -166,7 +176,7 @@ def generate_national_phone(country_code: str) -> str:
     return f"{pref}{random.randint(10,99)} {random.randint(100,999)} {random.randint(10,99)}{random.randint(10,99)}"
 
 # ==========================================
-# МАССОВЫЙ ПУЛ ЖИВЫХ НИКОВ СНГ/МИРА (БЕЗ ТУПЫХ GOLD_23231 И TON3!)
+# МАССОВЫЙ ПУЛ ЖИВЫХ НИКОВ СНГ/МИРА
 # ==========================================
 WORDS = {
     "Divine": [
@@ -175,7 +185,7 @@ WORDS = {
         "bugatti", "ferrari", "dubai", "monaco", "trillion", "genesis", "founder", "emperor", "absolute", "immortal",
         "dollar", "crypto", "wallet", "market", "exchange", "diamond", "platinum", "olympus", "paradise", "infinity",
         "qatar", "riyadh", "london", "manhattan", "wallstreet", "nasdaq", "openai", "nvidia", "amazon", "microsoft",
-        "youtube", "tiktok", "instagram", "whatsapp", "discord", "twitch", "netflix", "spotify", "playstation", " gta6",
+        "youtube", "tiktok", "instagram", "whatsapp", "discord", "twitch", "netflix", "spotify", "playstation", "gta6",
         "madrid", "barcelona", "ronaldo", "messi", "mbappe", "ufc", "champion", "goat", "legendary", "supreme"
     ],
     "Exclusive": [
@@ -256,13 +266,15 @@ GIFT_CATALOG = {
 }
 
 # ==========================================
-# БОКСЫ И КЕЙСЫ (С ALL-IN ЗА 10K G И ПОВЫШЕННЫМ ОКУПОМ ДОНАТНЫХ БОКСОВ!)
+# БОКСЫ И КЕЙСЫ (ФИКС ALL-IN: НИКАКИХ ОБЫЧНЫХ НОМЕРОВ +888 НА ТИРЕ 0!)
 # ==========================================
 CASES_CATALOG = {
     "case_all_in": {
         "title": "ALL-IN БОКС (ВСЁ ИЛИ НИЧЕГО)",
-        "sub": "99.89% Обычный мусор • 0.111% Божественный или Эксклюзив!",
-        "curr": "gram", "price": 10000, "types": ["username", "number", "gift"],
+        "sub": "99.89% Обычный @username • 0.111% Божественный или Эксклюзив!",
+        "curr": "gram", "price": 10000,
+        "types": ["username"],  # На тире 0 падают только дешевые @username (260-980 G)!
+        "jackpot_types": ["username", "number", "gift"],  # Номера +888 и Пепе только при джекпоте (тиры 8 и 9)!
         "weights": {0: 99889, 8: 80, 9: 31}
     },
     "case_tag_start": {
@@ -506,7 +518,6 @@ def init_db():
     except Exception:
         if conn.is_pg: conn.conn.rollback()
 
-    # Фикс бага с качеством > 100% и старых кривых суффиксов TON3 / GOLD5
     try:
         cur.execute("UPDATE usernames SET quality_pct = 100 WHERE quality_pct > 100")
         conn.commit()
@@ -526,7 +537,43 @@ RATE_BUCKETS = {}
 TX_LOCKS = set()
 ACTIVE_ROCKETS = {}
 ACTIVE_MINES = {}
-LOTTERY_STATE = {"pot": 1500000.0, "last_winner": "@durov", "last_win_amount": 4250000.0}
+# Расширенный стейт лотереи / денежного аукциона с участниками и таймером раунда
+LOTTERY_STATE = {
+    "round_id": 1,
+    "pot": 1500000.0,
+    "ends_at": int(time.time()) + 180,
+    "participants": {},  # uid -> {"username": str, "tickets": int}
+    "last_winner": "@durov",
+    "last_win_amount": 4250000.0,
+    "last_win_chance": 38.5
+}
+
+def check_and_roll_lottery_round(cur):
+    now = int(time.time())
+    if now >= LOTTERY_STATE["ends_at"]:
+        parts = LOTTERY_STATE["participants"]
+        tot_tix = sum(p["tickets"] for p in parts.values())
+        if tot_tix > 0:
+            pick = random.uniform(0, tot_tix)
+            acc = 0
+            win_uid = list(parts.keys())[0]
+            for uid_k, p_info in parts.items():
+                acc += p_info["tickets"]
+                if pick <= acc:
+                    win_uid = uid_k
+                    break
+            w_info = parts[win_uid]
+            win_sum = round(LOTTERY_STATE["pot"] * 0.95)
+            win_ch = round((w_info["tickets"] / tot_tix) * 100, 1)
+            cur.execute("UPDATE users SET balance = balance + ?, lottery_tickets = 0 WHERE tg_user_id = ?", (win_sum, win_uid))
+            cur.execute("UPDATE users SET lottery_tickets = 0")
+            LOTTERY_STATE["last_winner"] = w_info["username"]
+            LOTTERY_STATE["last_win_amount"] = win_sum
+            LOTTERY_STATE["last_win_chance"] = win_ch
+        LOTTERY_STATE["round_id"] += 1
+        LOTTERY_STATE["pot"] = 1000000.0
+        LOTTERY_STATE["ends_at"] = now + 180
+        LOTTERY_STATE["participants"] = {}
 
 def is_user_admin(uid: int, uname: str = "") -> bool:
     clean = (uname or "").strip().lower().replace("@", "")
@@ -616,7 +663,7 @@ def get_active_merchant_offer():
     return pick
 
 # ==========================================
-# ГЕНЕРАТОРЫ ПРЕДМЕТОВ (БЕЗ TON3/GOLD5 И С ЖЕСТКИМ КАПОМ КАЧЕСТВА 100%)
+# ГЕНЕРАТОРЫ ПРЕДМЕТОВ
 # ==========================================
 def generate_nft_gift_fragment(r_obj: dict, quality_override: int = None, force_blackout: bool = False):
     rarity_name = r_obj["name"]
@@ -804,7 +851,6 @@ def roll_single_candidate_fast(cur, item_type: str, tier_key: str, luck: float, 
 
     rar_idx = max(min_idx, rar_idx)
 
-    # Лимит Divine: не более 75 на сервере и максимум 1 Divine в руки одному игроку!
     if rar_idx == 9 and cur is not None:
         cur.execute("SELECT COUNT(*) FROM usernames WHERE rarity = 'Divine' AND is_saved = 1")
         div_cnt = cur.fetchone()[0] or 0
@@ -819,7 +865,6 @@ def roll_single_candidate_fast(cur, item_type: str, tier_key: str, luck: float, 
     return fast_build_item_in_memory(item_type, rar_idx, luck)
 
 def ensure_unique_tag_clean(cur, cand: dict):
-    """Никаких TON3, GOLD5 и прочего мусора! Генерируем только чистые номера и живые ники."""
     cur.execute("SELECT 1 FROM usernames WHERE tag = ?", (cand["tag"],))
     if not cur.fetchone():
         return cand
@@ -850,7 +895,6 @@ def ensure_unique_tag_clean(cur, cand: dict):
     return cand
 
 def calc_subs_and_multiplier(subs_count: int) -> float:
-    """До 1,000,000 подписчиков = множитель до x10.0!"""
     s = min(1000000, max(0, int(subs_count or 0)))
     if s <= 0:
         return 1.0
@@ -873,13 +917,17 @@ def process_passive_income(cur, user_id: int):
     now = int(time.time())
     cur.execute("""
         SELECT balance, last_claim, smm_lvl, buyer_lvl, ai_boost, vip_until, clan_id, ref_by,
-               tax_shield_until, tax_raid_amount, tax_raid_deadline, unlocked_titles
+               tax_shield_until, tax_raid_amount, tax_raid_deadline, unlocked_titles, luck_until
         FROM users WHERE tg_user_id = ?
     """, (user_id,))
     u = cur.fetchone()
     if not u: return 0.0
     (balance, last_claim, smm, buyer, ai_b, vip_until, clan_id, ref_by,
-     tax_until, raid_amt, raid_dl, titles_raw) = u
+     tax_until, raid_amt, raid_dl, titles_raw, luck_u) = u
+
+    # Автоматический сброс истекшей удачи в БД
+    if (luck_u or 0) > 0 and now >= luck_u:
+        cur.execute("UPDATE users SET luck_multi = 1.0, luck_until = 0 WHERE tg_user_id = ?", (user_id,))
 
     if last_claim <= 0:
         cur.execute("UPDATE users SET last_claim = ? WHERE tg_user_id = ?", (now, user_id))
@@ -888,14 +936,12 @@ def process_passive_income(cur, user_id: int):
     elapsed = min(max(0, now - last_claim), 43200)
     if elapsed < 2: return 0.0
 
-    # Случайный спавн налоговой облавы ОБЭП с фиксацией суммы и таймером 24 часа!
     if vip_until <= now and tax_until <= now and (raid_dl or 0) <= now:
         if random.random() < 0.20 and balance >= 25000:
             raid_amt = max(2500.0, round(balance * 0.10))
             raid_dl = now + 86400
             cur.execute("UPDATE users SET tax_raid_amount = ?, tax_raid_deadline = ? WHERE tg_user_id = ?", (raid_amt, raid_dl, user_id))
 
-    # Начисляем подписчиков на активные каналы (~1.66 саба/сек -> ~6000 за час -> 1M за ~7 дней)
     cur.execute("""
         SELECT tag, income_per_sec, subs_count
         FROM usernames
@@ -913,7 +959,6 @@ def process_passive_income(cur, user_id: int):
         ch_inc_total += float(base_inc or 0.0) * sub_mult
         cur.execute("UPDATE usernames SET subs_count = ? WHERE tag = ? AND owner_id = ?", (new_subs, tag, user_id))
 
-    # Авто-выдача титулов за подписчиков (10K, 50K, 1M)
     titles_list = json.loads(titles_raw or '["Магнат"]')
     changed_t = False
     if max_subs_seen >= 10000 and "Начинающий" not in titles_list:
@@ -1034,10 +1079,10 @@ async def check_channel_sub(uid: int):
     is_sub = False
     try:
         member = await bot.get_chat_member(chat_id=NEWS_CHANNEL, user_id=uid)
-        if member.status in ["member", "administrator", "creator"]:
+        if member.status in ["member", "administrator", "creator", "restricted"]:
             is_sub = True
     except Exception:
-        is_sub = True
+        is_sub = False
 
     if is_sub:
         conn = get_db(); cur = conn.cursor()
@@ -1104,6 +1149,7 @@ def get_state(uid: int, uname: str = ""):
     conn = get_db(); cur = conn.cursor()
     now = int(time.time())
     settle_expired_auctions(cur)
+    check_and_roll_lottery_round(cur)
     process_passive_income(cur, uid)
     conn.commit()
 
@@ -1210,6 +1256,14 @@ def get_state(uid: int, uname: str = ""):
     pass_lvl, pass_cur_xp, pass_req_xp = get_pass_level_info(s_xp or 0)
     raid_active = ((raid_dl or 0) > now) and ((raid_amt or 0) > 0) and not is_vip
 
+    # Формирование участников лотереи с процентами шанса
+    l_parts_raw = LOTTERY_STATE["participants"]
+    tot_lot_tix = sum(p["tickets"] for p in l_parts_raw.values())
+    l_parts_list = [{
+        "uid": k, "username": v["username"], "tickets": v["tickets"],
+        "chance": round((v["tickets"] / tot_lot_tix) * 100, 1) if tot_lot_tix > 0 else 0.0
+    } for k, v in sorted(l_parts_raw.items(), key=lambda x: x[1]["tickets"], reverse=True)]
+
     return {
         "is_admin": is_user_admin(uid, uname or db_uname),
         "member_number": mem_num, "balance": round(bal, 2), "stars_balance": int(stars_bal or 0),
@@ -1245,7 +1299,17 @@ def get_state(uid: int, uname: str = ""):
         "duel_wins": d_wins or 0,
         "gears": gears or 0, "repair_kits": rep_kits or 0, "lockpicks": lockpicks or 0,
         "museum_tags": json.loads(mus_tags or "[]"), "museum_likes": mus_likes or 0,
-        "lottery": {"my_tickets": lot_tix or 0, "pot": LOTTERY_STATE["pot"], "last_winner": LOTTERY_STATE["last_winner"], "last_win": LOTTERY_STATE["last_win_amount"]},
+        "lottery": {
+            "round_id": LOTTERY_STATE["round_id"],
+            "my_tickets": lot_tix or 0,
+            "total_tickets": tot_lot_tix,
+            "pot": LOTTERY_STATE["pot"],
+            "seconds_left": max(0, LOTTERY_STATE["ends_at"] - now),
+            "participants": l_parts_list,
+            "last_winner": LOTTERY_STATE["last_winner"],
+            "last_win": LOTTERY_STATE["last_win_amount"],
+            "last_chance": LOTTERY_STATE.get("last_win_chance", 100.0)
+        },
         "profile": {
             "color": n_col or "#f8fafc", "title": c_title or "Магнат", "frame": p_frame or "default",
             "unlocked_titles": json.loads(unl_titles or '["Магнат"]'),
@@ -1259,16 +1323,16 @@ def get_state(uid: int, uname: str = ""):
     }
 
 # ==========================================
-# СТРАНЫ, НАЦ. НОМЕРА И ПЕРЕДАЧА / АУКЦИОН НАЦ. НОМЕРА
+# СТРАНЫ И ПЛАТНАЯ СМЕНА СТРАНЫ (500,000 G)
 # ==========================================
 @app.post("/api/country/select")
 def select_or_change_country(data: ReqCountrySelect):
     if data.country_code not in COUNTRIES:
         raise HTTPException(400, "Выберите корректную страну")
     conn = get_db(); cur = conn.cursor()
-    cur.execute("SELECT country_code, national_phone FROM users WHERE tg_user_id = ?", (data.user_id,))
+    cur.execute("SELECT balance, country_code, national_phone FROM users WHERE tg_user_id = ?", (data.user_id,))
     row = cur.fetchone()
-    old_cc, old_phone = row[0] or "", row[1] or ""
+    bal, old_cc, old_phone = float(row[0] or 0.0), (row[1] or "").strip(), (row[2] or "").strip()
 
     if data.mask_nft_tag:
         if data.mask_nft_tag == "CLEAR":
@@ -1286,8 +1350,15 @@ def select_or_change_country(data: ReqCountrySelect):
         conn.commit(); conn.close()
         return {"status": "ok", "masked_by_nft": data.mask_nft_tag}
 
+    # ИСПРАВЛЕНО: первый выбор страны бесплатный, повторная смена стоит 500,000 GRAM!
     new_phone = old_phone
     if old_cc != data.country_code or not old_phone:
+        if old_cc != "" and old_cc != data.country_code:
+            if bal < COUNTRY_CHANGE_FEE_GRAM:
+                conn.close()
+                raise HTTPException(400, f"Смена страны стоит {int(COUNTRY_CHANGE_FEE_GRAM):,} GRAM!")
+            cur.execute("UPDATE users SET balance = balance - ? WHERE tg_user_id = ?", (COUNTRY_CHANGE_FEE_GRAM, data.user_id))
+
         new_phone = generate_national_phone(data.country_code)
         cur.execute("UPDATE users SET country_code = ?, national_phone = ?, masked_by_nft = '' WHERE tg_user_id = ?",
                     (data.country_code, new_phone, data.user_id))
@@ -1318,7 +1389,6 @@ def transfer_or_sell_national_phone(data: ReqNatPhoneTransfer):
         conn.commit(); conn.close()
         return {"status": "ok", "message": f"Номер {my_phone} выставлен на аукцион! Вам выдан новый номер {new_random_phone}."}
 
-    # Прямая передача земляку из той же страны за 500,000,000 GRAM
     fee = 500000000.0
     if bal < fee:
         conn.close(); raise HTTPException(400, "Стоимость прямой передачи номера игроку своей страны — 500,000,000 GRAM!")
@@ -1338,7 +1408,7 @@ def transfer_or_sell_national_phone(data: ReqNatPhoneTransfer):
     return {"status": "ok", "message": f"Номер {my_phone} передан игроку @{target_clean}!"}
 
 # ==========================================
-# СТОРИСЫ TELEGRAM (500,000 G × УРОВЕНЬ ИГРОКА)
+# СТОРИСЫ TELEGRAM
 # ==========================================
 @app.post("/api/story/claim")
 def claim_story_reward(data: ReqSimple):
@@ -1469,11 +1539,10 @@ def mint(data: ReqMint):
         conn.close()
 
 # ==========================================
-# БОКСЫ (ОТКРЫТИЕ x1, x5, x10 ЗА GRAM ИЛИ С БАЛАНСА STARS!)
+# БОКСЫ (С ФИКСОМ ALL-IN БОКСА!)
 # ==========================================
 def roll_case_drop_fast(cur, case_key: str, luck: float = 1.0, user_id: int = 0):
     c_info = CASES_CATALOG[case_key]
-    itype = random.choice(c_info["types"])
     w_map = c_info["weights"]
     pool_c = []
     tot = 0
@@ -1501,8 +1570,13 @@ def roll_case_drop_fast(cur, case_key: str, luck: float = 1.0, user_id: int = 0)
         if div_cnt >= DIVINE_SERVER_LIMIT or has_div:
             picked_idx = 8
 
+    # ИСПРАВЛЕНО: в ALL-IN боксе на тире 0 падает только дешевый username (без номеров за 20K+)!
+    if case_key == "case_all_in":
+        itype = "username" if picked_idx == 0 else random.choice(c_info.get("jackpot_types", ["username", "number", "gift"]))
+    else:
+        itype = random.choice(c_info["types"])
+
     cand = ensure_unique_tag_clean(cur, fast_build_item_in_memory(itype, picked_idx, luck))
-    # Повышенная окупаемость донатных боксов за Stars!
     if c_info["curr"] == "stars":
         boost = 1.45 if case_key == "case_stars_lite" else (1.55 if case_key == "case_stars_founder" else 1.75)
         cand["sell"] = round(cand["sell"] * boost)
@@ -1511,7 +1585,10 @@ def roll_case_drop_fast(cur, case_key: str, luck: float = 1.0, user_id: int = 0)
     tape = []
     for _ in range(28):
         f_idx = random.choice(list(w_map.keys()))
-        f_type = random.choice(c_info["types"])
+        if case_key == "case_all_in":
+            f_type = "username" if f_idx == 0 else random.choice(c_info.get("jackpot_types", ["username", "number", "gift"]))
+        else:
+            f_type = random.choice(c_info["types"])
         f_item = fast_build_item_in_memory(f_type, f_idx, 1.0)
         tape.append({"tag": f_item["tag"], "rarity": f_item["rarity"], "type": f_type, "sell": f_item["sell"]})
     return cand, tape
@@ -1574,7 +1651,7 @@ def open_case_multi(data: ReqCaseOpen):
     return {"winner": winners[0], "winners": winners, "tape": last_tape, "balance": new_bal, "stars_balance": new_stars}
 
 # ==========================================
-# ОПТОВАЯ ПРОДАЖА И РЕСТАВРАЦИЯ (КАП 100%)
+# ОПТОВАЯ ПРОДАЖА И РЕСТАВРАЦИЯ
 # ==========================================
 @app.post("/api/bulk_sell")
 def bulk_sell_safe(data: ReqBulkSell):
@@ -1635,7 +1712,7 @@ def repair_worn_item(data: ReqRepair):
     return {"status": "ok", "new_q": 100, "new_sell": new_sell, "new_inc": new_inc, "cost": cost}
 
 # ==========================================
-# НАЛОГОВЫЙ РЕЙД ОБЭП С ФИКСИРОВАННОЙ СУММОЙ НА 24 ЧАСА
+# НАЛОГОВЫЙ РЕЙД ОБЭП
 # ==========================================
 @app.post("/api/tax_raid/resolve")
 def resolve_tax_raid(data: ReqTaxResolve):
@@ -1844,7 +1921,7 @@ def craft_items(data: ReqCraft):
 
     base_rar = rows[0][2]; itype = rows[0][1] or "username"
     avg_q = int(sum(min(100, (r[3] or 80)) for r in rows) / 5)
-    crafted_q = min(100, avg_q + 5)  # Жесткий лок на 100%!
+    crafted_q = min(100, avg_q + 5)
 
     rar_idx = next((i for i, r in enumerate(RARITIES) if r["name"] == base_rar), -1)
     if rar_idx < 0 or rar_idx >= len(RARITIES) - 1: conn.close(); raise HTTPException(400, "Этот тир нельзя улучшить крафтом")
@@ -1866,7 +1943,7 @@ def craft_items(data: ReqCraft):
     return {"burned": False, "item": {"tag": cand["tag"], "type": cand["type"], "rarity": cand["rarity"], "q": min(100, cand["quality"]), "inc": cand["inc"], "sell": cand["sell"]}}
 
 # ==========================================
-# РЫНОК И ЗВЕЗДНЫЙ АУКЦИОН (СВОЯ СТАВКА + ПРОДАЖА ПРЯМО ИЗ СПИСКА)
+# РЫНОК И ЗВЕЗДНЫЙ АУКЦИОН
 # ==========================================
 @app.post("/api/market/create")
 def market_create(data: ReqMarketCreate):
@@ -2125,7 +2202,7 @@ def tag_action(data: ReqAction):
     return {"status": "ok", "sold_for": sell_price, "slot": used_slot}
 
 # ==========================================
-# ПАСС 100 УРОВНЕЙ, СКИП УРОВНЯ ЗА STARS, ДНЯ/НЕДЕЛИ/АЧИВКИ/КОЛЛЕКЦИИ/КОЛЕСО
+# ПАСС 100 УРОВНЕЙ, КВЕСТЫ, АЧИВКИ, КОЛЛЕКЦИИ, КОЛЕСО
 # ==========================================
 @app.post("/api/pass/skip_level")
 def skip_pass_level_with_stars(data: ReqSimple):
@@ -2166,7 +2243,6 @@ def claim_quest_or_pass(data: ReqSimple):
     elif key == "q3" and qc >= 1 and "q3" not in q_cl: reward = 65000; add_s_xp = 50; q_cl.append("q3")
     elif key == "q4" and (qd or 0) >= 3 and "q4" not in q_cl: reward = 95000; add_s_xp = 60; q_cl.append("q4")
     elif key == "q_all" and all(x in q_cl for x in ["q1", "q2", "q3"]) and "q_all" not in q_cl: reward = 350000; add_s_xp = 120; q_cl.append("q_all")
-    # Недельные задания (х5-10 наград!)
     elif key == "w1" and (ws or 0) >= 300 and "w1" not in w_cl: reward = 1500000; add_s_xp = 250; w_cl.append("w1")
     elif key == "w2" and (wc or 0) >= 15 and "w2" not in w_cl: reward = 2500000; add_s_xp = 300; w_cl.append("w2")
     elif key == "w3" and (wd or 0) >= 25 and "w3" not in w_cl: reward = 3500000; add_stars = 10; add_s_xp = 400; w_cl.append("w3")
@@ -2256,7 +2332,6 @@ def claim_album(data: ReqSimple):
     conn.commit(); conn.close()
     return {"reward": reward}
 
-# КОЛЕСО ФОРТУНЫ С МАСШТАБИРОВАНИЕМ ОТ УРОВНЯ ИГРОКА!
 @app.post("/api/wheel_spin")
 def spin_wheel(data: ReqSimple):
     conn = get_db(); cur = conn.cursor()
@@ -2298,7 +2373,7 @@ def spin_wheel(data: ReqSimple):
     return {"prize_idx": picked["idx"], "title": picked["title"]}
 
 # ==========================================
-# МАГАЗИН ЗА БАЛАНС STARS + ПОПОЛНЕНИЕ STARS + ДОНАТ-ПРЕФИКС «БОГАТЫЙ»
+# МАГАЗИН ЗА БАЛАНС STARS
 # ==========================================
 PRICES = {
     "topup_stars_50":     {"title": "⭐️ Пополнение: +50 Stars на счет",   "price": 50},
@@ -2413,7 +2488,7 @@ def activate_donate(data: ReqSimple):
     return {"status": "ok", "drops": drops, "case_res": case_res}
 
 # ==========================================
-# ПРОЧИЕ ЭНДПОИНТЫ (КЛАНЫ, МУЗЕЙ, ЛОТЕРЕЯ, ШРЕДЕР, VIP-КАСТОМИЗАЦИЯ, ПРОМО)
+# КЛАНЫ, МУЗЕЙ, ЛОТЕРЕЯ С БИЛЕТАМИ И ТАЙМЕРОМ, ШРЕДЕР, ПРОМО
 # ==========================================
 @app.get("/api/clan/members/{clan_id}")
 def clan_get_members(clan_id: str):
@@ -2528,19 +2603,22 @@ def museum_like_player(data: ReqSimple):
 def lottery_buy_tickets(data: ReqLotteryBuy):
     cnt = max(1, min(100, data.count)); cost = cnt * 10000.0
     conn = get_db(); cur = conn.cursor()
+    check_and_roll_lottery_round(cur)
     cur.execute("SELECT balance, lottery_tickets, username FROM users WHERE tg_user_id = ?", (data.user_id,))
     bal, my_tix, uname = cur.fetchone()
     if bal < cost: conn.close(); raise HTTPException(400, f"Нужно {int(cost):,} GRAM!")
-    LOTTERY_STATE["pot"] += cost; new_tix = (my_tix or 0) + cnt
-    won_jackpot = False; win_sum = 0
-    if random.random() < min(0.25, cnt * 0.015):
-        won_jackpot = True; win_sum = round(LOTTERY_STATE["pot"])
-        LOTTERY_STATE["last_winner"] = uname or "Магнат"; LOTTERY_STATE["last_win_amount"] = win_sum
-        LOTTERY_STATE["pot"] = 1000000.0; new_tix = 0
-    new_bal = round(bal - cost + win_sum, 2)
+
+    LOTTERY_STATE["pot"] += cost
+    new_tix = (my_tix or 0) + cnt
+    p_dict = LOTTERY_STATE["participants"].get(data.user_id, {"username": uname or "Магнат", "tickets": 0})
+    p_dict["tickets"] += cnt
+    p_dict["username"] = uname or "Магнат"
+    LOTTERY_STATE["participants"][data.user_id] = p_dict
+
+    new_bal = round(bal - cost, 2)
     cur.execute("UPDATE users SET balance = ?, lottery_tickets = ?, season_xp = season_xp + ? WHERE tg_user_id = ?", (new_bal, new_tix, cnt * 5, data.user_id))
     conn.commit(); conn.close()
-    return {"status": "ok", "won_jackpot": won_jackpot, "win_sum": win_sum, "my_tickets": new_tix, "pot": LOTTERY_STATE["pot"], "balance": new_bal}
+    return {"status": "ok", "won_jackpot": False, "win_sum": 0, "my_tickets": new_tix, "pot": LOTTERY_STATE["pot"], "balance": new_bal}
 
 @app.post("/api/shredder/crush")
 def shredder_crush_items(data: ReqShredder):
@@ -2585,7 +2663,6 @@ def customize_vip_profile(data: ReqCustomize):
     bal, unl_raw = cur.fetchone()
     unl = json.loads(unl_raw or '["Магнат"]')
     clean_title = (data.custom_title or "Магнат").strip()[:18]
-    # Если выбирает уже открытый префикс из коллекции — бесплатно, иначе кастом за 50M G
     if clean_title not in unl:
         if bal < VIP_STYLE_COST_GRAM:
             conn.close(); raise HTTPException(400, f"Смена на кастомный VIP-титул стоит {int(VIP_STYLE_COST_GRAM):,} GRAM!")
@@ -2709,7 +2786,7 @@ def toggle_notify_merchant(data: ReqSimple):
     return {"notify_merchant": new_val}
 
 # ==========================================
-# СЕКРЕТНАЯ АДМИН-ПАНЕЛЬ ДЛЯ @hatebeinsober21
+# СЕКРЕТНАЯ АДМИН-ПАНЕЛЬ ДЛЯ @hatebeinsober21 (С ПОЛНЫМ СБРОСОМ УДАЧИ!)
 # ==========================================
 @app.post("/api/admin/execute")
 def admin_execute_action(data: ReqAdminAction):
@@ -2721,7 +2798,6 @@ def admin_execute_action(data: ReqAdminAction):
     if not is_user_admin(data.admin_id, data.admin_username or db_adm_uname):
         conn.close(); raise HTTPException(403, "Доступ закрыт: только для главного разработчика @hatebeinsober21!")
 
-    # Поиск цели по ID или @username (если пусто — выдает самому себе)
     q = (data.target_query or "").strip().replace("@", "")
     target_uid = data.admin_id
     if q:
@@ -2737,23 +2813,30 @@ def admin_execute_action(data: ReqAdminAction):
     now = int(time.time())
     msg = ""
     if data.action == "give_gram":
-        cur.execute("UPDATE users SET balance = balance + ? WHERE tg_user_id = ?", (data.amount, target_uid))
-        msg = f"✅ Начислено +{int(data.amount):,} GRAM игроку ID {target_uid}!"
+        cur.execute("UPDATE users SET balance = GREATEST(0, balance + ?) WHERE tg_user_id = ?" if conn.is_pg else "UPDATE users SET balance = MAX(0, balance + ?) WHERE tg_user_id = ?", (data.amount, target_uid))
+        msg = f"✅ Баланс изменен на {int(data.amount):,} GRAM игроку ID {target_uid}!"
     elif data.action == "give_stars":
         cur.execute("UPDATE users SET stars_balance = COALESCE(stars_balance,0) + ? WHERE tg_user_id = ?", (int(data.amount), target_uid))
         msg = f"⭐️ Начислено +{int(data.amount)} Stars на баланс игроку ID {target_uid}!"
     elif data.action == "give_vip":
-        cur.execute("UPDATE users SET vip_until = ? WHERE tg_user_id = ?", (now + int(data.amount * 86400), target_uid))
-        msg = f"👑 Выдан VIP на {int(data.amount)} дн. игроку ID {target_uid}!"
-    elif data.action == "give_luck":
-        mult = max(2.0, float(data.amount or 5.0))
-        cur.execute("UPDATE users SET luck_multi = ?, luck_until = ? WHERE tg_user_id = ?", (mult, now + 86400, target_uid))
-        msg = f"🍀 Выдана Удача ×{mult} на 24ч игроку ID {target_uid}!"
+        if data.amount <= 0:
+            cur.execute("UPDATE users SET vip_until = 0 WHERE tg_user_id = ?", (target_uid,))
+            msg = f"👑 VIP-статус снят у игрока ID {target_uid}!"
+        else:
+            cur.execute("UPDATE users SET vip_until = ? WHERE tg_user_id = ?", (now + int(data.amount * 86400), target_uid))
+            msg = f"👑 Выдан VIP на {int(data.amount)} дн. игроку ID {target_uid}!"
+    elif data.action in ["give_luck", "reset_luck"]:
+        val = 1.0 if data.action == "reset_luck" else float(data.amount or 0.0)
+        if val <= 1.0:
+            cur.execute("UPDATE users SET luck_multi = 1.0, luck_until = 0 WHERE tg_user_id = ?", (target_uid,))
+            msg = f"✅ Буст удачи полностью сброшен (×1.0) для ID {target_uid}!"
+        else:
+            cur.execute("UPDATE users SET luck_multi = ?, luck_until = ? WHERE tg_user_id = ?", (val, now + 86400, target_uid))
+            msg = f"🍀 Выдана Удача ×{val} на 24ч игроку ID {target_uid}!"
     elif data.action == "give_pass_xp":
         cur.execute("UPDATE users SET season_xp = season_xp + ? WHERE tg_user_id = ?", (int(data.amount), target_uid))
         msg = f"🎫 Начислено +{int(data.amount)} XP Сезонного Пасса!"
     elif data.action == "spawn_item":
-        # extra формата "Divine:@durov" или "Exclusive:+888 8 888"
         rar_name = data.extra.split(":")[0] if ":" in data.extra else "Divine"
         custom_tag = data.extra.split(":")[1].strip() if ":" in data.extra else "@durov"
         r_idx = next((i for i, r in enumerate(RARITIES) if r["name"].lower() == rar_name.lower()), 9)
