@@ -5,15 +5,15 @@ import json
 import random
 import sqlite3
 import urllib.request
-import zipfile
+import urllib.parse
 from typing import Optional, List, Dict, Any
 from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import HTMLResponse, JSONResponse, FileResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-app = FastAPI(title="MintTags Global Empire v4.0 Premium")
+app = FastAPI(title="MintTags Global Empire v5.0 Ultimate")
 
 app.add_middleware(
     CORSMiddleware,
@@ -23,20 +23,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# === АВТОМАТИЧЕСКАЯ ЗАГРУЗКА АССЕТОВ ===
-# Этот блок сам скачает и распакует картинки при старте сервера
-if not os.path.exists("assets"):
-    try:
-        print("Downloading assets...")
-        urllib.request.urlretrieve("https://github.com/diedaxit/tg-market-app/raw/main/MintTags-Global-Empire-v4-Full.zip", "assets.zip")
-        with zipfile.ZipFile("assets.zip", 'r') as zip_ref:
-            zip_ref.extractall(".")
-        os.remove("assets.zip")
-        print("Assets extracted successfully!")
-    except Exception as e:
-        print("Failed to download assets:", e)
-
-# Подключение папок с ассетами, иконками и фонами
 if os.path.isdir("assets"):
     app.mount("/assets", StaticFiles(directory="assets"), name="assets")
 if os.path.isdir("icons"):
@@ -45,7 +31,10 @@ if os.path.isdir("backdrops"):
     app.mount("/backdrops", StaticFiles(directory="backdrops"), name="backdrops")
 
 DB_PATH = os.getenv("DB_PATH", "minttags_empire.db")
-ADMIN_ID = int(os.getenv("ADMIN_ID", "0"))
+BOT_TOKEN = os.getenv("BOT_TOKEN", "")
+# Укажи юзернейм своего канала (например "@minttags_channel") в настройках Render или прямо через Админку в игре!
+DEFAULT_CHANNEL = os.getenv("REQUIRED_CHANNEL", "@durov")
+COUNTRY_CHANGE_PRICE = 500_000.0
 
 # ==================== СПРАВОЧНИКИ И КАТАЛОГИ ====================
 
@@ -62,8 +51,6 @@ COUNTRIES = {
     "BY": {"name": "Беларусь", "flag": "🇧🇾", "prefix": "+375"},
 }
 
-COUNTRY_CHANGE_PRICE = 500_000.0
-
 RARITIES = [
     {"tier": 0, "name": "Common",    "color": "#94a3b8", "u_min": 250,       "u_max": 980,        "n_min": 20000,     "n_max": 68000,      "g_min": 35000,      "g_max": 95000},
     {"tier": 1, "name": "Uncommon",  "color": "#10b981", "u_min": 1100,      "u_max": 3800,       "n_min": 75000,     "n_max": 180000,     "g_min": 110000,     "g_max": 260000},
@@ -77,98 +64,63 @@ RARITIES = [
     {"tier": 9, "name": "Divine",    "color": "#ffffff", "u_min": 100000000, "u_max": 500000000,  "n_min": 600000000, "n_max": 2500000000, "g_min": 900000000,  "g_max": 5000000000},
 ]
 
-# Реальные коллекции, модели и фоны из Telegram Gifts
 NFT_COLLECTIONS = {
     "Plush Pepe": {
-        "icon": "/assets/genesis-pepe.webp",
-        "svg_id": "pepe",
-        "min_tier": 4,
-        "models": ["Genesis Gold", "Red Menace", "Ninja Mike", "Cyber Toad", "Emerald King", "Polka Dots", "Diamond Frog", "Vantablack Pepe"]
+        "svg_id": "pepe", "min_tier": 4,
+        "models": ["Genesis Gold", "Red Menace", "Ninja Mike", "Cyber Toad", "Emerald King", "Polka Dots", "Vantablack Pepe"]
     },
     "Swiss Watch": {
-        "icon": "/assets/swiss-watch.webp",
-        "svg_id": "watch",
-        "min_tier": 3,
-        "models": ["Tourbillon Cyan", "Royal Gold", "Carbon Chrono", "Titanium Zero", "Geneva Skeleton", "Deep Sea", "Astral Dial"]
+        "svg_id": "watch", "min_tier": 3,
+        "models": ["Tourbillon Cyan", "Royal Gold", "Carbon Chrono", "Titanium Zero", "Geneva Skeleton", "Astral Dial"]
     },
     "Durov's Cap": {
-        "icon": "/assets/durov-chest.webp",
-        "svg_id": "cap",
-        "min_tier": 4,
-        "models": ["Founder Black", "TON Stealth", "Resistance Edition", "Telegram Blue", "Encrypted Crown", "Zero Knowledge"]
+        "svg_id": "cap", "min_tier": 4,
+        "models": ["Founder Black", "TON Stealth", "Resistance Edition", "Telegram Blue", "Encrypted Crown"]
     },
     "Resistance Dog": {
-        "icon": "/assets/durov-chest.webp",
-        "svg_id": "redo",
-        "min_tier": 3,
-        "models": ["Hoodie White", "Cyber Hound", "Golden REDO", "Night Watch", "Paper Plane Guardian", "Neon Bark"]
+        "svg_id": "redo", "min_tier": 3,
+        "models": ["Hoodie White", "Cyber Hound", "Golden REDO", "Night Watch", "Paper Plane Guardian"]
     },
     "Low Rider": {
-        "icon": "/assets/sheikh-case.webp",
-        "svg_id": "car",
-        "min_tier": 3,
+        "svg_id": "car", "min_tier": 3,
         "models": ["Dubai Gold", "Westside Chrome", "Midnight Purple", "Emerald Hydraulics", "Cyber Coupe"]
     },
     "Mini Oscar": {
-        "icon": "/assets/sheikh-case.webp",
-        "svg_id": "oscar",
-        "min_tier": 2,
+        "svg_id": "oscar", "min_tier": 2,
         "models": ["Pure Gold", "Platinum Idol", "Obsidian Knight", "Diamond Award"]
     },
     "Astral Shard": {
-        "icon": "/assets/all-in.webp",
-        "svg_id": "shard",
-        "min_tier": 2,
+        "svg_id": "shard", "min_tier": 2,
         "models": ["Crimson Core", "Void Crystal", "Ether Prism", "Quantum Nova"]
     },
     "Diamond Ring": {
-        "icon": "/assets/sheikh-case.webp",
-        "svg_id": "ring",
-        "min_tier": 2,
+        "svg_id": "ring", "min_tier": 2,
         "models": ["Solitaire 10ct", "Emerald Cut", "Royal Sapphire", "Black Diamond"]
-    },
-    "Vintage Cigar": {
-        "icon": "/assets/sheikh-case.webp",
-        "svg_id": "cigar",
-        "min_tier": 1,
-        "models": ["Havana Gold", "Syndicate Reserve", " Emperor Leaf"]
-    },
-    "Genie Lamp": {
-        "icon": "/assets/sheikh-case.webp",
-        "svg_id": "lamp",
-        "min_tier": 1,
-        "models": ["Arabian Gold", "Mystic Sapphire", "Ancient Brass"]
     }
 }
 
 BACKDROPS = [
-    {"name": "Black",           "file": "/backdrops/Black.svg",           "rarity_bonus": 1.45, "special": "[BLACKOUT]"},
-    {"name": "Onyx Black",      "file": "/backdrops/Onyx_Black.svg",      "rarity_bonus": 1.40, "special": "[BLACKOUT]"},
-    {"name": "Pure Gold",       "file": "/backdrops/Pure_Gold.svg",       "rarity_bonus": 1.35, "special": "[GOLD]"},
-    {"name": "Satin Gold",      "file": "/backdrops/Satin_Gold.svg",      "rarity_bonus": 1.25, "special": ""},
-    {"name": "Cyberpunk",       "file": "/backdrops/Cyberpunk.svg",       "rarity_bonus": 1.30, "special": "[CYBER]"},
-    {"name": "Electric Purple", "file": "/backdrops/Electric_Purple.svg", "rarity_bonus": 1.20, "special": ""},
-    {"name": "Electric Indigo", "file": "/backdrops/Electric_Indigo.svg", "rarity_bonus": 1.15, "special": ""},
-    {"name": "Neon Blue",       "file": "/backdrops/Neon_Blue.svg",       "rarity_bonus": 1.20, "special": ""},
-    {"name": "Sapphire",        "file": "/backdrops/Sapphire.svg",        "rarity_bonus": 1.15, "special": ""},
-    {"name": "Pacific Cyan",    "file": "/backdrops/Pacific_Cyan.svg",    "rarity_bonus": 1.15, "special": ""},
-    {"name": "Emerald",         "file": "/backdrops/Emerald.svg",         "rarity_bonus": 1.25, "special": ""},
-    {"name": "Mint Green",      "file": "/backdrops/Mint_Green.svg",      "rarity_bonus": 1.10, "special": ""},
-    {"name": "Malachite",       "file": "/backdrops/Malachite.svg",       "rarity_bonus": 1.15, "special": ""},
-    {"name": "Midnight Blue",   "file": "/backdrops/Midnight_Blue.svg",   "rarity_bonus": 1.15, "special": ""},
-    {"name": "Platinum",        "file": "/backdrops/Platinum.svg",        "rarity_bonus": 1.25, "special": ""},
-    {"name": "Burgundy",        "file": "/backdrops/Burgundy.svg",        "rarity_bonus": 1.10, "special": ""},
-    {"name": "Mystic Pearl",    "file": "/backdrops/Mystic_Pearl.svg",    "rarity_bonus": 1.20, "special": ""},
+    {"name": "Black",           "rarity_bonus": 1.45, "special": "[BLACKOUT]"},
+    {"name": "Onyx Black",      "rarity_bonus": 1.40, "special": "[BLACKOUT]"},
+    {"name": "Pure Gold",       "rarity_bonus": 1.35, "special": "[GOLD]"},
+    {"name": "Satin Gold",      "rarity_bonus": 1.25, "special": ""},
+    {"name": "Cyberpunk",       "rarity_bonus": 1.30, "special": "[CYBER]"},
+    {"name": "Electric Purple", "rarity_bonus": 1.20, "special": ""},
+    {"name": "Neon Blue",       "rarity_bonus": 1.20, "special": ""},
+    {"name": "Pacific Cyan",    "rarity_bonus": 1.15, "special": ""},
+    {"name": "Emerald",         "rarity_bonus": 1.25, "special": ""},
+    {"name": "Midnight Blue",   "rarity_bonus": 1.15, "special": ""},
+    {"name": "Platinum",        "rarity_bonus": 1.25, "special": ""},
+    {"name": "Burgundy",        "rarity_bonus": 1.10, "special": ""},
 ]
 
 CASES_CATALOG = {
     "case_all_in": {
         "id": "case_all_in",
         "name": "Всё или Ничего",
-        "desc": "Жесткий риск! 99.85% дешевые @username, но есть шанс сорвать Exclusive или Divine артефакт!",
+        "desc": "Жесткий риск! 99.85% дешевые @username (250-980 G), но есть шанс сорвать Exclusive или Divine джекпот!",
         "price": 10000,
-        "currency": "gram",
-        "img": "/assets/all-in.webp",
+        "svg_key": "case_all_in",
         "accent": "#ef4444",
         "types": ["username"],
         "jackpot_types": ["number", "gift"],
@@ -177,10 +129,9 @@ CASES_CATALOG = {
     "case_nft_box": {
         "id": "case_nft_box",
         "name": "NFT Gift Box",
-        "desc": "100% выпадает только коллекционный NFT-подарок с моделью и фоном Telegram!",
+        "desc": "100% выпадает только коллекционный NFT-подарок с моделью и фоном Telegram (Pepe, Watch, Cap, REDO)!",
         "price": 250000,
-        "currency": "gram",
-        "img": "/assets/genesis-pepe.webp",
+        "svg_key": "pepe",
         "accent": "#d6b16b",
         "types": ["gift"],
         "weights": {1: 3500, 2: 3200, 3: 1900, 4: 900, 5: 350, 6: 110, 7: 30, 8: 8, 9: 2}
@@ -188,10 +139,9 @@ CASES_CATALOG = {
     "case_sheikh": {
         "id": "case_sheikh",
         "name": "Контейнер Шейха",
-        "desc": "Золотой карбоновый дипломат. Анонимные номера +888 и люксовые лоурайдеры.",
+        "desc": "Золотой карбоновый дипломат. Анонимные номера +888, швейцарские турбийоны и люксовые лоурайдеры.",
         "price": 1200000,
-        "currency": "gram",
-        "img": "/assets/sheikh-case.webp",
+        "svg_key": "case_sheikh",
         "accent": "#10b981",
         "types": ["number", "gift"],
         "weights": {2: 3000, 3: 3500, 4: 2000, 5: 1000, 6: 350, 7: 110, 8: 32, 9: 8}
@@ -201,8 +151,7 @@ CASES_CATALOG = {
         "name": "Сундук Дурова",
         "desc": "Божественный реликт создателя. Только элитные теги, номера +888 и редчайшие гифты Blackout Edition.",
         "price": 5000000,
-        "currency": "gram",
-        "img": "/assets/durov-chest.webp",
+        "svg_key": "case_durov",
         "accent": "#24a1de",
         "types": ["username", "number", "gift"],
         "weights": {4: 3800, 5: 3200, 6: 1800, 7: 850, 8: 280, 9: 70}
@@ -215,7 +164,7 @@ WORDS_POOL = [
     "sniper", "broker", "empire", "mint", "vault", "royal", "gold", "platinum", "astral", "khabib"
 ]
 
-# ==================== БАЗА ДАННЫХ ====================
+# ==================== БАЗА ДАННЫХ И МИГРАЦИИ ====================
 
 def get_db():
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
@@ -229,20 +178,35 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             tg_user_id INTEGER PRIMARY KEY,
             username TEXT DEFAULT 'Player',
-            balance REAL DEFAULT 25000.0,
+            balance REAL DEFAULT 50000.0,
             stars_balance INTEGER DEFAULT 50,
             luck_multi REAL DEFAULT 1.0,
             luck_until REAL DEFAULT 0.0,
             pity_counter INTEGER DEFAULT 0,
             country_code TEXT DEFAULT '',
             national_phone TEXT DEFAULT '',
-            subs_count INTEGER DEFAULT 0,
-            clan_id TEXT DEFAULT '',
             bank_deposit REAL DEFAULT 0.0,
-            bank_Updated REAL DEFAULT 0.0,
+            bank_updated REAL DEFAULT 0.0,
+            daily_claimed_at REAL DEFAULT 0.0,
+            sub_rewarded INTEGER DEFAULT 0,
+            compact_pref INTEGER DEFAULT 0,
             created_at REAL DEFAULT 0.0
         )
     """)
+    u_cols = [r["name"] for r in cur.execute("PRAGMA table_info(users)").fetchall()]
+    for col, ctype in [
+        ("bank_deposit", "REAL DEFAULT 0.0"),
+        ("bank_updated", "REAL DEFAULT 0.0"),
+        ("daily_claimed_at", "REAL DEFAULT 0.0"),
+        ("sub_rewarded", "INTEGER DEFAULT 0"),
+        ("compact_pref", "INTEGER DEFAULT 0"),
+    ]:
+        if col not in u_cols:
+            try:
+                cur.execute(f"ALTER TABLE users ADD COLUMN {col} {ctype}")
+            except Exception:
+                pass
+
     cur.execute("""
         CREATE TABLE IF NOT EXISTS usernames (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -253,41 +217,36 @@ def init_db():
             rarity_name TEXT DEFAULT 'Common',
             price REAL DEFAULT 500.0,
             verified INTEGER DEFAULT 0,
-            in_safe INTEGER DEFAULT 1,
             on_market INTEGER DEFAULT 0,
             market_price REAL DEFAULT 0.0,
             backdrop TEXT DEFAULT '',
-            backdrop_file TEXT DEFAULT '',
             model_name TEXT DEFAULT '',
             collection TEXT DEFAULT '',
-            icon_url TEXT DEFAULT '',
+            svg_id TEXT DEFAULT '',
             created_at REAL DEFAULT 0.0
         )
     """)
-    # Миграция новых колонок, если их нет
-    existing_cols = [r["name"] for r in cur.execute("PRAGMA table_info(usernames)").fetchall()]
+    i_cols = [r["name"] for r in cur.execute("PRAGMA table_info(usernames)").fetchall()]
     for col, ctype in [
         ("backdrop", "TEXT DEFAULT ''"),
-        ("backdrop_file", "TEXT DEFAULT ''"),
         ("model_name", "TEXT DEFAULT ''"),
         ("collection", "TEXT DEFAULT ''"),
-        ("icon_url", "TEXT DEFAULT ''"),
+        ("svg_id", "TEXT DEFAULT ''"),
         ("verified", "INTEGER DEFAULT 0"),
         ("on_market", "INTEGER DEFAULT 0"),
         ("market_price", "REAL DEFAULT 0.0"),
     ]:
-        if col not in existing_cols:
+        if col not in i_cols:
             try:
                 cur.execute(f"ALTER TABLE usernames ADD COLUMN {col} {ctype}")
             except Exception:
                 pass
 
-    # Таблицы Аукциона Джекпота
     cur.execute("""
         CREATE TABLE IF NOT EXISTS raffle_rounds (
             round_id INTEGER PRIMARY KEY AUTOINCREMENT,
             status TEXT DEFAULT 'active',
-            pot REAL DEFAULT 150000.0,
+            pot REAL DEFAULT 100000.0,
             ticket_price REAL DEFAULT 25000.0,
             ends_at REAL DEFAULT 0.0,
             winner_id INTEGER DEFAULT 0,
@@ -306,6 +265,29 @@ def init_db():
             updated_at REAL DEFAULT 0.0
         )
     """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS promos (
+            code TEXT PRIMARY KEY,
+            reward_gram REAL DEFAULT 100000.0,
+            uses_left INTEGER DEFAULT 100
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS promo_used (
+            user_id INTEGER,
+            code TEXT,
+            PRIMARY KEY (user_id, code)
+        )
+    """)
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS app_config (
+            k TEXT PRIMARY KEY,
+            v TEXT
+        )
+    """)
+    cur.execute("INSERT OR IGNORE INTO app_config (k, v) VALUES ('required_channel', ?)", (DEFAULT_CHANNEL,))
+    cur.execute("INSERT OR IGNORE INTO app_config (k, v) VALUES ('sub_gate_enabled', '1')")
+    cur.execute("INSERT OR IGNORE INTO promos (code, reward_gram, uses_left) VALUES ('EMPIRE', 250000.0, 9999)")
     conn.commit()
     conn.close()
 
@@ -313,24 +295,66 @@ init_db()
 
 # ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
 
+def get_config_val(cur, key: str, default: str = "") -> str:
+    cur.execute("SELECT v FROM app_config WHERE k = ?", (key,))
+    r = cur.fetchone()
+    return r["v"] if r else default
+
+def set_config_val(cur, key: str, val: str):
+    cur.execute("INSERT OR REPLACE INTO app_config (k, v) VALUES (?, ?)", (key, val))
+
+def verify_telegram_subscription(user_id: int, channel_username: str) -> bool:
+    if not channel_username or channel_username.strip() == "":
+        return True
+    if not BOT_TOKEN:
+        # Если токен бота не задан в окружении, пропускаем проверку, чтобы не намертво блокировать тест
+        return True
+    ch = channel_username.strip()
+    if not ch.startswith("@") and not ch.startswith("-100"):
+        ch = "@" + ch
+    try:
+        url = f"https://api.telegram.org/bot{BOT_TOKEN}/getChatMember?chat_id={urllib.parse.quote(ch)}&user_id={user_id}"
+        req = urllib.request.Request(url, headers={"User-Agent": "MintTagsEmpire/5.0"})
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+            if data.get("ok"):
+                status = data.get("result", {}).get("status", "left")
+                return status in ("creator", "administrator", "member", "restricted")
+    except Exception as e:
+        print("Sub check warning:", e)
+        return True
+    return False
+
 def ensure_user(cur, user_id: int, username: str = "Player") -> dict:
     now = time.time()
     cur.execute("SELECT * FROM users WHERE tg_user_id = ?", (user_id,))
     row = cur.fetchone()
     if not row:
         cur.execute("""
-            INSERT INTO users (tg_user_id, username, balance, stars_balance, luck_multi, luck_until, created_at, bank_Updated)
+            INSERT INTO users (tg_user_id, username, balance, stars_balance, luck_multi, luck_until, created_at, bank_updated)
             VALUES (?, ?, 50000.0, 100, 1.0, 0.0, ?, ?)
         """, (user_id, username or f"Player_{user_id % 10000}", now, now))
         cur.execute("SELECT * FROM users WHERE tg_user_id = ?", (user_id,))
         row = cur.fetchone()
     user = dict(row)
-    
+
     # Автоматический сброс истекшей удачи
     if user["luck_until"] > 0 and now >= user["luck_until"]:
         cur.execute("UPDATE users SET luck_multi = 1.0, luck_until = 0.0 WHERE tg_user_id = ?", (user_id,))
         user["luck_multi"] = 1.0
         user["luck_until"] = 0.0
+
+    # Начисление пассивного дохода в Имперском Банке (1.5% в час от вклада)
+    dep = float(user.get("bank_deposit") or 0.0)
+    last_up = float(user.get("bank_updated") or now)
+    if dep > 0 and now > last_up + 30:
+        hours = (now - last_up) / 3600.0
+        interest = round(dep * 0.015 * min(hours, 48.0), 0)
+        if interest >= 1:
+            dep += interest
+            cur.execute("UPDATE users SET bank_deposit = ?, bank_updated = ? WHERE tg_user_id = ?", (dep, now, user_id))
+            user["bank_deposit"] = dep
+            user["bank_updated"] = now
     return user
 
 def ensure_unique_tag_clean(cur, cand: dict) -> dict:
@@ -339,21 +363,9 @@ def ensure_unique_tag_clean(cur, cand: dict) -> dict:
         return cand
     if cand["type"] == "username":
         base = cand["tag"].split("_")[0]
-        for _ in range(15):
-            test_tag = f"{base}_{random.randint(10, 999)}"
-            cur.execute("SELECT 1 FROM usernames WHERE tag = ?", (test_tag,))
-            if not cur.fetchone():
-                cand["tag"] = test_tag
-                return cand
-        cand["tag"] = f"{base}_{random.randint(1000, 9999)}"
+        cand["tag"] = f"{base}_{random.randint(100, 9999)}"
     elif cand["type"] == "number":
-        for _ in range(15):
-            test_num = f"+888 {random.randint(100, 999)} {random.randint(100, 999)}"
-            cur.execute("SELECT 1 FROM usernames WHERE tag = ?", (test_num,))
-            if not cur.fetchone():
-                cand["tag"] = test_num
-                return cand
-        cand["tag"] = f"+888 {random.randint(1000, 9999)} {random.randint(10, 99)}"
+        cand["tag"] = f"+888 {random.randint(100, 999)} {random.randint(100, 999)}"
     else:
         base_g = cand["tag"].split("#")[0].strip()
         badge = " [BLACKOUT]" if "[BLACKOUT]" in cand["tag"] else (" [GOLD]" if "[GOLD]" in cand["tag"] else "")
@@ -363,11 +375,11 @@ def ensure_unique_tag_clean(cur, cand: dict) -> dict:
 def generate_item(cur, item_type: str, tier_idx: int) -> dict:
     tier_idx = max(0, min(9, int(tier_idx)))
     r_info = RARITIES[tier_idx]
-    backdrop_name = ""
-    backdrop_file = ""
+    bg = random.choice(BACKDROPS[:4]) if (tier_idx >= 6 and random.random() < 0.45) else random.choice(BACKDROPS)
+    backdrop_name = bg["name"]
     model_name = ""
     collection_name = ""
-    icon_url = ""
+    svg_id = item_type
 
     if item_type == "username":
         w = random.choice(WORDS_POOL)
@@ -378,9 +390,6 @@ def generate_item(cur, item_type: str, tier_idx: int) -> dict:
         else:
             tag = f"@{w}_{random.randint(10, 999)}"
         price = round(random.uniform(r_info["u_min"], r_info["u_max"]), 0)
-        bg = random.choice(BACKDROPS)
-        backdrop_name = bg["name"]
-        backdrop_file = bg["file"]
 
     elif item_type == "number":
         if tier_idx >= 7:
@@ -391,47 +400,26 @@ def generate_item(cur, item_type: str, tier_idx: int) -> dict:
         else:
             tag = f"+888 {random.randint(100, 999)} {random.randint(100, 999)}"
         price = round(random.uniform(r_info["n_min"], r_info["n_max"]), 0)
-        bg = random.choice(BACKDROPS)
-        backdrop_name = bg["name"]
-        backdrop_file = bg["file"]
 
     else:
-        # NFT Gift с коллекцией, моделью и фоном
         eligible_cols = [k for k, v in NFT_COLLECTIONS.items() if v["min_tier"] <= max(tier_idx, 2)]
         if not eligible_cols:
             eligible_cols = list(NFT_COLLECTIONS.keys())
         collection_name = random.choice(eligible_cols)
         col_data = NFT_COLLECTIONS[collection_name]
         model_name = random.choice(col_data["models"])
-        icon_url = col_data["icon"]
-
-        # Повышенный шанс на Blackout / Pure Gold для высоких тиров
-        if tier_idx >= 6 and random.random() < 0.45:
-            bg = random.choice(BACKDROPS[:5])
-        else:
-            bg = random.choice(BACKDROPS)
-
-        backdrop_name = bg["name"]
-        backdrop_file = bg["file"]
+        svg_id = col_data["svg_id"]
         serial = random.randint(1, 99 if tier_idx >= 7 else 4999)
         special_suffix = f" {bg['special']}" if bg["special"] else ""
         tag = f"{collection_name} #{serial}{special_suffix}"
-        base_price = random.uniform(r_info["g_min"], r_info["g_max"])
-        price = round(base_price * bg["rarity_bonus"], 0)
+        price = round(random.uniform(r_info["g_min"], r_info["g_max"]) * bg["rarity_bonus"], 0)
         if serial <= 10:
             price = round(price * 1.5, 0)
 
     cand = {
-        "tag": tag,
-        "type": item_type,
-        "tier": tier_idx,
-        "rarity_name": r_info["name"],
-        "price": price,
-        "backdrop": backdrop_name,
-        "backdrop_file": backdrop_file,
-        "model_name": model_name,
-        "collection": collection_name,
-        "icon_url": icon_url
+        "tag": tag, "type": item_type, "tier": tier_idx, "rarity_name": r_info["name"],
+        "price": price, "backdrop": backdrop_name, "model_name": model_name,
+        "collection": collection_name, "svg_id": svg_id
     }
     return ensure_unique_tag_clean(cur, cand)
 
@@ -440,13 +428,12 @@ def check_and_resolve_raffle(cur) -> dict:
     cur.execute("SELECT * FROM raffle_rounds WHERE status = 'active' ORDER BY round_id DESC LIMIT 1")
     row = cur.fetchone()
     if not row:
-        ends = now + 180  # 3 минуты на раунд
+        ends = now + 180
         cur.execute("INSERT INTO raffle_rounds (status, pot, ticket_price, ends_at) VALUES ('active', 100000.0, 25000.0, ?)", (ends,))
         cur.execute("SELECT * FROM raffle_rounds WHERE status = 'active' ORDER BY round_id DESC LIMIT 1")
         row = cur.fetchone()
 
     r_data = dict(row)
-    # Розыгрыш банка
     if now >= r_data["ends_at"]:
         cur.execute("SELECT * FROM raffle_tickets WHERE round_id = ?", (r_data["round_id"],))
         parts = [dict(x) for x in cur.fetchall()]
@@ -462,22 +449,19 @@ def check_and_resolve_raffle(cur) -> dict:
                     winner = p
                     break
             win_chance = round((winner["tickets"] / total_tickets) * 100, 1)
-            win_amount = round(r_data["pot"] * 0.95, 0)  # 5% комиссия
+            win_amount = round(r_data["pot"] * 0.95, 0)
             cur.execute("UPDATE users SET balance = balance + ? WHERE tg_user_id = ?", (win_amount, winner["user_id"]))
             cur.execute("""
-                UPDATE raffle_rounds
-                SET status = 'finished', winner_id = ?, winner_name = ?, win_amount = ?, win_chance = ?
+                UPDATE raffle_rounds SET status = 'finished', winner_id = ?, winner_name = ?, win_amount = ?, win_chance = ?
                 WHERE round_id = ?
             """, (winner["user_id"], winner["username"], win_amount, win_chance, r_data["round_id"]))
         else:
             cur.execute("UPDATE raffle_rounds SET status = 'finished', winner_name = 'Никто (0 билетов)' WHERE round_id = ?", (r_data["round_id"],))
 
-        new_ends = now + 180
-        cur.execute("INSERT INTO raffle_rounds (status, pot, ticket_price, ends_at) VALUES ('active', 100000.0, 25000.0, ?)", (new_ends,))
+        cur.execute("INSERT INTO raffle_rounds (status, pot, ticket_price, ends_at) VALUES ('active', 100000.0, 25000.0, ?)", (now + 180,))
         cur.execute("SELECT * FROM raffle_rounds WHERE status = 'active' ORDER BY round_id DESC LIMIT 1")
         r_data = dict(cur.fetchone())
 
-    # Статистика текущего раунда
     cur.execute("SELECT * FROM raffle_tickets WHERE round_id = ? ORDER BY tickets DESC", (r_data["round_id"],))
     parts = [dict(x) for x in cur.fetchall()]
     total_tickets = sum(p["tickets"] for p in parts)
@@ -488,17 +472,75 @@ def check_and_resolve_raffle(cur) -> dict:
     history = [dict(x) for x in cur.fetchall()]
 
     return {
-        "round_id": r_data["round_id"],
-        "pot": r_data["pot"],
-        "ticket_price": r_data["ticket_price"],
-        "ends_at": r_data["ends_at"],
-        "seconds_left": max(0, int(r_data["ends_at"] - now)),
-        "total_tickets": total_tickets,
-        "participants": parts,
-        "history": history
+        "round_id": r_data["round_id"], "pot": r_data["pot"], "ticket_price": r_data["ticket_price"],
+        "ends_at": r_data["ends_at"], "seconds_left": max(0, int(r_data["ends_at"] - now)),
+        "total_tickets": total_tickets, "participants": parts, "history": history
     }
 
-# ==================== ЭНДПОИНТЫ ====================
+# ==================== МОДЕЛИ ЗАПРОСОВ ====================
+
+class ReqUser(BaseModel):
+    user_id: int
+    username: Optional[str] = "Player"
+
+class ReqSpin(BaseModel):
+    user_id: int
+    item_type: str = "username"
+    mult: int = 1
+
+class ReqCaseOpen(BaseModel):
+    user_id: int
+    case_id: str
+
+class ReqItemAction(BaseModel):
+    user_id: int
+    item_id: int
+    price: Optional[float] = 0.0
+
+class ReqCountrySelect(BaseModel):
+    user_id: int
+    country_code: str
+
+class ReqRaffleBuy(BaseModel):
+    user_id: int
+    username: Optional[str] = "Player"
+    tickets_count: int = 1
+
+class ReqCraft(BaseModel):
+    user_id: int
+    item_ids: List[int]
+
+class ReqBankAction(BaseModel):
+    user_id: int
+    action: str  # deposit / withdraw
+    amount: float
+
+class ReqPromo(BaseModel):
+    user_id: int
+    code: str
+
+class ReqPref(BaseModel):
+    user_id: int
+    compact_pref: int
+
+class ReqAdminAction(BaseModel):
+    admin_id: int
+    target_id: int
+    action: str
+    amount: Optional[float] = 0.0
+    text_val: Optional[str] = ""
+
+class ReqRocketBet(BaseModel):
+    user_id: int
+    bet: float
+    cashout_mult: float
+
+# ==================== API ЭНДПОИНТЫ ====================
+
+@app.get("/", response_class=HTMLResponse)
+def serve_index():
+    with open("index.html", "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.post("/api/state")
 def api_get_state(data: ReqUser):
@@ -507,6 +549,12 @@ def api_get_state(data: ReqUser):
     user = ensure_user(cur, data.user_id, data.username)
     raffle = check_and_resolve_raffle(cur)
 
+    req_channel = get_config_val(cur, "required_channel", DEFAULT_CHANNEL)
+    gate_enabled = get_config_val(cur, "sub_gate_enabled", "1") == "1"
+    is_subscribed = True
+    if gate_enabled and req_channel:
+        is_subscribed = verify_telegram_subscription(data.user_id, req_channel) or (user.get("sub_rewarded") == 1 and not BOT_TOKEN)
+
     cur.execute("SELECT * FROM usernames WHERE owner_id = ? AND on_market = 0 ORDER BY price DESC", (data.user_id,))
     inventory = [dict(r) for r in cur.fetchall()]
 
@@ -514,13 +562,13 @@ def api_get_state(data: ReqUser):
     market = [dict(r) for r in cur.fetchall()]
 
     cur.execute("""
-        SELECT u.tg_user_id, u.username, u.balance, u.country_code,
+        SELECT u.tg_user_id, u.username, u.balance, u.country_code, u.bank_deposit,
                COALESCE(SUM(i.price), 0) as inv_val,
                MAX(COALESCE(i.verified, 0)) as has_verified
         FROM users u
         LEFT JOIN usernames i ON u.tg_user_id = i.owner_id
         GROUP BY u.tg_user_id
-        ORDER BY (u.balance + COALESCE(SUM(i.price), 0)) DESC
+        ORDER BY (u.balance + u.bank_deposit + COALESCE(SUM(i.price), 0)) DESC
         LIMIT 30
     """)
     leaderboard = [dict(r) for r in cur.fetchall()]
@@ -529,10 +577,18 @@ def api_get_state(data: ReqUser):
 
     now = time.time()
     luck_rem = max(0, int(user["luck_until"] - now)) if user["luck_until"] > now else 0
+    daily_rem = max(0, int((user.get("daily_claimed_at", 0) + 86400) - now))
 
     return {
         "user": user,
         "luck_remaining": luck_rem,
+        "daily_remaining": daily_rem,
+        "sub_gate": {
+            "enabled": gate_enabled,
+            "channel": req_channel,
+            "is_subscribed": is_subscribed,
+            "rewarded": user.get("sub_rewarded", 0)
+        },
         "inventory": inventory,
         "market": market,
         "leaderboard": leaderboard,
@@ -542,6 +598,148 @@ def api_get_state(data: ReqUser):
         "cases": CASES_CATALOG,
         "rarities": RARITIES
     }
+
+@app.post("/api/sub/check")
+def api_check_subscription(data: ReqUser):
+    conn = get_db()
+    cur = conn.cursor()
+    user = ensure_user(cur, data.user_id, data.username)
+    req_channel = get_config_val(cur, "required_channel", DEFAULT_CHANNEL)
+    ok = verify_telegram_subscription(data.user_id, req_channel)
+    if not ok:
+        conn.close()
+        raise HTTPException(400, f"Вы еще не подписались на канал {req_channel}!")
+
+    bonus = 0
+    if user.get("sub_rewarded", 0) == 0:
+        bonus = 25000
+        cur.execute("UPDATE users SET balance = balance + ?, sub_rewarded = 1 WHERE tg_user_id = ?", (bonus, data.user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "bonus": bonus}
+
+@app.post("/api/user/pref")
+def api_save_pref(data: ReqPref):
+    conn = get_db()
+    cur = conn.cursor()
+    ensure_user(cur, data.user_id)
+    cur.execute("UPDATE users SET compact_pref = ? WHERE tg_user_id = ?", (int(data.compact_pref), data.user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+@app.post("/api/daily/claim")
+def api_claim_daily(data: ReqUser):
+    conn = get_db()
+    cur = conn.cursor()
+    user = ensure_user(cur, data.user_id)
+    now = time.time()
+    if now < user.get("daily_claimed_at", 0) + 86400:
+        conn.close()
+        raise HTTPException(400, "Ежедневная награда еще перезаряжается!")
+    reward = 35000.0
+    cur.execute("UPDATE users SET balance = balance + ?, daily_claimed_at = ? WHERE tg_user_id = ?", (reward, now, data.user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "reward": reward}
+
+@app.post("/api/promo/redeem")
+def api_redeem_promo(data: ReqPromo):
+    code = data.code.strip().upper()
+    conn = get_db()
+    cur = conn.cursor()
+    ensure_user(cur, data.user_id)
+    cur.execute("SELECT * FROM promos WHERE code = ?", (code,))
+    p = cur.fetchone()
+    if not p or p["uses_left"] <= 0:
+        conn.close()
+        raise HTTPException(400, "Промокод не найден или закончились активации")
+    cur.execute("SELECT 1 FROM promo_used WHERE user_id = ? AND code = ?", (data.user_id, code))
+    if cur.fetchone():
+        conn.close()
+        raise HTTPException(400, "Вы уже активировали этот промокод!")
+
+    rew = float(p["reward_gram"])
+    cur.execute("UPDATE promos SET uses_left = uses_left - 1 WHERE code = ?", (code,))
+    cur.execute("INSERT INTO promo_used (user_id, code) VALUES (?, ?)", (data.user_id, code))
+    cur.execute("UPDATE users SET balance = balance + ? WHERE tg_user_id = ?", (rew, data.user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "reward": rew}
+
+@app.post("/api/bank/action")
+def api_bank_action(data: ReqBankAction):
+    amt = round(float(data.amount or 0), 0)
+    if amt < 1000:
+        raise HTTPException(400, "Минимальная сумма операции: 1,000 G")
+    conn = get_db()
+    cur = conn.cursor()
+    user = ensure_user(cur, data.user_id)
+    now = time.time()
+
+    if data.action == "deposit":
+        if user["balance"] < amt:
+            conn.close()
+            raise HTTPException(400, "Недостаточно GRAM на балансе")
+        cur.execute("UPDATE users SET balance = balance - ?, bank_deposit = bank_deposit + ?, bank_updated = ? WHERE tg_user_id = ?", (amt, amt, now, data.user_id))
+    elif data.action == "withdraw":
+        if user.get("bank_deposit", 0) < amt:
+            conn.close()
+            raise HTTPException(400, "Недостаточно средств на депозите в Банке")
+        cur.execute("UPDATE users SET balance = balance + ?, bank_deposit = bank_deposit - ?, bank_updated = ? WHERE tg_user_id = ?", (amt, amt, now, data.user_id))
+    else:
+        conn.close()
+        raise HTTPException(400, "Неизвестная операция")
+
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+@app.post("/api/spin")
+def api_spin(data: ReqSpin):
+    conn = get_db()
+    cur = conn.cursor()
+    user = ensure_user(cur, data.user_id)
+
+    mult = max(1, min(10, int(data.mult)))
+    base_cost = {"username": 1500, "number": 35000, "gift": 75000}.get(data.item_type, 1500)
+    total_cost = base_cost * mult
+
+    if user["balance"] < total_cost:
+        conn.close()
+        raise HTTPException(400, f"Недостаточно GRAM! Нужно {int(total_cost):,} G")
+
+    luck = float(user["luck_multi"] or 1.0)
+    pity = int(user["pity_counter"] or 0) + 1
+
+    weights = [5500, 2400, 1100, 550, 250, 110, 55, 22, 10, 3]
+    for i in range(2, 10):
+        weights[i] = int(weights[i] * min(5.0, luck ** (1 + i * 0.15)))
+
+    if pity >= 50:
+        tier_idx = random.randint(4, 9)
+        pity = 0
+    else:
+        tier_idx = random.choices(range(10), weights=weights, k=1)[0]
+        if tier_idx >= 4:
+            pity = 0
+
+    item = generate_item(cur, data.item_type, tier_idx)
+    item["price"] = round(item["price"] * mult, 0)
+
+    now = time.time()
+    cur.execute("UPDATE users SET balance = balance - ?, pity_counter = ? WHERE tg_user_id = ?", (total_cost, pity, data.user_id))
+    cur.execute("""
+        INSERT INTO usernames (owner_id, tag, type, tier, rarity_name, price, backdrop, model_name, collection, svg_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data.user_id, item["tag"], item["type"], item["tier"], item["rarity_name"], item["price"],
+        item["backdrop"], item["model_name"], item["collection"], item["svg_id"], now
+    ))
+    item["id"] = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return {"ok": True, "item": item, "cost": total_cost, "pity": pity}
 
 @app.post("/api/case/open")
 def api_open_case(data: ReqCaseOpen):
@@ -559,37 +757,141 @@ def api_open_case(data: ReqCaseOpen):
 
     luck = float(user["luck_multi"] or 1.0)
     tiers = list(c_info["weights"].keys())
-    w_list = []
-    for t in tiers:
-        base_w = c_info["weights"][t]
-        if t >= 5 and luck > 1.0:
-            base_w = int(base_w * min(3.5, 1.0 + (luck - 1.0) * 0.25))
-        w_list.append(base_w)
-
+    w_list = [
+        int(c_info["weights"][t] * min(3.5, 1.0 + (luck - 1.0) * 0.25)) if (t >= 5 and luck > 1.0) else c_info["weights"][t]
+        for t in tiers
+    ]
     picked_tier = random.choices(tiers, weights=w_list, k=1)[0]
 
-    # Фикс All-In: номера и гифты только с джекпота
+    # ИСПРАВЛЕНО: в кейсе Всё или Ничего на тире 0 падают только дешевые @username!
     if data.case_id == "case_all_in":
-        if picked_tier == 0:
-            picked_type = "username"
-        else:
-            picked_type = random.choice(c_info.get("jackpot_types", ["gift", "number"]))
+        picked_type = "username" if picked_tier == 0 else random.choice(c_info.get("jackpot_types", ["gift", "number"]))
     else:
         picked_type = random.choice(c_info["types"])
 
     item = generate_item(cur, picked_type, picked_tier)
+    now = time.time()
+
     cur.execute("UPDATE users SET balance = balance - ? WHERE tg_user_id = ?", (c_info["price"], data.user_id))
     cur.execute("""
-        INSERT INTO usernames (owner_id, tag, type, tier, rarity_name, price, backdrop, backdrop_file, model_name, collection, icon_url, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO usernames (owner_id, tag, type, tier, rarity_name, price, backdrop, model_name, collection, svg_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         data.user_id, item["tag"], item["type"], item["tier"], item["rarity_name"], item["price"],
-        item["backdrop"], item["backdrop_file"], item["model_name"], item["collection"], item["icon_url"], time.time()
+        item["backdrop"], item["model_name"], item["collection"], item["svg_id"], now
     ))
     item["id"] = cur.lastrowid
     conn.commit()
     conn.close()
     return {"ok": True, "item": item, "case": c_info}
+
+@app.post("/api/item/sell")
+def api_sell_item(data: ReqItemAction):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM usernames WHERE id = ? AND owner_id = ? AND on_market = 0", (data.item_id, data.user_id))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(400, "Предмет не найден в Сейфе")
+    item = dict(row)
+    sell_val = round(item["price"], 0)
+    cur.execute("DELETE FROM usernames WHERE id = ?", (data.item_id,))
+    cur.execute("UPDATE users SET balance = balance + ? WHERE tg_user_id = ?", (sell_val, data.user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "sold_for": sell_val}
+
+@app.post("/api/item/shred")
+def api_shred_item(data: ReqItemAction):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM usernames WHERE id = ? AND owner_id = ? AND on_market = 0", (data.item_id, data.user_id))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(400, "Предмет не найден")
+    cur.execute("DELETE FROM usernames WHERE id = ?", (data.item_id,))
+    now = time.time()
+    user = ensure_user(cur, data.user_id)
+    new_luck = round(min(5.0, float(user["luck_multi"] or 1.0) + 0.15), 2)
+    cur.execute("UPDATE users SET luck_multi = ?, luck_until = ? WHERE tg_user_id = ?", (new_luck, now + 3600, data.user_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "new_luck": new_luck}
+
+@app.post("/api/item/verify")
+def api_verify_item(data: ReqItemAction):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM usernames WHERE id = ? AND owner_id = ?", (data.item_id, data.user_id))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(400, "Предмет не найден")
+    item = dict(row)
+    if item["verified"]:
+        conn.close()
+        raise HTTPException(400, "Уже верифицирован!")
+
+    cost = max(25000.0, round(item["price"] * 0.25, 0))
+    user = ensure_user(cur, data.user_id)
+    if user["balance"] < cost:
+        conn.close()
+        raise HTTPException(400, f"Для галочки нужно {int(cost):,} G")
+
+    new_price = round(item["price"] * 1.45, 0)
+    cur.execute("UPDATE users SET balance = balance - ? WHERE tg_user_id = ?", (cost, data.user_id))
+    cur.execute("UPDATE usernames SET verified = 1, price = ? WHERE id = ?", (new_price, data.item_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "cost": cost, "new_price": new_price}
+
+@app.post("/api/market/list")
+def api_market_list(data: ReqItemAction):
+    if not data.price or data.price < 100:
+        raise HTTPException(400, "Минимальная цена: 100 G")
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM usernames WHERE id = ? AND owner_id = ? AND on_market = 0", (data.item_id, data.user_id))
+    if not cur.fetchone():
+        conn.close()
+        raise HTTPException(400, "Предмет не найден")
+    cur.execute("UPDATE usernames SET on_market = 1, market_price = ? WHERE id = ?", (round(data.price, 0), data.item_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True}
+
+@app.post("/api/market/buy")
+def api_market_buy(data: ReqItemAction):
+    conn = get_db()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM usernames WHERE id = ? AND on_market = 1", (data.item_id,))
+    row = cur.fetchone()
+    if not row:
+        conn.close()
+        raise HTTPException(400, "Лот уже куплен или снят")
+    lot = dict(row)
+    buyer = ensure_user(cur, data.user_id)
+    price = float(lot["market_price"])
+
+    if lot["owner_id"] == data.user_id:
+        cur.execute("UPDATE usernames SET on_market = 0, market_price = 0 WHERE id = ?", (data.item_id,))
+        conn.commit()
+        conn.close()
+        return {"ok": True, "unlisted": True}
+
+    if buyer["balance"] < price:
+        conn.close()
+        raise HTTPException(400, f"Недостаточно GRAM! Нужно {int(price):,} G")
+
+    seller_payout = round(price * 0.95, 0)
+    cur.execute("UPDATE users SET balance = balance - ? WHERE tg_user_id = ?", (price, data.user_id))
+    cur.execute("UPDATE users SET balance = balance + ? WHERE tg_user_id = ?", (seller_payout, lot["owner_id"]))
+    cur.execute("UPDATE usernames SET owner_id = ?, on_market = 0, market_price = 0 WHERE id = ?", (data.user_id, data.item_id))
+    conn.commit()
+    conn.close()
+    return {"ok": True, "unlisted": False}
 
 @app.post("/api/country/select")
 def select_or_change_country(data: ReqCountrySelect):
@@ -600,10 +902,10 @@ def select_or_change_country(data: ReqCountrySelect):
     cur = conn.cursor()
     user = ensure_user(cur, data.user_id)
     bal = float(user["balance"])
-    old_cc = user["country_code"] or ""
+    old_cc = (user["country_code"] or "").strip()
 
     charged = 0.0
-    if old_cc and old_cc != data.country_code:
+    if old_cc != "" and old_cc != data.country_code:
         if bal < COUNTRY_CHANGE_PRICE:
             conn.close()
             raise HTTPException(400, f"Смена юрисдикции стоит {int(COUNTRY_CHANGE_PRICE):,} GRAM!")
@@ -647,6 +949,66 @@ def api_raffle_buy(data: ReqRaffleBuy):
     conn.close()
     return {"ok": True, "raffle": updated_raffle}
 
+@app.post("/api/craft")
+def api_craft_items(data: ReqCraft):
+    if len(data.item_ids) != 3:
+        raise HTTPException(400, "Для крафта выберите ровно 3 предмета из Сейфа!")
+    conn = get_db()
+    cur = conn.cursor()
+    placeholders = ",".join(["?"] * 3)
+    cur.execute(f"SELECT * FROM usernames WHERE id IN ({placeholders}) AND owner_id = ? AND on_market = 0", (*data.item_ids, data.user_id))
+    rows = [dict(r) for r in cur.fetchall()]
+    if len(rows) != 3:
+        conn.close()
+        raise HTTPException(400, "Предметы не найдены")
+
+    avg_tier = int(round(sum(r["tier"] for r in rows) / 3))
+    new_tier = min(9, avg_tier + 1)
+    total_val = sum(r["price"] for r in rows)
+
+    cur.execute(f"DELETE FROM usernames WHERE id IN ({placeholders})", tuple(data.item_ids))
+    new_item = generate_item(cur, "gift", new_tier)
+    new_item["price"] = max(new_item["price"], round(total_val * 1.25, 0))
+
+    cur.execute("""
+        INSERT INTO usernames (owner_id, tag, type, tier, rarity_name, price, backdrop, model_name, collection, svg_id, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (
+        data.user_id, new_item["tag"], new_item["type"], new_item["tier"], new_item["rarity_name"], new_item["price"],
+        new_item["backdrop"], new_item["model_name"], new_item["collection"], new_item["svg_id"], time.time()
+    ))
+    new_item["id"] = cur.lastrowid
+    conn.commit()
+    conn.close()
+    return {"ok": True, "item": new_item}
+
+@app.post("/api/rocket/play")
+def api_rocket_play(data: ReqRocketBet):
+    if data.bet < 1000:
+        raise HTTPException(400, "Минимальная ставка: 1,000 G")
+    conn = get_db()
+    cur = conn.cursor()
+    user = ensure_user(cur, data.user_id)
+    if user["balance"] < data.bet:
+        conn.close()
+        raise HTTPException(400, "Недостаточно GRAM на балансе")
+
+    r = random.random()
+    crash_point = 1.00 if r < 0.08 else round(max(1.01, min(50.0, 0.96 / (1.0 - r))), 2)
+    target = max(1.1, min(50.0, float(data.cashout_mult)))
+    won = crash_point >= target
+
+    if won:
+        profit = round(data.bet * target - data.bet, 0)
+        cur.execute("UPDATE users SET balance = balance + ? WHERE tg_user_id = ?", (profit, data.user_id))
+    else:
+        profit = -data.bet
+        cur.execute("UPDATE users SET balance = balance - ? WHERE tg_user_id = ?", (data.bet, data.user_id))
+
+    conn.commit()
+    conn.close()
+    return {"ok": True, "crash_point": crash_point, "won": won, "profit": profit}
+
 @app.post("/api/admin/action")
 def admin_execute_action(data: ReqAdminAction):
     conn = get_db()
@@ -657,17 +1019,24 @@ def admin_execute_action(data: ReqAdminAction):
     if data.action == "give_gram":
         cur.execute("UPDATE users SET balance = MAX(0, balance + ?) WHERE tg_user_id = ?", (float(data.amount or 0), data.target_id))
         msg = f"Баланс изменен на {int(data.amount or 0):,} G"
-    elif data.action == "give_luck":
-        val = float(data.amount or 0)
+    elif data.action in ("give_luck", "reset_luck"):
+        val = 1.0 if data.action == "reset_luck" else float(data.amount or 0)
         if val <= 1.0:
             cur.execute("UPDATE users SET luck_multi = 1.0, luck_until = 0.0 WHERE tg_user_id = ?", (data.target_id,))
-            msg = "Буст удачи полностью сброшен (x1.0)"
+            msg = "✅ Буст удачи полностью сброшен (x1.0)"
         else:
             cur.execute("UPDATE users SET luck_multi = ?, luck_until = ? WHERE tg_user_id = ?", (val, now + 86400, data.target_id))
-            msg = f"Выдана Удача x{val} на 24 часа"
-    elif data.action == "reset_luck":
-        cur.execute("UPDATE users SET luck_multi = 1.0, luck_until = 0.0 WHERE tg_user_id = ?", (data.target_id,))
-        msg = "Удача принудительно отключена (x1.0)"
+            msg = f"🍀 Выдана Удача x{val} на 24 часа"
+    elif data.action == "set_channel":
+        ch = (data.text_val or "").strip()
+        set_config_val(cur, "required_channel", ch)
+        set_config_val(cur, "sub_gate_enabled", "1" if ch else "0")
+        msg = f"Обязательный канал установлен: {ch or 'Выключен'}"
+    elif data.action == "create_promo":
+        code = (data.text_val or "BONUS").strip().upper()
+        rew = max(1000.0, float(data.amount or 100000.0))
+        cur.execute("INSERT OR REPLACE INTO promos (code, reward_gram, uses_left) VALUES (?, ?, 50)", (code, rew))
+        msg = f"Создан промокод {code} на {int(rew):,} G (50 активаций)"
     else:
         conn.close()
         raise HTTPException(400, "Неизвестное действие")
