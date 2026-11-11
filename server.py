@@ -29,6 +29,72 @@ class CachedStaticFiles(StaticFiles):
 
 for folder in ["assets", "assets/cases", "assets/nft", "icons", "backdrops"]:
     os.makedirs(folder, exist_ok=True)
+    # ==================== АВТО-КОНВЕРТАЦИЯ ЛЮБЫХ PNG/JPG В ЛЕГКИЙ ПРОЗРАЧНЫЙ WEBP НА СЕРВЕРЕ ====================
+def auto_build_webp_assets():
+    try:
+        from PIL import Image
+    except ImportError:
+        return
+
+    for root, _, files in os.walk("assets"):
+        for f in files:
+            if f.lower().endswith((".png", ".jpg", ".jpeg")):
+                src = os.path.join(root, f)
+                dst = os.path.join(root, os.path.splitext(f)[0] + ".webp")
+                if not os.path.exists(dst):
+                    try:
+                        im = Image.open(src).convert("RGBA")
+                        im.thumbnail((512, 512), Image.Resampling.LANCZOS)
+                        # Автоматически убираем чисто чёрный фон (#000000) в прозрачность
+                        pixels = im.getdata()
+                        im.putdata([
+                            (0, 0, 0, 0) if (r < 12 and g < 12 and b < 12) else (r, g, b, a)
+                            for r, g, b, a in pixels
+                        ])
+                        im.save(dst, "WEBP", quality=82, method=6)
+                    except Exception as e:
+                        print(f"[WEBP] Skip {f}: {e}")
+
+auto_build_webp_assets()
+
+# Обновляем привязку всех 10 категорий и 14 кейсов к новым WebP-файлам
+CATEGORY_IMAGE_MAP = {
+    "plush": "/assets/nft/gold_pepe.webp",
+    "watches": "/assets/nft/chronos_watch.webp",
+    "royal": "/assets/nft/imperial_crown.webp",
+    "telegram": "/assets/nft/durov_cap.webp",
+    "cyberpunk": "/assets/nft/durov_mask.webp",
+    "resistance": "/assets/dog.webp",
+    "gaming": "/assets/nft/cyber_katana.webp",
+    "genesis": "/assets/nft/genesis_shard.webp",
+    "luxury": "/assets/cases/emerald_vault_chest.webp",
+    "seasonal": "/assets/nft/genesis_shard.webp",
+}
+
+for item in NFT_CATALOG_500:
+    if item["category"] in CATEGORY_IMAGE_MAP:
+        item["image"] = CATEGORY_IMAGE_MAP[item["category"]]
+
+CASE_IMAGE_MAP = {
+    "case_emerald_vault": "/assets/cases/emerald_vault_chest.webp",
+    "case_founder_mask": "/assets/cases/founder_emerald_case.webp",
+    "case_all_in": "/assets/cases/all_in_case.webp",
+    "case_standard": "/assets/cases/fragment_box.webp",
+    "case_premium": "/assets/cases/fragment_box.webp",
+    "case_elite": "/assets/cases/founder_emerald_case.webp",
+    "case_luxury": "/assets/cases/jackpot_box.webp",
+    "case_fragment": "/assets/cases/fragment_box.webp",
+    "case_nft": "/assets/cases/founder_emerald_case.webp",
+    "case_jackpot": "/assets/cases/jackpot_box.webp",
+    "case_star": "/assets/cases/jackpot_box.webp",
+    "case_ton": "/assets/cases/fragment_box.webp",
+    "case_genesis": "/assets/cases/divine_case.webp",
+    "case_divine": "/assets/cases/divine_case.webp",
+}
+
+for c in CASES_CATALOG_14:
+    if c["id"] in CASE_IMAGE_MAP:
+        c["image"] = CASE_IMAGE_MAP[c["id"]]
 
 app.mount("/assets", CachedStaticFiles(directory="assets"), name="assets")
 app.mount("/icons", CachedStaticFiles(directory="icons"), name="icons")
