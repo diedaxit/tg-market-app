@@ -253,6 +253,39 @@ WORDS = {
 }
 
 REAL_CHAT_USERNAMES = [
+    # ==================== АВТО-ЗАГРУЗКА КАТАЛОГА MINTTAGS_CATALOG_11000_V21.JSON ====================
+CATALOG_META_BY_NICK = {}
+
+def load_minttags_json_catalog(json_path: str = "minttags_catalog_11000_v21.json"):
+    if not os.path.exists(json_path):
+        return
+    try:
+        with open(json_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        records = data.get("records", [])
+        for rec in records:
+            nick = str(rec.get("nickname", "")).strip()
+            rar = str(rec.get("rarity", "Common")).strip()
+            if not nick:
+                continue
+            CATALOG_META_BY_NICK[nick.lower()] = {
+                "category": rec.get("category", "CIS Names"),
+                "catalog_id": rec.get("catalog_id", "MTG-00001"),
+                "description": rec.get("description", "Коллекционный никнейм каталога v2.1"),
+                "compactness": rec.get("compactness_score", 85),
+                "media": rec.get("media_recognition_index", 80),
+                "quality_score": rec.get("quality_score", 70),
+            }
+            if rar in WORDS:
+                if nick not in WORDS[rar]:
+                    WORDS[rar].append(nick)
+            else:
+                REAL_CHAT_USERNAMES.append(nick)
+        print(f"[CATALOG v2.1] Загружено {len(records)} ников из {json_path}")
+    except Exception as e:
+        print(f"[CATALOG v2.1] Ошибка чтения {json_path}: {e}")
+
+load_minttags_json_catalog()
     "kach1k", "vdbv01", "bambrel", "tryyxissss", "Mr_MaDaRaMyS_Gay", "bigebabytape", "VaItrex", "Kloneex",
     "ProjectinappleSon", "pcixanyl", "BususVlad", "akatuman", "wuruw", "saphiressss", "bot_starry", "rysofobs",
     "fckasscunt", "eyeallaha", "chatchitai", "notsnitch", "pirogovstepa", "imfuckinggirl", "feodulov", "dealersex",
