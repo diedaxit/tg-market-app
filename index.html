@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MintTags: Global Empire 2.0</title>
+  <title>MintTags: Global Empire</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;700;800;900&family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
   <style>
@@ -769,3 +769,1317 @@
       </div>
     </div>
   </div>
+<!-- 6. КАСТОМНАЯ МОДАЛКА СОЗДАНИЯ КАНАЛА / КЛАНА / ЦЕНЫ НА РЫНКЕ (БЕЗ БРАУЗЕРНОГО PROMPT) -->
+  <div class="modal-overlay" id="customInputModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-sheet">
+      <div class="rr-font" style="font-size:13px;color:var(--cyan);margin-bottom:6px;" id="customModalTitle">Ввод данных</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;" id="customModalSub">Укажите значение ниже:</div>
+      <input type="text" id="customModalInp" class="inp-dark" placeholder="Введите значение...">
+      <button class="mint-main-btn" id="customModalBtn" style="margin-top:10px;">ПОДТВЕРДИТЬ</button>
+    </div>
+  </div>
+
+  <!-- 7. ПОЛНОЭКРАННЫЙ СПЕЦЭФФЕКТ ВЫПАДЕНИЯ LEGENDARY+ (7/10 ➔ 10/10 DIVINE) -->
+  <div id="legendaryVfxOverlay" onclick="ui.closeLegendaryVfx()">
+    <canvas id="vfxCanvas"></canvas>
+    <div class="vfx-rays"></div>
+    <div class="vfx-card" id="vfxCardBox" onclick="event.stopPropagation()">
+      <div class="rr-font" id="vfxTierBadge" style="font-size:10px;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:10px;">🌟 ЛЕГЕНДАРНЫЙ ДРОП (7/10)</div>
+      <div id="vfxItemArt" style="width:128px;height:128px;margin:0 auto 12px;"></div>
+      <div class="rr-font" id="vfxItemTag" style="font-size:16px;font-weight:900;margin-bottom:6px;">Imperial Obsidian Crown #1</div>
+      <div id="vfxItemStats" style="font-size:11px;color:var(--muted);margin-bottom:14px;">Оценка: 260M G • Доход: +95K G/с</div>
+      <button class="mint-main-btn" style="margin:0;" onclick="ui.closeLegendaryVfx()">ЗАБРАТЬ В СЕЙФ ИМПЕРИИ</button>
+    </div>
+  </div>
+
+  <!-- ДОПОЛНИТЕЛЬНЫЕ СТИЛИ ПОЛИРОВКИ ДИЗАЙНА, МУЛЬТИ-КРУТОК X1-X25 И СПЕЦЭФФЕКТОВ LEGENDARY+ -->
+  <style>
+    /* Переключатель мульти-круток x1 / x5 / x10 / x25 */
+    .multi-spin-bar {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;
+      margin: 10px 0 4px; background: rgba(5, 7, 11, 0.65); padding: 5px;
+      border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .spin-cnt-btn {
+      background: transparent; border: 1px solid transparent; color: var(--muted);
+      border-radius: 10px; padding: 7px 4px; font-family: var(--font-display);
+      font-size: 9.5px; font-weight: 900; cursor: pointer; transition: all 0.15s ease;
+    }
+    .spin-cnt-btn.active {
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.28), rgba(6, 182, 212, 0.25));
+      color: #fff; border-color: var(--emerald); box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+    }
+
+    /* Плашка лучшего выпавшего предмета сверху при крутках */
+    .best-drop-banner {
+      border-radius: 16px; padding: 10px 12px; margin: 8px 0;
+      background: radial-gradient(120% 100% at 50% 0%, rgba(255, 255, 255, 0.08) 0%, rgba(10, 14, 24, 0.95) 80%);
+      border: 1.5px solid rgba(255, 255, 255, 0.14); transition: all 0.25s ease;
+    }
+    .best-drop-banner.high-tier-glow {
+      animation: pulseHighTier 1.8s infinite alternate;
+    }
+    @keyframes pulseHighTier {
+      0% { transform: scale(1); filter: brightness(1); }
+      100% { transform: scale(1.015); filter: brightness(1.18); }
+    }
+
+    /* Лента мини-результатов пачки x5 / x10 / x25 */
+    .batch-drops-list {
+      display: flex; gap: 5px; overflow-x: auto; padding: 6px 2px; margin-top: 6px;
+    }
+    .batch-chip {
+      flex-shrink: 0; border-radius: 9px; padding: 4px 8px; font-size: 8.5px;
+      font-weight: 800; background: #0b0f1a; border: 1px solid rgba(255,255,255,0.12);
+      white-space: nowrap;
+    }
+
+    /* Полноэкранный спецэффект Legendary+ (7/10 - 10/10) */
+    #legendaryVfxOverlay {
+      position: fixed; inset: 0; z-index: 99990;
+      background: radial-gradient(circle at 50% 45%, rgba(245, 158, 11, 0.32) 0%, rgba(5, 7, 11, 0.96) 72%);
+      backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center;
+      padding: 20px; overflow: hidden;
+    }
+    #legendaryVfxOverlay.open { display: flex; animation: vfxFadeIn 0.28s ease forwards; }
+    @keyframes vfxFadeIn { from { opacity: 0; } to { opacity: 1; } }
+    #vfxCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+    .vfx-rays {
+      position: absolute; width: 520px; height: 520px; border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 0deg 20deg, rgba(253, 224, 71, 0.16) 20deg 40deg, transparent 40deg 60deg, rgba(56, 189, 248, 0.16) 60deg 80deg, transparent 80deg 100deg, rgba(253, 224, 71, 0.16) 100deg 120deg, transparent 120deg 140deg, rgba(236, 72, 153, 0.16) 140deg 160deg, transparent 160deg 180deg, rgba(253, 224, 71, 0.16) 180deg 200deg, transparent 200deg 220deg, rgba(56, 189, 248, 0.16) 220deg 240deg, transparent 240deg 260deg, rgba(253, 224, 71, 0.16) 260deg 280deg, transparent 280deg 300deg, rgba(16, 185, 129, 0.16) 300deg 320deg, transparent 320deg 340deg, rgba(253, 224, 71, 0.16) 340deg 360deg);
+      animation: spinRays 11s linear infinite; pointer-events: none; z-index: 2;
+    }
+    @keyframes spinRays { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    .vfx-card {
+      position: relative; z-index: 3; width: 100%; max-width: 350px;
+      background: linear-gradient(160deg, #161f33 0%, #0b0f19 100%);
+      border: 2px solid #fde047; border-radius: 26px; padding: 22px 18px;
+      text-align: center; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 40px rgba(253, 224, 71, 0.35);
+      animation: vfxPopCard 0.42s cubic-bezier(0.18, 1.25, 0.4, 1) forwards;
+    }
+    @keyframes vfxPopCard {
+      0% { transform: scale(0.65) translateY(30px); opacity: 0; }
+      100% { transform: scale(1) translateY(0); opacity: 1; }
+    }
+    .screen-shake { animation: shakeScreen 0.42s cubic-bezier(.36,.07,.19,.97) both; }
+    @keyframes shakeScreen {
+      10%, 90% { transform: translate3d(-2px, 0, 0); }
+      20%, 80% { transform: translate3d(3px, 0, 0); }
+      30%, 50%, 70% { transform: translate3d(-5px, 0, 0); }
+      40%, 60% { transform: translate3d(5px, 0, 0); }
+    }
+  </style>
+
+  <script>
+    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
+    if (tg) { tg.expand(); tg.ready(); }
+
+    // ==================== 10 УРОВНЕЙ РЕДКОСТИ (1/10 ➔ 10/10) ====================
+    const RARITY_COLORS = ['#94a3b8','#10b981','#3b82f6','#06b6d4','#a855f7','#ec4899','#f59e0b','#ef4444','#38bdf8','#fde047'];
+    const RARITY_NAMES = ['Common','Uncommon','Rare','Elite','Epic','Mythic','Legendary','Ancient','Celestial','Divine'];
+    const RARITY_RU = ['Обычный (1/10)','Необычный (2/10)','Редкий (3/10)','Элитный (4/10)','Эпический (5/10)','Мифический (6/10)','Легендарный (7/10)','Древний (8/10)','Небесный (9/10)','Божественный (10/10)'];
+
+    // ==================== ВСТРОЕННЫЕ КРИСТАЛЬНЫЕ ИЛЛЮСТРАЦИИ (РАБОТАЮТ ДАЖЕ БЕЗ ПАПКИ /ASSETS/) ====================
+    window.DUROV_SVG = `<svg viewBox="0 0 120 120" fill="none"><defs><linearGradient id="dm" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#94A3B8"/><stop offset="50%" stop-color="#334155"/><stop offset="100%" stop-color="#0F172A"/></linearGradient></defs><circle cx="60" cy="60" r="54" fill="rgba(36,161,222,0.15)" stroke="#24A1DE" stroke-width="2.5"/><path d="M32 38C32 20 88 20 88 38L84 82L60 98L36 82L32 38Z" fill="url(#dm)" stroke="#E2E8F0" stroke-width="3"/><polygon points="60,38 82,48 76,72 60,86 44,72 38,48" fill="#1E293B" stroke="#38BDF8" stroke-width="2"/><polygon points="44,54 56,58 46,62" fill="#38BDF8"/><polygon points="76,54 64,58 74,62" fill="#38BDF8"/></svg>`;
+    window.DOG_SVG = `<svg viewBox="0 0 120 120" fill="none"><defs><linearGradient id="emg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#A7F3D0"/><stop offset="50%" stop-color="#10B981"/><stop offset="100%" stop-color="#064E3B"/></linearGradient></defs><circle cx="60" cy="60" r="54" fill="rgba(16,185,129,0.16)" stroke="#10B981" stroke-width="2.5"/><polygon points="60,16 96,48 86,96 34,96 24,48" fill="url(#emg)" stroke="#ECFDF5" stroke-width="3"/><circle cx="60" cy="64" r="22" fill="#1E293B" stroke="#34D399" stroke-width="2.5"/><polygon points="46,58 56,62 48,66" fill="#38BDF8"/><polygon points="74,58 64,62 72,66" fill="#38BDF8"/></svg>`;
+    window.CHEST_SVG = `<svg viewBox="0 0 120 120" fill="none"><defs><linearGradient id="chg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#34D399"/><stop offset="55%" stop-color="#059669"/><stop offset="100%" stop-color="#022C22"/></linearGradient><linearGradient id="gld" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FEF08A"/><stop offset="60%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#78350F"/></linearGradient></defs><polygon points="18,48 60,24 102,48 94,94 60,106 26,94" fill="#1E293B" stroke="url(#gld)" stroke-width="4"/><polygon points="24,46 60,28 96,46 60,64" fill="url(#chg)" stroke="#A7F3D0" stroke-width="2.5"/><polygon points="60,50 74,64 60,82 46,64" fill="url(#gld)" stroke="#FFF" stroke-width="2"/></svg>`;
+    window.CROWN_SVG = `<svg viewBox="0 0 120 120" fill="none"><defs><linearGradient id="crg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FEF08A"/><stop offset="50%" stop-color="#F59E0B"/><stop offset="100%" stop-color="#92400E"/></linearGradient></defs><polygon points="60,18 74,34 60,50 46,34" fill="#38BDF8" stroke="#BAE6FD" stroke-width="2.5"/><path d="M18 88L26 42L48 64L60 34L72 64L94 42L102 88H18Z" fill="url(#crg)" stroke="#FEF9C3" stroke-width="3.5" stroke-linejoin="round"/><polygon points="60,56 70,72 60,86 50,72" fill="#10B981" stroke="#A7F3D0" stroke-width="2"/></svg>`;
+    window.DUO_FALLBACK_SVG = `<svg viewBox="0 0 220 200" fill="none"><ellipse cx="110" cy="182" rx="85" ry="14" fill="rgba(16,185,129,0.28)"/><g transform="translate(20,15) scale(1.35)">${window.DUROV_SVG}</g><g transform="translate(92,55) scale(1.05)">${window.DOG_SVG}</g></svg>`;
+
+    function fmt(n) {
+      const num = Number(n || 0);
+      if (!ui.compactBal) return Math.round(num).toLocaleString('ru-RU');
+      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
+      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
+      if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
+      return String(Math.round(num));
+    }
+
+    function itemVisualBox(imgUrl, tier = 0, itemType = 'gift') {
+      const col = RARITY_COLORS[Math.min(9, Math.max(0, tier))] || '#10b981';
+      const src = imgUrl || (itemType === 'gift' ? '/assets/nft/imperial_crown.webp' : '/assets/cases/emerald_vault_chest.webp');
+      const pngSrc = src.replace(/\.webp$/i, '.png');
+      const fallbackSvg = tier >= 6 ? window.CROWN_SVG : (itemType === 'user' ? window.DUROV_SVG : window.CHEST_SVG);
+      return `<div class="webp-item-box" style="border-color:${col}66;box-shadow:inset 0 0 12px ${col}22;">
+        <img src="${src}" loading="lazy" decoding="async"
+             onerror="if(!this.dataset.p){this.dataset.p=1;this.src='${pngSrc}';}else{this.outerHTML=window.CROWN_SVG;}">
+      </div>`;
+    }
+
+    const COUNTRIES_LIST = [
+      { code: 'RU', name: 'Россия', flag: '🇷🇺' },
+      { code: 'KZ', name: 'Казахстан', flag: '🇰🇿' },
+      { code: 'BY', name: 'Беларусь', flag: '🇧🇾' },
+      { code: 'UA', name: 'Украина', flag: '🇺🇦' },
+      { code: 'UZ', name: 'Узбекистан', flag: '🇺🇿' },
+      { code: 'AE', name: 'ОАЭ (Дубай)', flag: '🇦🇪' },
+      { code: 'US', name: 'США', flag: '🇺🇸' },
+      { code: 'DE', name: 'Германия', flag: '🇩🇪' }
+    ];
+
+    const ui = {
+      userId: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 777000,
+      username: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) ? tg.initDataUnsafe.user.username : 'hatebeinsober21',
+      mintMode: 'user',
+      mintCount: 1,
+      caseSpinCount: 1,
+      safeFilter: 'all',
+      stakePlan: 'imperial',
+      compactBal: localStorage.getItem('mt_compact_bal') !== '0',
+      state: null,
+      casesCatalog: [],
+      nftCat: 'all',
+      nftPage: 1,
+      minesState: { active: false, bombs: [], revealed: [], mult: 1.0, bet: 2500 },
+      crashState: { active: false, mult: 1.0, target: 1.0, bet: 5000, animId: null },
+
+      toast(msg) {
+        const b = document.getElementById('toastBox');
+        b.textContent = msg;
+        b.style.display = 'block';
+        clearTimeout(this._t);
+        this._t = setTimeout(() => { b.style.display = 'none'; }, 2600);
+      },
+
+      haptic(type = 'light') {
+        try {
+          if (!tg || !tg.HapticFeedback) return;
+          if (type === 'success' || type === 'warning' || type === 'error') {
+            tg.HapticFeedback.notificationOccurred(type);
+          } else {
+            tg.HapticFeedback.impactOccurred(type);
+          }
+        } catch (e) {}
+      },
+
+      injectMascotsAndMultiSpinUI() {
+        // Аватары героев с фоллбеком на встроенный SVG
+        const setMascot = (id, file, svgStr) => {
+          const el = document.getElementById(id);
+          if (!el) return;
+          el.innerHTML = `<img src="/assets/${file}.webp" style="width:100%;height:100%;object-fit:contain;" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/${file}.png';}else{this.outerHTML=window.${svgStr};}">`;
+        };
+        setMascot('topHeroMascot', 'dog', 'DOG_SVG');
+        setMascot('durovBannerAvatar', 'durov', 'DUROV_SVG');
+        setMascot('dogBannerAvatar', 'dog', 'DOG_SVG');
+        setMascot('friendsDogAvatar', 'dog', 'DOG_SVG');
+        const mBox = document.getElementById('mintPreviewBox');
+        if (mBox) mBox.innerHTML = window.CROWN_SVG;
+
+        // Встраиваем панель мульти-круток x1 / x5 / x10 / x25 в сцену Минта
+        const mintStage = document.querySelector('#view-play .mint-stage');
+        const mintBtn = document.getElementById('mintBtnText');
+        if (mintStage && mintBtn && !document.getElementById('mintMultiSpinBar')) {
+          const bar = document.createElement('div');
+          bar.id = 'mintMultiSpinBar';
+          bar.className = 'multi-spin-bar';
+          bar.innerHTML = [1, 5, 10, 25].map(cnt =>
+            `<button class="spin-cnt-btn ${cnt === 1 ? 'active' : ''}" data-cnt="${cnt}" onclick="ui.setMintCount(${cnt})">×${cnt} КРУТКА</button>`
+          ).join('');
+          mintStage.insertBefore(bar, mintBtn);
+
+          const batchBox = document.createElement('div');
+          batchBox.id = 'mintBatchDropsBox';
+          batchBox.className = 'batch-drops-list';
+          mintStage.insertBefore(batchBox, bar);
+        }
+      },
+
+      async init() {
+        this.injectMascotsAndMultiSpinUI();
+        this.initMinesBoard();
+        this.drawWheel(0);
+        this.drawCrashIdle();
+
+        try {
+          const [sRes, cRes] = await Promise.all([
+            fetch('/api/sync', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ user_id: this.userId, username: this.username })
+            }),
+            fetch('/api/cases_catalog')
+          ]);
+          const sData = await sRes.json();
+          const cData = await cRes.json();
+          this.casesCatalog = cData.cases || [];
+          this.applyState(sData);
+          this.renderCasesList();
+          this.loadNftCatalog('all', 1);
+
+          // Показываем шторку подписки только если ещё не подтверждена в этой сессии
+          if (sData.user && !sData.user.sub_verified && !sessionStorage.getItem('mt_sub_done')) {
+            document.getElementById('subGateModal').classList.add('open');
+          }
+        } catch (e) {
+          console.error('Init error:', e);
+        } finally {
+          setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 420);
+        }
+
+        // Живое тиканье пассивного дохода на экране каждую секунду
+        setInterval(() => {
+          if (this.state && this.state.user && this.state.user.income_per_sec > 0) {
+            this.state.user.balance += Math.max(1, Math.round(this.state.user.income_per_sec / 10));
+            document.getElementById('mainBalanceVal').textContent = fmt(this.state.user.balance);
+          }
+        }, 1000);
+      },
+
+      applyState(data) {
+        if (!data || !data.user) return;
+        this.state = data;
+        const u = data.user;
+
+        // Сокращение нулей никогда не сбрасывается при перезагрузке
+        const savedCompact = localStorage.getItem('mt_compact_bal');
+        if (savedCompact !== null) {
+          this.compactBal = savedCompact === '1';
+        } else {
+          this.compactBal = Boolean(u.compact_pref);
+          localStorage.setItem('mt_compact_bal', this.compactBal ? '1' : '0');
+        }
+        const toggleEl = document.getElementById('compactBalToggle');
+        if (toggleEl) toggleEl.checked = this.compactBal;
+
+        document.getElementById('mainBalanceVal').textContent = fmt(u.balance);
+        document.getElementById('mainIncomeVal').textContent = fmt(u.income_per_sec);
+        document.getElementById('topStarsVal').textContent = u.stars;
+        document.getElementById('moreStarsBal').textContent = u.stars;
+        document.getElementById('topLuckVal').textContent = '×' + u.luck_mult;
+        document.getElementById('vipBadgeTxt').textContent = u.vip_active ? '👑 VIP EMPIRE' : `@${u.username}`;
+
+        const cObj = COUNTRIES_LIST.find(x => x.code === u.country);
+        document.getElementById('topCountryFlag').textContent = cObj ? `${cObj.flag} ${cObj.name}` : (u.country ? `🌍 ${u.country}` : '🌍 Выбрать страну');
+
+        document.getElementById('divineServerCnt').textContent = `${data.divine_global}/75`;
+        const hotEl = document.getElementById('hotTrendTxt');
+        if (hotEl) hotEl.textContent = data.hot_trend || 'Royal';
+        document.getElementById('merchBannerSub').textContent = `Платит +80% за тир «${data.merch_tier_name}»`;
+
+        const safeItems = (data.inventory || []).filter(i => !i.is_staked);
+        document.getElementById('safeUsedCnt').textContent = safeItems.length;
+        document.getElementById('safeMaxCnt').textContent = u.safe_slots;
+        document.getElementById('scrapPartsVal').textContent = u.scrap_parts;
+        document.getElementById('lockpicksVal').textContent = u.lockpicks;
+        document.getElementById('vaultPicksCnt').textContent = u.lockpicks;
+        document.getElementById('flexLikesCnt').textContent = u.flex_likes;
+
+        const passLvl = document.getElementById('passLvlTxt');
+        const passXp = document.getElementById('passXpTxt');
+        if (passLvl) passLvl.textContent = u.pass_level || (1 + Math.floor((u.pass_xp || 0) / 100));
+        if (passXp) passXp.textContent = fmt(u.pass_xp || 0);
+
+        const obepBanner = document.getElementById('obepAlertBanner');
+        if (obepBanner) {
+          if (u.obep_fine > 0) {
+            obepBanner.style.display = 'flex';
+            document.getElementById('obepFineTxt').textContent = fmt(u.obep_fine);
+          } else {
+            obepBanner.style.display = 'none';
+          }
+        }
+
+        if (u.is_admin) document.getElementById('adminGodPanel').style.display = 'block';
+
+        this.renderSafe();
+        this.renderChannels();
+        this.renderFlexSlots();
+        this.renderMarket();
+        this.renderStakes();
+        this.renderStakedAssets();
+        this.renderClans();
+        this.renderCountryTop();
+      },
+
+      // ==================== НАВИГАЦИЯ ====================
+      nav(tab) {
+        this.haptic('light');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
+        const target = document.getElementById('view-' + tab);
+        if (target) target.classList.add('active');
+        const btn = document.getElementById('tab-' + tab);
+        if (btn) btn.classList.add('active');
+      },
+
+      openSub(sub) {
+        this.haptic('light');
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        const map = {
+          cases: 'view-cases',
+          collections: 'view-collections',
+          staking: 'view-staking',
+          sapper: 'view-sapper',
+          crash: 'view-crash',
+          wheel: 'view-wheel',
+          forge: 'view-forge',
+          upgrader: 'view-upgrader',
+          pvp: 'view-pvp',
+          vault: 'view-vault',
+          clans: 'view-clans',
+          pass: 'view-pass',
+          leaderboard: 'view-leaderboard',
+          minigames: 'view-sapper',
+          contracts: 'view-forge'
+        };
+        const id = map[sub] || 'view-play';
+        const el = document.getElementById(id);
+        if (el) el.classList.add('active');
+      },
+
+      // ==================== ОБЯЗАТЕЛЬНАЯ ПОДПИСКА БЕЗ БАГОВ ====================
+      openTgChannel() {
+        const ch = (this.state && this.state.required_channel) ? this.state.required_channel.replace('@', '') : 'MintTagsNews';
+        const url = `https://t.me/${ch}`;
+        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+        else window.open(url, '_blank');
+      },
+
+      async verifySubscription() {
+        try {
+          const r = await fetch('/api/check_sub', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, username: this.username })
+          });
+          const d = await r.json();
+          if (!r.ok || !d.ok) return this.toast(d.error || 'Подпишитесь на канал!');
+          sessionStorage.setItem('mt_sub_done', '1');
+          document.getElementById('subGateModal').classList.remove('open');
+          this.applyState(d.state);
+          this.haptic('success');
+          this.toast('Допуск открыт! Начислено +15 000 GRAM!');
+        } catch (e) {
+          sessionStorage.setItem('mt_sub_done', '1');
+          document.getElementById('subGateModal').classList.remove('open');
+        }
+      },
+
+      // ==================== МИНТ И МУЛЬТИ-КРУТКИ (x1, x5, x10, x25) С ВЫВОДОМ ЛУЧШЕГО ДРОПА ====================
+      setMintMode(m) {
+        this.mintMode = m;
+        ['u', 'n', 'g'].forEach(k => {
+          const el = document.getElementById('seg-' + k);
+          if (el) el.classList.remove('active');
+        });
+        const mapBtn = { user: 'seg-u', num: 'seg-n', gift: 'seg-g' };
+        const activeBtn = document.getElementById(mapBtn[m]);
+        if (activeBtn) activeBtn.classList.add('active');
+        this.updateMintButtonLabel();
+      },
+
+      setMintCount(cnt) {
+        this.mintCount = cnt;
+        document.querySelectorAll('#mintMultiSpinBar .spin-cnt-btn').forEach(b => {
+          b.classList.toggle('active', Number(b.dataset.cnt) === cnt);
+        });
+        this.updateMintButtonLabel();
+      },
+
+      updateMintButtonLabel() {
+        const unitCost = this.mintMode === 'gift' ? 4500 : (this.mintMode === 'num' ? 2500 : 1000);
+        const totalCost = unitCost * this.mintCount;
+        const titles = {
+          user: 'ГЕНЕРАТОР TELEGRAM @USERNAME',
+          num: 'ГЕНЕРАТОР АНОНИМНЫХ НОМЕРОВ +888',
+          gift: 'ГЕНЕРАТОР КОЛЛЕКЦИОННЫХ NFT-ГИФТОВ'
+        };
+        const btnNames = {
+          user: '@USERNAME',
+          num: 'НОМЕР +888',
+          gift: 'NFT-ПОДАРОК'
+        };
+        document.getElementById('mintStageTitle').textContent = titles[this.mintMode];
+        document.getElementById('mintBtnText').textContent =
+          `СМИНТИТЬ ×${this.mintCount} ${btnNames[this.mintMode]} (${fmt(totalCost)} G)`;
+      },
+
+      async doMint() {
+        if (this._mintBusy) return;
+        this._mintBusy = true;
+        try {
+          const batchDrops = [];
+          let lastState = null;
+
+          // Пробуем пакетный запрос (если сервер обновлён с count), иначе делаем цикл
+          const r = await fetch('/api/mint', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, mode: this.mintMode, count: this.mintCount })
+          });
+          const d = await r.json();
+          if (!r.ok) {
+            this.toast(d.error || 'Недостаточно средств или места в Сейфе');
+            return;
+          }
+
+          if (Array.isArray(d.dropped_list) && d.dropped_list.length > 0) {
+            batchDrops.push(...d.dropped_list);
+            lastState = d.state;
+          } else if (d.dropped) {
+            batchDrops.push(d.dropped);
+            lastState = d.state;
+            for (let i = 1; i < this.mintCount; i++) {
+              const rNext = await fetch('/api/mint', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: this.userId, mode: this.mintMode })
+              });
+              if (!rNext.ok) break;
+              const dNext = await rNext.json();
+              if (dNext.dropped) batchDrops.push(dNext.dropped);
+              if (dNext.state) lastState = dNext.state;
+            }
+          }
+
+          if (!batchDrops.length) return;
+
+          // СОРТИРУЕМ ПАЧКУ ПО ТИРУ И СТОИМОСТИ — БЕРЁМ САМЫЙ ВЫСОКИЙ ПРЕДМЕТ!
+          batchDrops.sort((a, b) => (b.tier - a.tier) || (b.value - a.value));
+          const bestItem = batchDrops[0];
+          const bestCol = RARITY_COLORS[bestItem.tier] || '#10b981';
+
+          // ОБНОВЛЯЕМ ВЕРХНЮЮ СТРОКУ ВЫДАЧИ НА САМЫЙ ВЫСОКИЙ ВЫПАВШИЙ ТИР!
+          const tagEl = document.getElementById('lastMintedTag');
+          const rarEl = document.getElementById('lastMintedRarity');
+          const prevBox = document.getElementById('mintPreviewBox');
+
+          tagEl.textContent = bestItem.tag;
+          tagEl.style.color = bestCol;
+          tagEl.style.textShadow = bestItem.tier >= 6 ? `0 0 18px ${bestCol}` : 'none';
+
+          const prefix = batchDrops.length > 1 ? `🏆 ЛУЧШИЙ ИЗ ×${batchDrops.length}: ` : '';
+          rarEl.innerHTML = `<b style="color:${bestCol};">${prefix}${RARITY_RU[bestItem.tier].toUpperCase()}</b> • Оценка: <b style="color:#fff;">${fmt(bestItem.value)} G</b> (+${fmt(bestItem.income)}/с)`;
+
+          if (prevBox) {
+            prevBox.innerHTML = itemVisualBox(bestItem.image, bestItem.tier, bestItem.item_type).replace('52px', '74px');
+          }
+
+          // Показываем всю ленту выпавших в мульти-крутке предметов
+          const batchBox = document.getElementById('mintBatchDropsBox');
+          if (batchBox) {
+            if (batchDrops.length > 1) {
+              batchBox.innerHTML = batchDrops.map(it => {
+                const c = RARITY_COLORS[it.tier];
+                return `<div class="batch-chip" style="border-color:${c};color:${c};">${it.tag} (${it.tier + 1}/10)</div>`;
+              }).join('');
+            } else {
+              batchBox.innerHTML = '';
+            }
+          }
+
+          if (lastState) this.applyState(lastState);
+
+          // Если в пачке выпал Legendary+ (7/10 - 10/10) — запускаем спецэффекты!
+          if (bestItem.tier >= 6) {
+            this.triggerLegendaryVfx(bestItem);
+          } else {
+            this.haptic('light');
+          }
+        } finally {
+          this._mintBusy = false;
+        }
+      },
+
+      // ==================== СПЕЦЭФФЕКТЫ LEGENDARY+ (7/10 ➔ 10/10 DIVINE) ====================
+      triggerLegendaryVfx(item) {
+        this.haptic('success');
+        document.body.classList.remove('screen-shake');
+        void document.body.offsetWidth;
+        document.body.classList.add('screen-shake');
+
+        const col = RARITY_COLORS[item.tier] || '#fde047';
+        const overlay = document.getElementById('legendaryVfxOverlay');
+        const card = document.getElementById('vfxCardBox');
+        const badge = document.getElementById('vfxTierBadge');
+
+        card.style.borderColor = col;
+        card.style.boxShadow = `0 20px 60px rgba(0,0,0,0.9), 0 0 48px ${col}66`;
+        badge.style.background = `${col}26`;
+        badge.style.color = col;
+        badge.style.border = `1px solid ${col}`;
+        badge.textContent = `🌟 ${RARITY_RU[item.tier].toUpperCase()} 🌟`;
+
+        document.getElementById('vfxItemArt').innerHTML =
+          itemVisualBox(item.image, item.tier, item.item_type).replace('width: 52px; height: 52px;', 'width:120px;height:120px;');
+        const titleEl = document.getElementById('vfxItemTag');
+        titleEl.textContent = item.tag;
+        titleEl.style.color = col;
+        document.getElementById('vfxItemStats').innerHTML =
+          `Оценка: <b style="color:var(--emerald);">${fmt(item.value)} GRAM</b> • Доход: <b style="color:#fff;">+${fmt(item.income)} G/сек</b>`;
+
+        overlay.classList.add('open');
+        this.startVfxParticles(col);
+      },
+
+      startVfxParticles(mainColor) {
+        const cvs = document.getElementById('vfxCanvas');
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+        cvs.width = window.innerWidth;
+        cvs.height = window.innerHeight;
+
+        const colors = [mainColor, '#fde047', '#38bdf8', '#10b981', '#ffffff'];
+        const particles = Array.from({ length: 85 }, () => ({
+          x: cvs.width / 2,
+          y: cvs.height / 2,
+          vx: (Math.random() - 0.5) * 14,
+          vy: (Math.random() - 0.7) * 15,
+          size: 3 + Math.random() * 5,
+          col: colors[Math.floor(Math.random() * colors.length)],
+          alpha: 1
+        }));
+
+        cancelAnimationFrame(this._vfxRaf);
+        const render = () => {
+          ctx.clearRect(0, 0, cvs.width, cvs.height);
+          let alive = false;
+          particles.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += 0.22;
+            p.alpha -= 0.012;
+            if (p.alpha > 0) {
+              alive = true;
+              ctx.globalAlpha = Math.max(0, p.alpha);
+              ctx.fillStyle = p.col;
+              ctx.beginPath();
+              ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          });
+          if (alive && document.getElementById('legendaryVfxOverlay').classList.contains('open')) {
+            this._vfxRaf = requestAnimationFrame(render);
+          }
+        };
+        render();
+      },
+
+      closeLegendaryVfx() {
+        document.getElementById('legendaryVfxOverlay').classList.remove('open');
+        cancelAnimationFrame(this._vfxRaf);
+      },
+
+      // ==================== СЕЙФ И ОПЕРАЦИИ С АКТИВАМИ ====================
+      setSafeFilter(f) { this.safeFilter = f; this.renderSafe(); },
+
+      renderSafe() {
+        const box = document.getElementById('safeItemsList');
+        if (!box || !this.state) return;
+        const allSafe = (this.state.inventory || []).filter(i => !i.is_staked);
+        const items = allSafe.filter(i => this.safeFilter === 'all' || i.item_type === this.safeFilter);
+        if (!items.length) {
+          box.innerHTML = `<div class="card-box" style="text-align:center;color:var(--muted);font-size:11px;">В этой категории Сейфа пока нет активов</div>`;
+          return;
+        }
+        const merchTier = this.state.merch_tier;
+        box.innerHTML = items.map(item => {
+          const col = RARITY_COLORS[item.tier] || '#94a3b8';
+          const isBonus = item.tier === merchTier;
+          const sellPrice = Math.floor(item.value * (isBonus ? 1.8 : 1.0));
+          return `<div class="card-box" style="border-left:3.5px solid ${col};">
+            <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;">
+              <div style="display:flex;align-items:center;gap:10px;">
+                ${itemVisualBox(item.image, item.tier, item.item_type)}
+                <div>
+                  <div class="rr-font" style="font-size:11px;color:${col};">${item.tag}</div>
+                  <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">
+                    ${RARITY_RU[item.tier]} • <b style="color:var(--emerald);">+${fmt(item.income)}/с</b> • Целостность: ${item.wear}%
+                  </div>
+                </div>
+              </div>
+              <button class="q-pill nav-theme-emerald" style="padding:7px 10px;flex-shrink:0;" onclick="ui.sellItem(${item.id},'single')">
+                ${isBonus ? '🔥 ' : ''}${fmt(sellPrice)} G
+              </button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;">
+              <button class="q-pill nav-theme-emerald" style="font-size:8.5px;padding:5px;" onclick="ui.sellItem(${item.id},'stake_item')">🏦 В Банк +50%</button>
+              <button class="q-pill nav-theme-amber" style="font-size:8.5px;padding:5px;" onclick="ui.listOnMarketPrompt(${item.id}, ${item.value})">⚖️ На Рынок</button>
+              <button class="q-pill nav-theme-violet" style="font-size:8.5px;padding:5px;" onclick="ui.sellItem(${item.id},'flex')">${item.is_flex ? '★ В Музее' : '☆ В Музей'}</button>
+              <button class="q-pill nav-theme-cyan" style="font-size:8.5px;padding:5px;" onclick="ui.sellItem(${item.id},'shred')">⚙️ Шредер</button>
+            </div>
+          </div>`;
+        }).join('');
+      },
+
+      async sellItem(itemId, mode, price = 0) {
+        const r = await fetch('/api/sell_item', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, item_id: itemId, mode, price })
+        });
+        const d = await r.json();
+        if (!r.ok) return this.toast(d.error || 'Ошибка');
+        this.applyState(d.state);
+        this.haptic('light');
+        this.toast(d.message || 'Выполнено!');
+      },
+
+      // ==================== ХОЛД-БАНК: ЛЮБАЯ СУММА GRAM + ХРАНИЛИЩЕ NFT / +888 / @ID ====================
+      setStakeQuick(ratio) {
+        if (!this.state || !this.state.user) return;
+        const val = Math.max(500, Math.floor(this.state.user.balance * ratio));
+        document.getElementById('stakeCustomInput').value = val;
+      },
+
+      selectStakePlan(plan) {
+        this.stakePlan = plan;
+        ['flex', 'imperial', 'durov'].forEach(p => {
+          const el = document.getElementById('plan-' + p);
+          if (el) el.style.outline = (p === plan) ? '2px solid #fff' : 'none';
+        });
+      },
+
+      async submitCustomStake() {
+        const amt = parseInt(document.getElementById('stakeCustomInput').value || '0', 10);
+        if (!amt || amt < 500) return this.toast('Введите сумму от 500 GRAM!');
+        const r = await fetch('/api/stake/gram', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, amount: amt, plan: this.stakePlan })
+        });
+        const d = await r.json();
+        if (!r.ok) return this.toast(d.error || 'Ошибка вклада');
+        this.applyState(d.state);
+        this.haptic('success');
+        this.toast(d.message || 'Вклад открыт!');
+      },
+
+      renderStakes() {
+        const box = document.getElementById('stakesList');
+        if (!box || !this.state) return;
+        const st = this.state.stakes || [];
+        box.innerHTML = st.length
+          ? st.map(s => `<div class="card-box" style="margin:5px 0 0;padding:8px 10px;display:flex;justify-content:space-between;font-size:10px;">
+              <span>💰 <b>${fmt(s.amount)} G</b> (${s.plan_name || '+25%'})</span>
+              <span style="color:var(--emerald);font-weight:800;">К выводу: ${fmt(Math.floor(s.amount * (1 + Number(s.rate || 0.25))))} G</span>
+            </div>`).join('')
+          : `<div style="font-size:9.5px;color:var(--muted);text-align:center;margin-top:6px;">Активных денежных вкладов пока нет</div>`;
+      },
+
+      renderStakedAssets() {
+        const box = document.getElementById('stakedAssetsBox');
+        if (!box || !this.state) return;
+        document.getElementById('stakedItemsIncTxt').textContent = fmt(this.state.user.staked_items_income || 0);
+
+        const inv = this.state.inventory || [];
+        const staked = inv.filter(i => i.is_staked);
+        const available = inv.filter(i => !i.is_staked && !i.is_listed);
+
+        let html = '';
+        if (staked.length > 0) {
+          html += `<div style="font-size:9.5px;color:var(--emerald);font-weight:800;margin-bottom:5px;">В банковской ячейке (${staked.length}):</div>`;
+          html += staked.map(it => {
+            const col = RARITY_COLORS[it.tier];
+            return `<div class="card-box" style="padding:8px 10px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;border-left:3px solid ${col};">
+              <div>
+                <div class="rr-font" style="font-size:10px;color:${col};">${it.tag}</div>
+                <div style="font-size:9px;color:var(--muted);">Доход с бонусом +50%: <b style="color:var(--emerald);">+${fmt(Math.floor(it.income * 1.5))} G/с</b> (0% износа)</div>
+              </div>
+              <button class="q-pill nav-theme-amber" style="padding:6px 10px;" onclick="ui.sellItem(${it.id},'unstake_item')">ЗАБРАТЬ В СЕЙФ</button>
+            </div>`;
+          }).join('');
+        }
+
+        if (available.length > 0) {
+          html += `<div style="font-size:9.5px;color:var(--muted);font-weight:800;margin:8px 0 5px;">Доступно в Сейфе для помещения в Холд-Банк:</div>`;
+          html += available.slice(0, 8).map(it => {
+            const col = RARITY_COLORS[it.tier];
+            return `<div class="card-box" style="padding:8px 10px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;">
+              <div>
+                <div class="rr-font" style="font-size:10px;color:${col};">${it.tag}</div>
+                <div style="font-size:9px;color:var(--muted);">Базовый: +${fmt(it.income)}/с ➔ В банке: <b style="color:var(--emerald);">+${fmt(Math.floor(it.income * 1.5))}/с</b></div>
+              </div>
+              <button class="q-pill nav-theme-emerald" style="padding:6px 10px;" onclick="ui.sellItem(${it.id},'stake_item')">+ ПОЛОЖИТЬ</button>
+            </div>`;
+          }).join('');
+        } else if (!staked.length) {
+          html = `<div style="font-size:10px;color:var(--muted);text-align:center;">Сминтите @username, номер +888 или NFT-подарок, чтобы положить его под +50% дохода!</div>`;
+        }
+        box.innerHTML = html;
+      },
+
+      // ==================== 14 КЕЙСОВ С МУЛЬТИ-КРУТКАМИ И ПОКАЗОМ ЛУЧШЕГО ДРОПА ====================
+      renderCasesList() {
+        const box = document.getElementById('casesList');
+        if (!box) return;
+        box.innerHTML = this.casesCatalog.map(c => {
+          const isStars = c.currency === 'stars';
+          const priceLbl = isStars ? `${c.price} ⭐️` : `${fmt(c.price)} G`;
+          return `<div class="card-box" onclick="ui.openCaseModal('${c.id}')" style="display:flex;justify-content:space-between;align-items:center;border-left:3.5px solid ${c.color};cursor:pointer;">
+            <div style="display:flex;align-items:center;gap:11px;">
+              ${itemVisualBox(c.image, 8, 'gift')}
+              <div>
+                <div class="rr-font" style="font-size:11px;font-weight:900;color:${isStars ? 'var(--gold)' : '#fff'};">${c.name}</div>
+                <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">${c.desc}</div>
+              </div>
+            </div>
+            <button class="btn-gold-top" style="flex-shrink:0;">${priceLbl}</button>
+          </div>`;
+        }).join('');
+      },
+
+      openCaseModal(caseId) {
+        const c = this.casesCatalog.find(x => x.id === caseId);
+        if (!c) return;
+        this.caseSpinCount = 1;
+        this.currentCaseObj = c;
+        const sheet = document.getElementById('caseModalSheet');
+        const content = document.getElementById('caseModalContent');
+
+        content.innerHTML = `
+          <div style="text-align:center;">
+            <div style="width:88px;height:88px;margin:0 auto 8px;">${itemVisualBox(c.image, 9, 'gift').replace('52px', '88px')}</div>
+            <div class="rr-font" style="font-size:14px;">${c.name}</div>
+            <div style="font-size:10px;color:var(--muted);margin:4px 0 8px;">${c.desc}</div>
+
+            <!-- Верхняя плашка выдачи (всегда показывает ЛУЧШИЙ выпавший предмет из пачки!) -->
+            <div id="caseSpinResult">
+              <div class="best-drop-banner">
+                <div style="font-size:10px;color:var(--muted);">Выберите количество открытий (×1, ×5, ×10, ×25)</div>
+              </div>
+            </div>
+
+            <!-- Анимированная лента рулетки -->
+            <div class="roulette-viewport">
+              <div class="roulette-pointer"></div>
+              <div class="roulette-tape" id="caseRouletteTape"></div>
+            </div>
+
+            <!-- Переключатель x1 / x5 / x10 / x25 для кейсов -->
+            <div class="multi-spin-bar" id="caseMultiSpinBar">
+              ${[1, 5, 10, 25].map(cnt => `<button class="spin-cnt-btn ${cnt === 1 ? 'active' : ''}" data-cnt="${cnt}" onclick="ui.setCaseSpinCount(${cnt})">×${cnt}</button>`).join('')}
+            </div>
+
+            <button class="mint-main-btn" id="caseOpenActionBtn" onclick="ui.confirmOpenCase('${c.id}')">
+              ОТКРЫТЬ ×1 ЗА ${c.currency === 'stars' ? c.price + ' ⭐️' : fmt(c.price) + ' GRAM'}
+            </button>
+          </div>
+        `;
+        this.fillRouletteTape(null);
+        sheet.classList.add('open');
+      },
+
+      setCaseSpinCount(cnt) {
+        this.caseSpinCount = cnt;
+        document.querySelectorAll('#caseMultiSpinBar .spin-cnt-btn').forEach(b => {
+          b.classList.toggle('active', Number(b.dataset.cnt) === cnt);
+        });
+        if (this.currentCaseObj) {
+          const c = this.currentCaseObj;
+          const total = c.price * cnt;
+          document.getElementById('caseOpenActionBtn').textContent =
+            `ОТКРЫТЬ ×${cnt} ЗА ${c.currency === 'stars' ? total + ' ⭐️' : fmt(total) + ' GRAM'}`;
+        }
+      },
+
+      fillRouletteTape(winnerItem) {
+        const tape = document.getElementById('caseRouletteTape');
+        if (!tape) return;
+        tape.style.transition = 'none';
+        tape.style.transform = 'translateX(0px)';
+
+        const slots = [];
+        for (let i = 0; i < 28; i++) {
+          if (i === 21 && winnerItem) {
+            const col = RARITY_COLORS[winnerItem.tier];
+            slots.push(`<div class="r-slot" style="border:2px solid ${col};background:${col}22;">
+              <div style="color:${col};font-size:9px;">${RARITY_NAMES[winnerItem.tier]}</div>
+              <div style="color:#fff;margin-top:3px;">${winnerItem.tag.slice(0, 12)}</div>
+            </div>`);
+          } else {
+            const rt = Math.floor(Math.random() * 8);
+            const col = RARITY_COLORS[rt];
+            slots.push(`<div class="r-slot" style="border-color:${col}66;">
+              <div style="color:${col};">${RARITY_NAMES[rt]}</div>
+              <div style="color:var(--muted);margin-top:3px;">Tier ${rt + 1}/10</div>
+            </div>`);
+          }
+        }
+        tape.innerHTML = slots.join('');
+      },
+
+      async confirmOpenCase(caseId) {
+        if (this._caseBusy) return;
+        this._caseBusy = true;
+        try {
+          const batchDrops = [];
+          let lastState = null;
+
+          const r = await fetch('/api/open_case', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ user_id: this.userId, case_id: caseId, count: this.caseSpinCount })
+          });
+          const d = await r.json();
+          if (!r.ok) {
+            this.toast(d.error || 'Недостаточно средств или места в Сейфе');
+            return;
+          }
+
+          if (Array.isArray(d.dropped_list) && d.dropped_list.length > 0) {
+            batchDrops.push(...d.dropped_list);
+            lastState = d.state;
+          } else if (d.dropped) {
+            batchDrops.push(d.dropped);
+            lastState = d.state;
+            for (let i = 1; i < this.caseSpinCount; i++) {
+              const rNext = await fetch('/api/open_case', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ user_id: this.userId, case_id: caseId })
+              });
+              if (!rNext.ok) break;
+              const dNext = await rNext.json();
+              if (dNext.dropped) batchDrops.push(dNext.dropped);
+              if (dNext.state) lastState = dNext.state;
+            }
+          }
+
+          if (!batchDrops.length) return;
+
+          // НАХОДИМ САМЫЙ ВЫСОКИЙ И ДОРОГОЙ ПРЕДМЕТ ИЗ ВСЕЙ ПАЧКИ (x5 / x10 / x25)!
+          batchDrops.sort((a, b) => (b.tier - a.tier) || (b.value - a.value));
+          const bestItem = batchDrops[0];
+          const bestCol = RARITY_COLORS[bestItem.tier] || '#10b981';
+
+          // Прокручиваем ленту рулетки именно к ЛУЧШЕМУ выпавшему предмету
+          this.fillRouletteTape(bestItem);
+          const tape = document.getElementById('caseRouletteTape');
+          if (tape) {
+            void tape.offsetWidth;
+            tape.style.transition = 'transform 1.6s cubic-bezier(0.12, 0.85, 0.2, 1)';
+            tape.style.transform = 'translateX(-1540px)';
+          }
+
+          // Сразу обновляем верхнюю строку выдачи на САМЫЙ ВЫСОКИЙ предмет
+          const resBox = document.getElementById('caseSpinResult');
+          if (resBox) {
+            const batchChips = batchDrops.length > 1
+              ? `<div class="batch-drops-list">${batchDrops.map(it => `<span class="batch-chip" style="border-color:${RARITY_COLORS[it.tier]};color:${RARITY_COLORS[it.tier]};">${it.tag} (${it.tier + 1}/10)</span>`).join('')}</div>`
+              : '';
+
+            resBox.innerHTML = `
+              <div class="best-drop-banner ${bestItem.tier >= 5 ? 'high-tier-glow' : ''}" style="border-color:${bestCol};box-shadow:0 0 22px ${bestCol}33;">
+                <div class="rr-font" style="font-size:9.5px;color:${bestCol};">
+                  ${batchDrops.length > 1 ? `🏆 ЛУЧШИЙ ДРОП ИЗ ×${batchDrops.length}: ` : 'ВЫПАЛО: '} ${RARITY_RU[bestItem.tier].toUpperCase()}
+                </div>
+                <div class="rr-font" style="font-size:13px;color:#fff;margin:4px 0;">${bestItem.tag}</div>
+                <div style="font-size:10px;color:var(--muted);">Оценка: <b style="color:var(--emerald);">${fmt(bestItem.value)} G</b> • Доход: +${fmt(bestItem.income)}/с</div>
+                ${batchChips}
+              </div>
+            `;
+          }
+
+          if (lastState) this.applyState(lastState);
+
+          // Если в пачке выпал Legendary+ (7/10 - 10/10) — запускаем спецэффект!
+          if (bestItem.tier >= 6) {
+            setTimeout(() => this.triggerLegendaryVfx(bestItem), 650);
+          } else {
+            this.haptic('light');
+          }
+        } finally {
+          this._caseBusy = false;
+        }
+      },
+
+      // ==================== БИБЛИОТЕКА 500 NFT ====================
+      async loadNftCatalog(category = 'all', page = 1) {
+        this.nftCat = category;
+        this.nftPage = page;
+        const cats = ['all','plush','watches','royal','telegram','cyberpunk','resistance','gaming','genesis','luxury','seasonal'];
+        const pills = document.getElementById('nftCatPills');
+        if (pills) {
+          pills.innerHTML = cats.map(c =>
+            `<button class="q-pill ${c === category ? 'nav-theme-emerald' : 'nav-theme-blue'}" style="flex-shrink:0;padding:6px 10px;" onclick="ui.loadNftCatalog('${c}',1)">${c.toUpperCase()}</button>`
+          ).join('');
+        }
+        const r = await fetch(`/api/nft_catalog?category=${category}&page=${page}&per_page=12`);
+        const d = await r.json();
+        document.getElementById('nftPageInfo').textContent = `Стр. ${d.page} (Всего: ${d.total} NFT)`;
+        document.getElementById('nftCatalogGrid').innerHTML = (d.items || []).map(item => {
+          const col = RARITY_COLORS[item.tier];
+          return `<div class="card-box" style="margin:0;border-top:2.5px solid ${col};display:flex;flex-direction:column;align-items:center;text-align:center;">
+            ${itemVisualBox(item.image, item.tier, 'gift')}
+            <div class="rr-font" style="font-size:9.5px;margin-top:6px;color:#fff;">${item.name}</div>
+            <div style="font-size:8.5px;color:${col};font-weight:800;margin:2px 0;">${RARITY_RU[item.tier]}</div>
+            <div style="font-size:9.5px;color:var(--emerald);font-weight:900;">${fmt(item.base_price)} G</div>
+          </div>`;
+        }).join('');
+      },
+
+      // ==================== МИНИ-ИГРЫ: САПЁР 5×5, РАКЕТКА, КОЛЕСО, АПГРЕЙДЕР, КУЗНИЦА 5➔1, PVP ====================
+      initMinesBoard() {
+        const board = document.getElementById('minesBoard');
+        if (!board) return;
+        board.innerHTML = Array.from({ length: 25 }, (_, i) =>
+          `<div class="mine-cell" id="mcell-${i}" onclick="ui.clickMineCell(${i})">💎</div>`
+        ).join('');
+      },
+
+      startMines() {
+        const bet = Math.max(500, parseInt(document.getElementById('minesBetInp').value || '2500', 10));
+        if (this.state && this.state.user.balance < bet) return this.toast('Недостаточно GRAM!');
+        const bombs = [];
+        while (bombs.length < 4) {
+          const r = Math.floor(Math.random() * 25);
+          if (!bombs.includes(r)) bombs.push(r);
+        }
+        this.minesState = { active: true, bombs, revealed: [], mult: 1.0, bet };
+        document.getElementById('minesBetTxt').textContent = fmt(bet);
+        document.getElementById('minesMultTxt').textContent = '×1.00';
+        for (let i = 0; i < 25; i++) {
+          const c = document.getElementById('mcell-' + i);
+          if (c) { c.className = 'mine-cell'; c.textContent = '?'; }
+        }
+        this.toast('Поле 5×5 заряжено! Открывай кристаллы!');
+      },
+
+      async clickMineCell(idx) {
+        const ms = this.minesState;
+        if (!ms.active || ms.revealed.includes(idx)) return;
+        const cell = document.getElementById('mcell-' + idx);
+        if (ms.bombs.includes(idx)) {
+          ms.active = false;
+          cell.className = 'mine-cell bomb';
+          cell.textContent = '💥';
+          this.haptic('error');
+          await this.playMini('sapper', ms.bet, 0);
+        } else {
+          ms.revealed.push(idx);
+          ms.mult = +(ms.mult * 1.24).toFixed(2);
+          cell.className = 'mine-cell safe';
+          cell.textContent = '💎';
+          document.getElementById('minesMultTxt').textContent = '×' + ms.mult.toFixed(2);
+          this.haptic('light');
+        }
+      },
+
+      async cashoutMines() {
+        const ms = this.minesState;
+        if (!ms.active || ms.revealed.length === 0) return this.toast('Откройте хотя бы 1 кристалл!');
+        ms.active = false;
+        await this.playMini('sapper', ms.bet, ms.mult);
+      },
+
+      drawCrashIdle() {
+        const cvs = document.getElementById('crashCanvas');
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+        ctx.clearRect(0, 0, cvs.width, cvs.height);
+        ctx.fillStyle = '#10b981';
+        ctx.font = '900 26px Unbounded, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('1.00× ГОТОВ К СТАРТУ', cvs.width / 2, cvs.height / 2);
+      },
+
+      startCrash() {
+        if (this.crashState.active) return;
+        const bet = Math.max(500, parseInt(document.getElementById('crashBetInp').value || '5000', 10));
+        if (this.state && this.state.user.balance < bet) return this.toast('Недостаточно GRAM!');
+        const crashPoint = Math.random() < 0.25 ? 1.05 : +(1.15 + Math.random() * 6.5).toFixed(2);
+        this.crashState = { active: true, mult: 1.0, target: crashPoint, bet };
+
+        const cvs = document.getElementById('crashCanvas');
+        const ctx = cvs.getContext('2d');
+
+        const step = () => {
+          if (!this.crashState.active) return;
+          this.crashState.mult = +(this.crashState.mult + 0.035).toFixed(2);
+          ctx.clearRect(0, 0, cvs.width, cvs.height);
+
+          const progress = Math.min(1, (this.crashState.mult - 1) / 5);
+          ctx.strokeStyle = '#f59e0b';
+          ctx.lineWidth = 4;
+          ctx.beginPath();
+          ctx.moveTo(20, cvs.height - 20);
+          ctx.quadraticCurveTo(cvs.width * 0.5, cvs.height - 30, 30 + progress * (cvs.width - 60), cvs.height - 30 - progress * 130);
+          ctx.stroke();
+
+          ctx.fillStyle = '#fde047';
+          ctx.font = '900 30px Unbounded, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.fillText('🚀 ×' + this.crashState.mult.toFixed(2), cvs.width / 2, 70);
+
+          if (this.crashState.mult >= this.crashState.target) {
+            this.crashState.active = false;
+            ctx.fillStyle = '#ef4444';
+            ctx.fillText('💥 ВЗРЫВ ×' + this.crashState.mult.toFixed(2), cvs.width / 2, 120);
+            this.playMini('crash', bet, 0);
+          } else {
+            this.crashState.animId = requestAnimationFrame(step);
+          }
+        };
+        step();
+      },
+
+      async cashoutCrash() {
+        if (!this.crashState.active) return this.toast('Ракета ещё не запущена!');
+        cancelAnimationFrame(this.crashState.animId);
+        const wonMult = this.crashState.mult;
+        const bet = this.crashState.bet;
+        this.crashState.active = false;
+        await this.playMini('crash', bet, wonMult);
+      },
+
+      drawWheel(angle = 0) {
+        const cvs = document.getElementById('wheelCanvas');
+        if (!cvs) return;
+        const ctx = cvs.getContext('2d');
+        const segs = ['×0.5', '×1.5', '×0', '×2.5', '×1.2', '×5.0'];
+        const cols = ['#334155', '#10b981', '#ef4444', '#3b82f6', '#a855f7', '#f59e0b'];
+        ctx.clearRect(0, 0, 260, 260);
+        segs.forEach((lbl, i) => {
+          const a0 = angle + (i * Math.PI * 2) / segs.length;
+          const a1 = angle + ((i + 1) * Math.PI * 2) / segs.length;
+          ctx.beginPath();
+          ctx.moveTo(130, 130);
+          ctx.arc(130, 130, 115, a0, a1);
+          ctx.fillStyle = cols[i];
+          ctx.fill();
+          ctx.strokeStyle = '#05070b';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.save();
+          ctx.translate(130, 130);
+          ctx.rotate((a0 + a1) / 2);
+          ctx.fillStyle = '#fff';
+          ctx.font = '800 13px Unbounded, sans-serif';
+          ctx.fillText(lbl, 55, 5);
+          ctx.restore();
+        });
+      },
+
+      async spinWheel() {
+        let ang = 0;
+        for (let i = 0; i < 24; i++) {
+          ang += 0.45;
+          this.drawWheel(ang);
+          await new Promise(r => setTimeout(r, 25));
+        }
+        const mults = [0.5, 1.5, 0, 2.5, 1.2, 5.0];
+        const m = mults[Math.floor(Math.random() * mults.length)];
+        await this.playMini('wheel', 5000, m);
+      },
+
+      async runUpgrader(targetMult) {
+        const bet = Math.max(500, parseInt(document.getElementById('upgBetInp').value || '5000', 10));
+        const chance = targetMult === 2.0 ? 0.48 : 0.19;
+        const win = Math.random() < chance;
+        await this.playMini('upgrader', bet, win ? targetMult : 0);
+      },
+
+      async forgeAutoFive() {
+        const inv = (this.state && this.state.inventory ? this.state.inventory : []).filter(i => !i.is_staked && !i.is_flex);
+        if (inv.length < 5) return this.toast('Нужно минимум 5 свободных предметов в Сейфе!');
+        const lowestFive = [...inv].sort((a, b) => a.value - b.value).slice(0, 5).map(x => x.id);
+        const r = await fetch('/api/minigame/play', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, game: 'forge_5to1', item_ids: lowestFive })
+        });
+        const d = await r.json();
+        if (!r.ok) return this.toast(d.error || 'Ошибка синтеза');
+        this.applyState(d.state);
+        this.haptic('success');
+        this.toast(d.message);
+      },
+
+      async startPvpDuel() {
+        const bet = Math.max(1000, parseInt(document.getElementById('pvpBetInp').value || '10000', 10));
+        const win = Math.random() < 0.5;
+        await this.playMini('pvp', bet, win ? 1.95 : 0);
+      },
+
+      async playMini(game, bet, mult = 2.0, extra = '', itemId = null) {
+        const r = await fetch('/api/minigame/play', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, game, bet, mult, extra, item_id: itemId })
+        });
+        const d = await r.json();
+        if (!r.ok) return this.toast(d.error || 'Ошибка');
+        this.applyState(d.state);
+        this.toast(d.message || 'Успешно!');
+      },
+
+      // ==================== КАНАЛЫ, РЫНОК, КЛАНЫ, СТРАНЫ (БЕЗ БРАУЗЕРНОГО PROMPT) ====================
+      openCustomInputModal(title, sub, placeholder, defaultVal, callback) {
+        document.getElementById('customModalTitle').textContent = title;
+        document.getElementById('customModalSub').textContent = sub;
+        const inp = document.getElementById('customModalInp');
+        inp.placeholder = placeholder;
+        inp.value = defaultVal || '';
+        const btn = document.getElementById('customModalBtn');
+        btn.onclick = () => {
+          const val = inp.value.trim();
+          if (!val) return this.toast('Заполните поле!');
+          document.getElementById('customInputModal').classList.remove('open');
+          callback(val);
+        };
+        document.getElementById('customInputModal').classList.add('open');
+      },
+
+      createChannelPrompt() {
+        this.openCustomInputModal(
+          'Создание Медиа-Канала',
+          'Стоимость запуска: 25 000 GRAM. Канал приносит постоянный пассивный доход!',
+          'Название канала...',
+          'Empire News',
+          (name) => this.playMini('channel_create', 25000, 1, name)
+        );
+      },
+
+      createClanPrompt() {
+        this.openCustomInputModal(
+          'Основание Синдиката (Клана)',
+          'Стоимость создания: 100 000 GRAM (50 000 G сразу зачисляется в казну клана).',
+          'Название клана...',
+          'Obsidian Syndicate',
+          (name) => this.playMini('clan_create', 100000, 1, name)
+        );
+      },
+
+      listOnMarketPrompt(itemId, baseVal) {
+        this.openCustomInputModal(
+          'Выставить актив на Рынок',
+          'Укажите желаемую цену продажи в GRAM (комиссия биржи 5%):',
+          'Цена в GRAM...',
+          String(Math.floor(baseVal * 1.25)),
+          (val) => this.sellItem(itemId, 'list_market', parseInt(val, 10) || baseVal)
+        );
+      },
+
+      renderChannels() {
+        const box = document.getElementById('channelsList');
+        if (!box || !this.state) return;
+        const ch = this.state.channels || [];
+        box.innerHTML = ch.length
+          ? ch.map(c => `<div style="display:flex;justify-content:space-between;font-size:10.5px;padding:6px 0;border-bottom:1px solid var(--border);"><span>📢 <b>${c.name}</b> (${c.subs} подп.)</span><span style="color:var(--emerald);font-weight:800;">+${fmt(c.income)} G/с</span></div>`).join('')
+          : `<div style="font-size:10px;color:var(--muted);">У вас пока нет медиа-каналов</div>`;
+      },
+
+      renderFlexSlots() {
+        const box = document.getElementById('flexSlotsGrid');
+        if (!box || !this.state) return;
+        const flexed = (this.state.inventory || []).filter(i => i.is_flex).slice(0, 3);
+        let html = '';
+        for (let i = 0; i < 3; i++) {
+          const it = flexed[i];
+          html += it
+            ? `<div class="card-box" style="margin:0;padding:8px;text-align:center;border-color:${RARITY_COLORS[it.tier]};"><div style="font-size:9px;font-weight:800;color:${RARITY_COLORS[it.tier]};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${it.tag}</div></div>`
+            : `<div class="card-box" style="margin:0;padding:8px;text-align:center;color:var(--muted);font-size:9px;">Слот #${i + 1}</div>`;
+        }
+        box.innerHTML = html;
+      },
+
+      renderMarket() {
+        const box = document.getElementById('marketLotsList');
+        if (!box || !this.state) return;
+        const lots = this.state.market || [];
+        if (!lots.length) {
+          box.innerHTML = `<div class="card-box" style="text-align:center;color:var(--muted);font-size:10.5px;">Лотов от игроков пока нет. Выставьте первый актив из своего Сейфа!</div>`;
+          return;
+        }
+        box.innerHTML = lots.map(l => {
+          const col = RARITY_COLORS[l.tier] || '#10b981';
+          return `<div class="card-box" style="display:flex;justify-content:space-between;align-items:center;border-left:3.5px solid ${col};">
+            <div style="display:flex;align-items:center;gap:10px;">
+              ${itemVisualBox(l.image, l.tier, l.item_type)}
+              <div>
+                <div class="rr-font" style="font-size:11px;color:${col};">${l.tag}</div>
+                <div style="font-size:9.5px;color:var(--muted);">Продавец: @${l.seller_name} • ${RARITY_RU[l.tier]}</div>
+              </div>
+            </div>
+            <button class="btn-gold-top" onclick="ui.playMini('buy_market', 0, 1, '', ${l.id})">КУПИТЬ ${fmt(l.price)} G</button>
+          </div>`;
+        }).join('');
+      },
+
+      renderClans() {
+        const box = document.getElementById('clansListBox');
+        if (!box || !this.state) return;
+        const clans = this.state.clans || [];
+        box.innerHTML = clans.length
+          ? clans.map((c, idx) => `<div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
+              <div><b style="color:var(--gold);">#${idx + 1} ${c.name}</b><div style="font-size:9.5px;color:var(--muted);">Участников: ${c.members}</div></div>
+              <div class="rr-font" style="font-size:11px;color:var(--emerald);">${fmt(c.bank)} G</div>
+            </div>`).join('')
+          : `<div class="card-box" style="text-align:center;color:var(--muted);font-size:10.5px;">Синдикатов пока нет — станьте основателем первого!</div>`;
+      },
+
+      renderCountryTop() {
+        const box = document.getElementById('countryTopBox');
+        if (!box || !this.state) return;
+        const top = this.state.country_top || [];
+        box.innerHTML = top.length
+          ? top.map((c, i) => `<div class="card-box" style="display:flex;justify-content:space-between;align-items:center;">
+              <span><b>#${i + 1} 🌍 ${c.country}</b></span>
+              <span class="rr-font" style="font-size:11px;color:var(--emerald);">${fmt(c.power)} G</span>
+            </div>`).join('')
+          : `<div class="card-box" style="text-align:center;color:var(--muted);font-size:10.5px;">Выберите свою державу в верхнем левом углу!</div>`;
+      },
+
+      openCountryModal() {
+        const changed = this.state && this.state.user ? this.state.user.country_changed : 0;
+        document.getElementById('countryPriceNotice').textContent =
+          changed >= 1 ? 'Повторная смена державы стоит 500 000 GRAM.' : 'Первый выбор державы — БЕСПЛАТНО!';
+        document.getElementById('countryButtonsGrid').innerHTML = COUNTRIES_LIST.map(c =>
+          `<button class="q-pill nav-theme-cyan" style="padding:11px;font-size:11px;" onclick="ui.selectCountry('${c.code}')">${c.flag} ${c.name}</button>`
+        ).join('');
+        document.getElementById('countryModal').classList.add('open');
+      },
+
+      async selectCountry(code) {
+        const r = await fetch('/api/country/change', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, country: code })
+        });
+        const d = await r.json();
+        if (!r.ok) return this.toast(d.error || 'Недостаточно GRAM');
+        document.getElementById('countryModal').classList.remove('open');
+        this.applyState(d.state);
+        this.toast(`Держава ${code} выбрана!`);
+      },
+
+      openSettings() { document.getElementById('settingsModal').classList.add('open'); },
+      openStarsModal() { document.getElementById('starsShopModal').classList.add('open'); },
+
+      async toggleCompactBal(checked) {
+        this.compactBal = checked;
+        localStorage.setItem('mt_compact_bal', checked ? '1' : '0');
+        if (this.state) this.applyState(this.state);
+        await fetch('/api/settings/compact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, compact: checked ? 1 : 0 })
+        });
+      },
+
+      async adminAct(action, amount) {
+        const r = await fetch('/api/admin/action', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: this.userId, username: this.username, action, amount })
+        });
+        const d = await r.json();
+        if (!r.ok) return this.toast(d.error || 'Нет прав');
+        this.applyState(d.state);
+        this.toast('God-Mode команда выполнена!');
+      },
+
+      shareReferral() {
+        const url = `https://t.me/share/url?url=https://t.me/MintTagsBot?start=${this.userId}&text=Заходи в MintTags: Global Empire 2.0 и забирай стартовый капитал!`;
+        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
+        else window.open(url, '_blank');
+      }
+    };
+
+    window.addEventListener('DOMContentLoaded', () => ui.init());
+  </script>
+</body>
+</html>
