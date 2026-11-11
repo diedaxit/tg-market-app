@@ -253,7 +253,24 @@ WORDS = {
 }
 
 REAL_CHAT_USERNAMES = [
-    # ==================== АВТО-ЗАГРУЗКА КАТАЛОГА MINTTAGS_CATALOG_11000_V21.JSON ====================
+    "kach1k", "vdbv01", "bambrel", "tryyxissss", "Mr_MaDaRaMyS_Gay", "bigebabytape", "VaItrex", "Kloneex",
+    "ProjectinappleSon", "pcixanyl", "BususVlad", "akatuman", "wuruw", "saphiressss", "bot_starry", "rysofobs",
+    "fckasscunt", "eyeallaha", "chatchitai", "notsnitch", "pirogovstepa", "imfuckinggirl", "feodulov", "dealersex",
+    "kynuluv", "raqking", "valdberiz", "prikidy", "rekomendoval", "hatebeinsober21", "zxcursed", "shadowraze",
+    "dota_rep", "dead_inside", "tokyo_ghoul", "lovv66", "bushido_zho", "heronwater", "seeyaside", "uglystephan",
+    "scally_milano", "163onmyneck", "platina300", "obladaet", "markul", "thomas_mraz", "yanix", "lsp_official",
+    "slava_marlow", "eldzhey", "feduk_one", "oxxxymiron", "noize_mc", "kasta_ru", "basta_aka", "guf_zm",
+    "centr_msk", "smoki_mo", "rem_digga", "miyagi_black", "endshpil", "truwer", "niki_l", "captown",
+    "kairat_nurtas", "jah_khalib", "scripto_kz", "limba_music", "jony_baku", "andro_dragon", "el_man", "rauf_faik",
+    "hammali", "navai_bro", "macan_77", "xcho_official", "jakone", "avg_music", "inst_rina", "egor_kreed",
+    "timati_black", "mot_23", "klava_koka", "niletto", "zivert_fly", "anna_asti", "artik_self", "loli_lips",
+    "twinky_boy", "venom_zxc", "kaneki_ken", "itachi_uchiha", "sasuke_kun", "naruto_uzumaki", "gojo_satoru",
+    "sukuna_ryomen", "eren_yeager", "levi_ackerman", "mikasa_s", "makima_chainsaw", "denji_dog", "power_blood",
+    "guts_berserk", "griffith_hawk", "light_yagami", "ryuk_apple", "l_lawliet", "lelouch_vi", "jotaro_kujo",
+    "dio_brando", "giorno_giovanna", "hisoka_morow", "killua_zoldyck", "gon_freecss", "kurapika_eyes", "chrollo_lucilfer"
+]
+
+# ==================== АВТО-ЗАГРУЗКА КАТАЛОГА MINTTAGS_CATALOG_11000_V21.JSON ====================
 CATALOG_META_BY_NICK = {}
 
 def load_minttags_json_catalog(json_path: str = "minttags_catalog_11000_v21.json"):
@@ -286,22 +303,6 @@ def load_minttags_json_catalog(json_path: str = "minttags_catalog_11000_v21.json
         print(f"[CATALOG v2.1] Ошибка чтения {json_path}: {e}")
 
 load_minttags_json_catalog()
-    "kach1k", "vdbv01", "bambrel", "tryyxissss", "Mr_MaDaRaMyS_Gay", "bigebabytape", "VaItrex", "Kloneex",
-    "ProjectinappleSon", "pcixanyl", "BususVlad", "akatuman", "wuruw", "saphiressss", "bot_starry", "rysofobs",
-    "fckasscunt", "eyeallaha", "chatchitai", "notsnitch", "pirogovstepa", "imfuckinggirl", "feodulov", "dealersex",
-    "kynuluv", "raqking", "valdberiz", "prikidy", "rekomendoval", "hatebeinsober21", "zxcursed", "shadowraze",
-    "dota_rep", "dead_inside", "tokyo_ghoul", "lovv66", "bushido_zho", "heronwater", "seeyaside", "uglystephan",
-    "scally_milano", "163onmyneck", "platina300", "obladaet", "markul", "thomas_mraz", "yanix", "lsp_official",
-    "slava_marlow", "eldzhey", "feduk_one", "oxxxymiron", "noize_mc", "kasta_ru", "basta_aka", "guf_zm",
-    "centr_msk", "smoki_mo", "rem_digga", "miyagi_black", "endshpil", "truwer", "niki_l", "captown",
-    "kairat_nurtas", "jah_khalib", "scripto_kz", "limba_music", "jony_baku", "andro_dragon", "el_man", "rauf_faik",
-    "hammali", "navai_bro", "macan_77", "xcho_official", "jakone", "avg_music", "inst_rina", "egor_kreed",
-    "timati_black", "mot_23", "klava_koka", "niletto", "zivert_fly", "anna_asti", "artik_self", "loli_lips",
-    "twinky_boy", "venom_zxc", "kaneki_ken", "itachi_uchiha", "sasuke_kun", "naruto_uzumaki", "gojo_satoru",
-    "sukuna_ryomen", "eren_yeager", "levi_ackerman", "mikasa_s", "makima_chainsaw", "denji_dog", "power_blood",
-    "guts_berserk", "griffith_hawk", "light_yagami", "ryuk_apple", "l_lawliet", "lelouch_vi", "jotaro_kujo",
-    "dio_brando", "giorno_giovanna", "hisoka_morow", "killua_zoldyck", "gon_freecss", "kurapika_eyes", "chrollo_lucilfer"
-]
 
 def generate_live_human_username(rarity_name: str) -> str:
     base = random.choice(REAL_CHAT_USERNAMES)
