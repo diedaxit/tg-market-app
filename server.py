@@ -71,10 +71,6 @@ CATEGORY_IMAGE_MAP = {
     "seasonal": "/assets/nft/genesis_shard.webp",
 }
 
-for item in NFT_CATALOG_500:
-    if item["category"] in CATEGORY_IMAGE_MAP:
-        item["image"] = CATEGORY_IMAGE_MAP[item["category"]]
-
 CASE_IMAGE_MAP = {
     "case_emerald_vault": "/assets/cases/emerald_vault_chest.webp",
     "case_founder_mask": "/assets/cases/founder_emerald_case.webp",
@@ -92,9 +88,6 @@ CASE_IMAGE_MAP = {
     "case_divine": "/assets/cases/divine_case.webp",
 }
 
-for c in CASES_CATALOG_14:
-    if c["id"] in CASE_IMAGE_MAP:
-        c["image"] = CASE_IMAGE_MAP[c["id"]]
 
 app.mount("/assets", CachedStaticFiles(directory="assets"), name="assets")
 app.mount("/icons", CachedStaticFiles(directory="icons"), name="icons")
@@ -336,6 +329,44 @@ CASES_CATALOG_14 = [
     {"id": "case_divine", "name": "Divine Durov Case", "price": 249, "currency": "stars", "image": "/assets/cases/founder_emerald_case.webp", "color": "#fde047", "desc": "Высший Сундук Дурова! Легендарные, Древние, Небесные и 9% шанс на DIVINE!", "weights": [0, 0, 0, 0, 0, 0, 38, 33, 20, 9.0], "types": ["gift", "num"]},
 ]
 CASES_MAP = {c["id"]: c for c in CASES_CATALOG_14}
+# Обновление путей к картинкам после создания каталогов
+CATEGORY_IMAGE_MAP = {
+    "plush": "/assets/nft/gold_pepe.webp",
+    "watches": "/assets/nft/chronos_watch.webp",
+    "royal": "/assets/nft/imperial_crown.webp",
+    "telegram": "/assets/nft/durov_cap.webp",
+    "cyberpunk": "/assets/nft/durov_mask.webp",
+    "resistance": "/assets/dog.webp",
+    "gaming": "/assets/nft/cyber_katana.webp",
+    "genesis": "/assets/nft/genesis_shard.webp",
+    "luxury": "/assets/cases/emerald_vault_chest.webp",
+    "seasonal": "/assets/nft/genesis_shard.webp",
+}
+
+for item in NFT_CATALOG_500:
+    if item["category"] in CATEGORY_IMAGE_MAP:
+        item["image"] = CATEGORY_IMAGE_MAP[item["category"]]
+
+CASE_IMAGE_MAP = {
+    "case_emerald_vault": "/assets/cases/emerald_vault_chest.webp",
+    "case_founder_mask": "/assets/cases/founder_emerald_case.webp",
+    "case_all_in": "/assets/cases/all_in_case.webp",
+    "case_standard": "/assets/cases/fragment_box.webp",
+    "case_premium": "/assets/cases/fragment_box.webp",
+    "case_elite": "/assets/cases/founder_emerald_case.webp",
+    "case_luxury": "/assets/cases/jackpot_box.webp",
+    "case_fragment": "/assets/cases/fragment_box.webp",
+    "case_nft": "/assets/cases/founder_emerald_case.webp",
+    "case_jackpot": "/assets/cases/jackpot_box.webp",
+    "case_star": "/assets/cases/jackpot_box.webp",
+    "case_ton": "/assets/cases/fragment_box.webp",
+    "case_genesis": "/assets/cases/divine_case.webp",
+    "case_divine": "/assets/cases/divine_case.webp",
+}
+
+for c in CASES_CATALOG_14:
+    if c["id"] in CASE_IMAGE_MAP:
+        c["image"] = CASE_IMAGE_MAP[c["id"]]
 WORDS_POOL = ["durov", "ton", "gram", "whale", "crypto", "king", "empire", "fragment", "alpha", "nexus", "vault", "emerald", "cyber", "shadow", "royal", "matrix", "genesis", "prime", "viper", "legend"]
 
 def get_divine_count(cur) -> int:
