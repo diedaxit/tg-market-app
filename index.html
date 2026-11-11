@@ -478,6 +478,12 @@
     <div class="loader-title">MINTTAGS EMPIRE</div>
     <div style="font-size:10px;color:var(--muted);margin-top:5px;font-weight:700;">Синхронизация глобального реестра...</div>
   </div>
+  <script>
+    setTimeout(function() {
+      var p = document.getElementById('preloader');
+      if (p) p.classList.add('hidden');
+    }, 3000);
+  </script>
 
   <!-- ПОЛНОЭКРАННЫЙ СПЕЦЭФФЕКТ ВЫПАДЕНИЯ LEGENDARY+ (7/10 ➔ 10/10 DIVINE) -->
   <div id="legendaryVfxOverlay" onclick="ui.closeLegendaryVfx()">
