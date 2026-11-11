@@ -10,11 +10,12 @@
     :root {
       --font-display: 'Unbounded', sans-serif;
       --font-body: 'Inter', sans-serif;
-      --bg: #06080d;
-      --card: #111622;
-      --border: rgba(255, 255, 255, 0.08);
+      --bg: #05070b;
+      --card: #101521;
+      --card2: #161d2e;
+      --border: rgba(255, 255, 255, 0.09);
       --text: #f8fafc;
-      --muted: #7e8da4;
+      --muted: #8494ad;
       --emerald: #10b981;
       --gold: #f59e0b;
       --cyan: #24A1DE;
@@ -22,112 +23,163 @@
       --violet: #a855f7;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: var(--font-body); }
-    body { background: var(--bg); color: var(--text); max-width: 480px; margin: 0 auto; padding: 10px 10px 86px; overflow-x: hidden; min-height: 100vh; }
+    body {
+      background: radial-gradient(circle at 50% 0%, rgba(16, 185, 129, 0.12) 0%, #05070b 55%);
+      color: var(--text); max-width: 480px; margin: 0 auto; padding: 10px 10px 92px;
+      overflow-x: hidden; min-height: 100vh;
+    }
     .rr-font { font-family: var(--font-display); text-transform: uppercase; letter-spacing: 0.2px; }
 
-    /* ================= 1. ЗАГРУЗОЧНЫЙ ЭКРАН С ПЕРВОЙ КАРТИНКОЙ (ДУЭТ НА СКАЛЕ) ================= */
+    /* ================= 1. ПРЕЛОАДЕР С ВСТРОЕННЫМ И WEBP АРТОМ ДУЭТА ================= */
     #preloader {
       position: fixed; inset: 0; z-index: 99999;
-      background: radial-gradient(circle at 50% 42%, rgba(16, 185, 129, 0.26) 0%, #06080d 74%);
+      background: radial-gradient(circle at 50% 40%, rgba(16, 185, 129, 0.28) 0%, #05070b 75%);
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; transition: opacity 0.4s ease, visibility 0.4s ease;
     }
     #preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .preloader-duo-art {
-      width: 255px; max-width: 78vw; height: auto; object-fit: contain;
-      filter: drop-shadow(0 16px 36px rgba(16, 185, 129, 0.42));
+    .preloader-art-wrap {
+      width: 220px; height: 220px; display: flex; align-items: center; justify-content: center;
+      filter: drop-shadow(0 16px 36px rgba(16, 185, 129, 0.45));
       margin-bottom: 14px; animation: heroFloat 3s ease-in-out infinite;
     }
-    @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
-    .loader-title { font-family: var(--font-display); font-size: 16px; font-weight: 900; color: #fff; text-align: center; }
+    @keyframes heroFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-7px); } }
 
-    /* ================= 2. ВЕРХНИЙ БАР И БАЛАНС ================= */
+    /* ================= 2. ВЕРХНИЙ БАР И ГЛАВНЫЙ БАЛАНС ================= */
     .topbar { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 8px; }
     .top-pill {
-      background: var(--card); border: 1px solid var(--border); border-radius: 12px;
-      padding: 6px 10px; font-size: 10px; font-weight: 800; display: flex; align-items: center; gap: 5px; cursor: pointer;
+      border-radius: 12px; padding: 7px 11px; font-size: 10px; font-weight: 800;
+      display: flex; align-items: center; gap: 6px; cursor: pointer; transition: transform 0.12s ease;
     }
-    .hero-balance-box {
-      background: radial-gradient(130% 100% at 50% 0%, rgba(16, 185, 129, 0.16) 0%, #111622 76%);
-      border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 18px; padding: 12px 14px;
-      margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center;
-    }
-    .bal-val { font-family: var(--font-display); font-size: 20px; font-weight: 900; color: #fff; }
-    .inc-val { font-size: 10px; color: var(--emerald); font-weight: 800; margin-top: 2px; }
+    .top-pill:active { transform: scale(0.95); }
 
-    /* ================= 3. ПЛАВНЫЕ ПЕРЕХОДЫ ЭКРАНОВ ================= */
+    .hero-balance-box {
+      background: linear-gradient(145deg, rgba(16, 185, 129, 0.18) 0%, rgba(16, 21, 33, 0.98) 65%);
+      border: 1px solid rgba(16, 185, 129, 0.32); border-radius: 20px; padding: 14px 16px;
+      margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+    }
+    .bal-val { font-family: var(--font-display); font-size: 21px; font-weight: 900; color: #fff; }
+    .inc-val { font-size: 10.5px; color: var(--emerald); font-weight: 800; margin-top: 3px; }
+
+    /* ================= 3. ПЛАВНЫЕ АНИМАЦИИ ПЕРЕХОДОВ ЭКРАНОВ ================= */
     .view { display: none; opacity: 0; transform: translateY(8px) scale(0.99); }
-    .view.active { display: block; animation: smoothViewIn 0.26s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
+    .view.active { display: block; animation: smoothViewIn 0.25s cubic-bezier(0.22, 1, 0.36, 1) forwards; }
     @keyframes smoothViewIn {
       from { opacity: 0; transform: translateY(10px) scale(0.985); }
       to { opacity: 1; transform: translateY(0) scale(1); }
     }
 
     /* ================= 4. ИНДИВИДУАЛЬНЫЕ ТЕМНЫЕ CSS-ФОНЫ ПЛИТОК НАВИГАЦИИ ================= */
-    .nav-theme-amber { background: radial-gradient(125% 100% at 50% 0%, rgba(245, 158, 11, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(245, 158, 11, 0.28) !important; }
-    .nav-theme-emerald { background: radial-gradient(125% 100% at 50% 0%, rgba(16, 185, 129, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(16, 185, 129, 0.28) !important; }
-    .nav-theme-violet { background: radial-gradient(125% 100% at 50% 0%, rgba(139, 92, 246, 0.24) 0%, #111622 75%) !important; border: 1px solid rgba(139, 92, 246, 0.3) !important; }
-    .nav-theme-ruby { background: radial-gradient(125% 100% at 50% 0%, rgba(239, 68, 68, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(239, 68, 68, 0.28) !important; }
-    .nav-theme-blue { background: radial-gradient(125% 100% at 50% 0%, rgba(59, 130, 246, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(59, 130, 246, 0.28) !important; }
-    .nav-theme-cyan { background: radial-gradient(125% 100% at 50% 0%, rgba(6, 182, 212, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(6, 182, 212, 0.28) !important; }
-    .nav-theme-gold { background: radial-gradient(125% 100% at 50% 0%, rgba(234, 179, 8, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(234, 179, 8, 0.3) !important; }
-    .nav-theme-pink { background: radial-gradient(125% 100% at 50% 0%, rgba(236, 72, 153, 0.22) 0%, #111622 75%) !important; border: 1px solid rgba(236, 72, 153, 0.28) !important; }
+    .nav-theme-amber { background: radial-gradient(125% 100% at 50% 0%, rgba(245, 158, 11, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(245, 158, 11, 0.32) !important; }
+    .nav-theme-emerald { background: radial-gradient(125% 100% at 50% 0%, rgba(16, 185, 129, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(16, 185, 129, 0.32) !important; }
+    .nav-theme-violet { background: radial-gradient(125% 100% at 50% 0%, rgba(139, 92, 246, 0.26) 0%, #101521 76%) !important; border: 1px solid rgba(139, 92, 246, 0.34) !important; }
+    .nav-theme-ruby { background: radial-gradient(125% 100% at 50% 0%, rgba(239, 68, 68, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(239, 68, 68, 0.32) !important; }
+    .nav-theme-blue { background: radial-gradient(125% 100% at 50% 0%, rgba(59, 130, 246, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(59, 130, 246, 0.32) !important; }
+    .nav-theme-cyan { background: radial-gradient(125% 100% at 50% 0%, rgba(6, 182, 212, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(6, 182, 212, 0.32) !important; }
+    .nav-theme-gold { background: radial-gradient(125% 100% at 50% 0%, rgba(234, 179, 8, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(234, 179, 8, 0.34) !important; }
+    .nav-theme-pink { background: radial-gradient(125% 100% at 50% 0%, rgba(236, 72, 153, 0.24) 0%, #101521 76%) !important; border: 1px solid rgba(236, 72, 153, 0.32) !important; }
 
-    .switch-row { display: grid; grid-template-columns: 1fr 1fr auto; gap: 6px; margin-bottom: 8px; }
-    .seg-btn { background: var(--card); border: 1px solid var(--border); color: var(--muted); border-radius: 12px; padding: 9px 8px; font-family: var(--font-display); font-size: 9.5px; font-weight: 800; cursor: pointer; }
-    .seg-btn.active { background: rgba(36, 161, 222, 0.18); color: #fff; border-color: var(--cyan); }
-    .btn-gold-top { background: linear-gradient(135deg, #f59e0b, #d97706); color: #000; border: none; border-radius: 12px; padding: 9px 12px; font-family: var(--font-display); font-size: 9.5px; font-weight: 900; cursor: pointer; }
+    .switch-row { display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 5px; margin-bottom: 8px; }
+    .seg-btn {
+      background: var(--card); border: 1px solid var(--border); color: var(--muted);
+      border-radius: 12px; padding: 9px 6px; font-family: var(--font-display); font-size: 8.8px; font-weight: 800; cursor: pointer;
+    }
+    .seg-btn.active { background: rgba(36, 161, 222, 0.22); color: #fff; border-color: var(--cyan); box-shadow: 0 0 14px rgba(36,161,222,0.25); }
+    .btn-gold-top {
+      background: linear-gradient(135deg, #fbbf24, #d97706); color: #000; border: none;
+      border-radius: 12px; padding: 9px 11px; font-family: var(--font-display); font-size: 9px; font-weight: 900; cursor: pointer;
+    }
 
     .quick-pills-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 8px; }
-    .q-pill { border-radius: 12px; padding: 8px 4px; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 9.5px; font-weight: 800; color: #f1f5f9; cursor: pointer; transition: transform 0.14s ease; }
+    .q-pill {
+      border-radius: 12px; padding: 8px 5px; display: flex; align-items: center; justify-content: center;
+      gap: 5px; font-size: 9.5px; font-weight: 800; color: #f8fafc; cursor: pointer; transition: transform 0.12s ease;
+    }
     .q-pill:active, .tool-tile:active { transform: scale(0.94); }
     .q-pill svg { width: 15px; height: 15px; flex-shrink: 0; }
 
     .banners-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; }
-    .banner-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 9px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .mascot-avatar-sm { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.65)); }
-    .mascot-avatar-lg { width: 68px; height: 68px; object-fit: contain; flex-shrink: 0; filter: drop-shadow(0 6px 14px rgba(16,185,129,0.35)); }
+    .banner-card { border-radius: 15px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
 
-    /* Центральная кнопка МИНТА */
+    /* Сцена минта */
     .mint-stage {
-      background: radial-gradient(circle at 50% 45%, rgba(36, 161, 222, 0.16) 0%, #111622 72%);
-      border: 1px solid rgba(255, 255, 255, 0.09); border-radius: 20px; padding: 18px 14px; text-align: center; margin-bottom: 10px;
+      background: radial-gradient(circle at 50% 40%, rgba(36, 161, 222, 0.2) 0%, #101521 74%);
+      border: 1px solid rgba(56, 189, 248, 0.25); border-radius: 22px; padding: 18px 14px;
+      text-align: center; margin-bottom: 10px; position: relative; overflow: hidden;
     }
     .mint-main-btn {
-      width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #000;
+      width: 100%; background: linear-gradient(135deg, #10b981, #059669); color: #021814;
       border: none; border-radius: 14px; padding: 14px; font-family: var(--font-display);
-      font-size: 12px; font-weight: 900; cursor: pointer; margin-top: 10px;
+      font-size: 11.5px; font-weight: 900; cursor: pointer; margin-top: 10px;
       box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35); transition: transform 0.12s ease;
     }
     .mint-main-btn:active { transform: scale(0.97); }
 
-    /* Сетка инструментов во вкладке «Ещё» */
+    /* Сетка «Ещё» */
     .tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin: 8px 0; }
-    .tool-tile { border-radius: 15px; padding: 10px 5px 8px; text-align: center; cursor: pointer; transition: transform 0.15s ease; }
+    .tool-tile { border-radius: 16px; padding: 11px 5px 9px; text-align: center; cursor: pointer; transition: transform 0.14s ease; }
     .tool-ico {
-      width: 40px; height: 40px; border-radius: 12px; margin: 0 auto 6px;
+      width: 42px; height: 42px; border-radius: 13px; margin: 0 auto 6px;
       display: flex; align-items: center; justify-content: center;
-      background: rgba(6, 8, 13, 0.5); border: 1px solid rgba(255, 255, 255, 0.08);
+      background: rgba(5, 7, 11, 0.55); border: 1px solid rgba(255, 255, 255, 0.09);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.15);
     }
     .tool-ico svg { width: 24px; height: 24px; display: block; }
     .tool-tile span { font-size: 9.5px; font-weight: 800; color: #f8fafc; display: block; }
 
-    /* Карточки предметов, кейсов и WebP контейнеры */
-    .card-box { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 11px 12px; margin-bottom: 8px; }
+    /* Карточки и инпуты */
+    .card-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 12px; margin-bottom: 8px; }
+    .inp-dark {
+      width: 100%; background: #070a12; border: 1px solid rgba(255,255,255,0.14);
+      color: #fff; border-radius: 12px; padding: 11px 12px; font-size: 13px; font-weight: 800; outline: none;
+    }
+    .inp-dark:focus { border-color: var(--emerald); }
+
     .webp-item-box {
-      width: 52px; height: 52px; border-radius: 13px;
-      background: radial-gradient(circle at 50% 40%, rgba(16, 185, 129, 0.18), rgba(6, 8, 13, 0.8));
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      width: 52px; height: 52px; border-radius: 14px;
+      background: radial-gradient(circle at 50% 40%, rgba(16, 185, 129, 0.2), rgba(5, 7, 11, 0.85));
+      border: 1px solid rgba(255, 255, 255, 0.12);
       display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 4px;
     }
     .webp-item-box img, .webp-item-box svg { width: 100%; height: 100%; object-fit: contain; display: block; }
 
-    /* Нижний Таббар (5 вкладок с кастомными SVG) */
+    /* Поле Сапёра 5x5 и Canvas-контейнеры */
+    .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; max-width: 310px; margin: 10px auto; }
+    .mine-cell {
+      aspect-ratio: 1; border-radius: 12px; background: #161f33; border: 1px solid rgba(255,255,255,0.1);
+      display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 900;
+      cursor: pointer; transition: transform 0.12s ease, background 0.15s ease;
+    }
+    .mine-cell:active { transform: scale(0.92); }
+    .mine-cell.safe { background: rgba(16, 185, 129, 0.25); border-color: var(--emerald); }
+    .mine-cell.bomb { background: rgba(239, 68, 68, 0.3); border-color: var(--ruby); }
+
+    /* Лента прокрутки рулетки кейса */
+    .roulette-viewport {
+      width: 100%; height: 92px; background: #070a12; border: 1.5px solid rgba(245,158,11,0.4);
+      border-radius: 16px; position: relative; overflow: hidden; margin: 10px 0;
+    }
+    .roulette-pointer {
+      position: absolute; top: 0; bottom: 0; left: 50%; width: 3px; background: #fde047;
+      transform: translateX(-50%); z-index: 5; box-shadow: 0 0 10px #fde047;
+    }
+    .roulette-tape {
+      display: flex; align-items: center; gap: 8px; height: 100%; padding: 0 12px;
+      transition: transform 3.2s cubic-bezier(0.12, 0.85, 0.2, 1);
+    }
+    .r-slot {
+      min-width: 74px; height: 74px; border-radius: 12px; background: #111726;
+      border: 1px solid rgba(255,255,255,0.1); display: flex; flex-direction: column;
+      align-items: center; justify-content: center; padding: 4px; font-size: 8px; font-weight: 800; text-align: center;
+    }
+
+    /* Нижний Таббар */
     .tabbar {
       position: fixed; bottom: 0; left: 0; right: 0; max-width: 480px; margin: 0 auto;
-      background: rgba(11, 15, 25, 0.94); backdrop-filter: blur(14px);
+      background: rgba(10, 14, 23, 0.95); backdrop-filter: blur(16px);
       border-top: 1px solid rgba(255, 255, 255, 0.09);
-      display: grid; grid-template-columns: repeat(5, 1fr); padding: 7px 6px 12px; z-index: 900;
+      display: grid; grid-template-columns: repeat(5, 1fr); padding: 7px 6px 13px; z-index: 900;
     }
     .tab-item {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -136,44 +188,46 @@
     .tab-item svg { width: 20px; height: 20px; }
     .tab-item.active { color: var(--emerald); }
 
-    /* Модальные шторки */
+    /* Модальные окна */
     .modal-overlay {
-      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.78); backdrop-filter: blur(6px);
+      position: fixed; inset: 0; background: rgba(0, 0, 0, 0.82); backdrop-filter: blur(7px);
       z-index: 2000; display: none; align-items: flex-end; justify-content: center;
     }
     .modal-overlay.open { display: flex; }
     .modal-sheet {
-      width: 100%; max-width: 480px; background: #0e131f; border-top: 1px solid rgba(255,255,255,0.14);
-      border-radius: 22px 22px 0 0; padding: 16px; max-height: 86vh; overflow-y: auto;
+      width: 100%; max-width: 480px; background: #0d121d; border-top: 1.5px solid rgba(255,255,255,0.14);
+      border-radius: 24px 24px 0 0; padding: 16px; max-height: 88vh; overflow-y: auto;
     }
     #toastBox {
       position: fixed; top: 14px; left: 50%; transform: translateX(-50%);
-      background: #10b981; color: #000; font-family: var(--font-display); font-size: 10px;
-      font-weight: 900; padding: 9px 16px; border-radius: 12px; z-index: 99999; display: none;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+      background: linear-gradient(135deg, #10b981, #059669); color: #000;
+      font-family: var(--font-display); font-size: 10px; font-weight: 900;
+      padding: 10px 16px; border-radius: 12px; z-index: 99999; display: none;
+      box-shadow: 0 10px 28px rgba(0,0,0,0.7); text-align: center; max-width: 90vw;
     }
   </style>
 </head>
 <body>
 
-  <!-- УВЕДОМЛЕНИЯ -->
   <div id="toastBox"></div>
 
-  <!-- 1. ЗАГРУЗОЧНЫЙ ЭКРАН С ДУЭТОМ НА СКАЛЕ (duo.webp / duo.png) -->
+  <!-- 1. ПРЕЛОАДЕР (РАБОТАЕТ И С duo.webp, И СО ВСТРОЕННЫМ КРИСТАЛЬНЫМ SVG-АРТОМ) -->
   <div id="preloader">
-    <img src="/assets/duo.webp"
-         onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/duo.png';}else{this.style.display='none';}"
-         alt="MintTags Duo" class="preloader-duo-art">
-    <div class="loader-title">MINTTAGS: GLOBAL EMPIRE 2.0</div>
-    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:700;">Синхронизация глобального реестра...</div>
+    <div class="preloader-art-wrap" id="preloaderArtBox">
+      <img src="/assets/duo.webp"
+           onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/duo.png';}else{this.outerHTML=window.DUO_FALLBACK_SVG||'';}"
+           style="width:100%;height:100%;object-fit:contain;" alt="MintTags Duo">
+    </div>
+    <div class="rr-font" style="font-size:16px;font-weight:900;color:#fff;">MINTTAGS: GLOBAL EMPIRE 2.0</div>
+    <div style="font-size:10.5px;color:var(--muted);margin-top:6px;font-weight:700;">Синхронизация блокчейн-реестра Fragment...</div>
   </div>
 
   <!-- 2. ВЕРХНИЙ БАР -->
   <div class="topbar">
     <div class="top-pill nav-theme-cyan" onclick="ui.openCountryModal()">
-      <span id="topCountryFlag">🌍 Регион</span>
+      <span id="topCountryFlag">🌍 Выбрать страну</span>
     </div>
-    <div class="top-pill nav-theme-emerald" id="topLuckPill" onclick="ui.openSub('wheel')">
+    <div class="top-pill nav-theme-emerald" onclick="ui.openSub('wheel')">
       <span>🍀 Удача: <b id="topLuckVal">×1.0</b></span>
     </div>
     <div class="top-pill nav-theme-gold" onclick="ui.openStarsModal()">
@@ -181,14 +235,23 @@
     </div>
   </div>
 
-  <!-- БЛОК БАЛАНСА GRAM -->
+  <!-- ГЛАВНЫЙ БЛОК БАЛАНСА -->
   <div class="hero-balance-box">
     <div>
-      <div style="font-size:9.5px;color:var(--muted);font-weight:800;">БАЛАНС ИМПЕРИИ</div>
+      <div style="font-size:9.5px;color:var(--muted);font-weight:800;">БАЛАНС ИМПЕРИИ • <span id="vipBadgeTxt" style="color:var(--gold);">PLAYER</span></div>
       <div class="bal-val"><span id="mainBalanceVal">25 000</span> <span style="font-size:12px;color:var(--emerald);">GRAM</span></div>
       <div class="inc-val">Пассивный доход: +<span id="mainIncomeVal">0</span> G/сек</div>
     </div>
-    <img src="/assets/dog.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/dog.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Crystal Dog">
+    <div id="topHeroMascot" style="width:48px;height:48px;"></div>
+  </div>
+
+  <!-- ШТРАФ ОБЭП (ПОКАЗЫВАЕТСЯ, ЕСЛИ НАЛОГОВАЯ ВЫПИСАЛА ОРДЕР) -->
+  <div id="obepAlertBanner" class="card-box nav-theme-ruby" style="display:none;justify-content:space-between;align-items:center;">
+    <div>
+      <div class="rr-font" style="font-size:10px;color:#fca5a5;">🚨 ОРДЕР НАЛОГОВОЙ ОБЭП</div>
+      <div style="font-size:9.5px;color:#fff;margin-top:2px;">Штраф к оплате: <b id="obepFineTxt">0</b> G</div>
+    </div>
+    <button class="q-pill nav-theme-amber" onclick="ui.playMini('pay_obep', 0)">ПОГАСИТЬ</button>
   </div>
 
   <!-- ==================== ЭКРАН 1: ИГРАТЬ (#view-play) ==================== -->
@@ -196,22 +259,23 @@
     <div class="switch-row">
       <button id="seg-u" class="seg-btn active" onclick="ui.setMintMode('user')">@USERNAME</button>
       <button id="seg-n" class="seg-btn" onclick="ui.setMintMode('num')">+888 НОМЕРА</button>
+      <button id="seg-g" class="seg-btn" onclick="ui.setMintMode('gift')">NFT ГИФТЫ</button>
       <button class="btn-gold-top" onclick="ui.openSub('cases')">БОКСЫ</button>
     </div>
 
-    <!-- 4 БЫСТРЫЕ ПИЛЮЛИ С КАСТОМНЫМИ SVG И CSS-ФОНАМИ -->
+    <!-- 4 БЫСТРЫЕ ПИЛЮЛИ С КАСТОМНЫМИ SVG -->
     <div class="quick-pills-row">
       <div class="q-pill nav-theme-emerald" onclick="ui.openSub('staking')">
         <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="14" rx="3" fill="rgba(16,185,129,0.25)" stroke="#10B981" stroke-width="2"/><circle cx="12" cy="13" r="3" stroke="#A7F3D0" stroke-width="2"/></svg>
-        <span>Холд %</span>
+        <span>Холд-Банк</span>
       </div>
-      <div class="q-pill nav-theme-violet" onclick="ui.openSub('minigames')">
+      <div class="q-pill nav-theme-violet" onclick="ui.openSub('sapper')">
         <svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 21,9 17,21 7,21 3,9" fill="rgba(139,92,246,0.28)" stroke="#A855F7" stroke-width="2"/></svg>
-        <span>Сапёр</span>
+        <span>Сапёр 5×5</span>
       </div>
-      <div class="q-pill nav-theme-amber" onclick="ui.openSub('minigames')">
+      <div class="q-pill nav-theme-amber" onclick="ui.openSub('crash')">
         <svg viewBox="0 0 24 24" fill="none"><path d="M14 3C18 3 21 6 21 10C21 14 16 18 12 20L9 15L4 12C6 8 10 3 14 3Z" fill="rgba(245,158,11,0.28)" stroke="#F59E0B" stroke-width="2"/></svg>
-        <span>1000X+</span>
+        <span>Ракетка</span>
       </div>
       <div class="q-pill nav-theme-ruby" onclick="ui.openSub('pvp')">
         <svg viewBox="0 0 24 24" fill="none"><path d="M4 20L19 5M15 4H20V9M20 20L5 5M9 4H4V9" stroke="#F87171" stroke-width="2.2" stroke-linecap="round"/></svg>
@@ -219,24 +283,24 @@
       </div>
     </div>
 
-    <!-- ПРОМО-БАННЕРЫ С МАСКОТАМИ: ДУРОВ (ГЕРОЙ 1) И ИЗУМРУДНЫЙ ПЁС (ГЕРОЙ 2) -->
+    <!-- ПРОМО-БАННЕРЫ С ГЕРОЕМ 1 (ДУРОВ) И ГЕРОЕМ 2 (ИЗУМРУДНЫЙ ПЁС) -->
     <div class="banners-grid">
       <div class="banner-card nav-theme-gold" onclick="ui.openSub('collections')">
-        <div style="display:flex;align-items:center;gap:9px;">
-          <img src="/assets/durov.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/durov.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Durov">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="durovBannerAvatar" style="width:44px;height:44px;flex-shrink:0;"></div>
           <div>
-            <div class="rr-font" style="font-size:9.5px;font-weight:900;color:var(--gold);" id="hotBannerTitle">Биржа • Тренд дня</div>
-            <div style="font-size:9.5px;color:var(--muted);">Divine в мире: <b id="divineServerCnt" style="color:var(--gold);">0/75</b> • 500 NFT</div>
+            <div class="rr-font" style="font-size:9.5px;font-weight:900;color:var(--gold);">Биржа Fragment • 500 NFT</div>
+            <div style="font-size:9.5px;color:var(--muted);">Divine в мире: <b id="divineServerCnt" style="color:var(--gold);">0/75</b> • Тренд: <b id="hotTrendTxt" style="color:#fff;">Royal</b></div>
           </div>
         </div>
-        <span class="rr-font" style="font-size:9px;color:var(--gold);">500 NFT ›</span>
+        <span class="rr-font" style="font-size:9px;color:var(--gold);">КАТАЛОГ ›</span>
       </div>
 
       <div class="banner-card nav-theme-emerald" onclick="ui.nav('storage')">
-        <div style="display:flex;align-items:center;gap:9px;">
-          <img src="/assets/dog.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/dog.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Crystal Dog">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div id="dogBannerAvatar" style="width:44px;height:44px;flex-shrink:0;"></div>
           <div>
-            <div class="rr-font" style="font-size:9.5px;font-weight:900;color:var(--emerald);">Перекуп • Скупщик</div>
+            <div class="rr-font" style="font-size:9.5px;font-weight:900;color:var(--emerald);">Перекуп • Скупщик Активов</div>
             <div style="font-size:9.5px;color:var(--muted);" id="merchBannerSub">Платит +80% за нужную редкость</div>
           </div>
         </div>
@@ -244,26 +308,26 @@
       </div>
     </div>
 
-    <!-- ГЛАВНАЯ СЦЕНА МИНТА -->
+    <!-- СЦЕНА МИНТА -->
     <div class="mint-stage">
-      <div class="rr-font" style="font-size:11px;color:var(--cyan);" id="mintStageTitle">ГЕНЕРАТОР TELEGRAM @USERNAME</div>
-      <div style="font-size:20px;font-weight:900;margin:10px 0;font-family:var(--font-display);" id="lastMintedTag">@empire_genesis</div>
+      <div class="rr-font" style="font-size:10.5px;color:var(--cyan);" id="mintStageTitle">ГЕНЕРАТОР TELEGRAM @USERNAME</div>
+      <div id="mintPreviewBox" style="width:78px;height:78px;margin:10px auto;"></div>
+      <div style="font-size:18px;font-weight:900;margin:6px 0;font-family:var(--font-display);" id="lastMintedTag">@empire_genesis</div>
       <div style="font-size:10px;color:var(--muted);" id="lastMintedRarity">Нажми кнопку ниже для минта нового актива</div>
       <button class="mint-main-btn" id="mintBtnText" onclick="ui.doMint()">СМИНТИТЬ @USERNAME (1 000 G)</button>
     </div>
   </div>
 
-  <!-- ==================== ЭКРАН 2: ХРАНИЛИЩЕ И КАНАЛЫ (#view-storage) ==================== -->
+  <!-- ==================== ЭКРАН 2: СЕЙФ И КАНАЛЫ (#view-storage) ==================== -->
   <div id="view-storage" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <div class="rr-font" style="font-size:13px;">Сейф (<span id="safeUsedCnt">0</span>/<span id="safeMaxCnt">50</span>)</div>
+      <div class="rr-font" style="font-size:12.5px;">Сейф (<span id="safeUsedCnt">0</span>/<span id="safeMaxCnt">50</span>)</div>
       <div style="display:flex;gap:5px;">
         <button class="q-pill nav-theme-amber" onclick="ui.sellItem(0,'bulk')">Опт Продажа</button>
         <button class="q-pill nav-theme-cyan" onclick="ui.playMini('buy_slots', 50000)">+50 Слотов</button>
       </div>
     </div>
 
-    <!-- ФИЛЬТРЫ СЕЙФА -->
     <div class="quick-pills-row" style="margin-bottom:8px;">
       <div class="q-pill nav-theme-blue" onclick="ui.setSafeFilter('all')">Все</div>
       <div class="q-pill nav-theme-cyan" onclick="ui.setSafeFilter('user')">@ID</div>
@@ -275,24 +339,21 @@
 
     <div class="card-box nav-theme-blue" style="margin-top:12px;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-        <span class="rr-font" style="font-size:11px;color:#93c5fd;">Мои Медиа-Каналы</span>
-        <button class="btn-gold-top" style="padding:6px 10px;font-size:9px;" onclick="ui.playMini('channel_create', 25000)">+ СОЗДАТЬ (25K G)</button>
+        <span class="rr-font" style="font-size:10.5px;color:#93c5fd;">Мои Медиа-Каналы</span>
+        <button class="btn-gold-top" style="padding:6px 10px;font-size:9px;" onclick="ui.createChannelPrompt()">+ СОЗДАТЬ КАНАЛ (25K G)</button>
       </div>
       <div id="channelsList"></div>
     </div>
   </div>
 
-  <!-- ==================== ЭКРАН 3: РЫНОК ИГРОКОВ (#view-market) ==================== -->
+  <!-- ==================== ЭКРАН 3: РЫНОК (#view-market) ==================== -->
   <div id="view-market" class="view">
     <div class="card-box nav-theme-amber" style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="display:flex;align-items:center;gap:9px;">
-        <img src="/assets/durov.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/durov.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Durov">
-        <div>
-          <div class="rr-font" style="font-size:11.5px;color:var(--gold);">Глобальный Аукцион Fragment</div>
-          <div style="font-size:9.5px;color:var(--muted);">Покупай редкие теги, +888 и NFT-подарки</div>
-        </div>
+      <div>
+        <div class="rr-font" style="font-size:11.5px;color:var(--gold);">Аукцион Fragment & Getgems</div>
+        <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">Выставляй свои активы из Сейфа (кнопка «На рынок») или скупай лоты игроков</div>
       </div>
-      <button class="q-pill nav-theme-emerald" onclick="ui.openSub('collections')">Каталог 500 NFT</button>
+      <button class="q-pill nav-theme-emerald" onclick="ui.openSub('collections')">500 NFT</button>
     </div>
     <div id="marketLotsList"></div>
   </div>
@@ -301,15 +362,15 @@
   <div id="view-friends" class="view">
     <div class="card-box nav-theme-emerald" style="display:flex;justify-content:space-between;align-items:center;">
       <div>
-        <div class="rr-font" style="font-size:12px;color:var(--emerald);">Кристальный Синдикат Друзей</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:4px;">Забирай 10% дохода друзей в GRAM и 15% с покупок Stars!</div>
+        <div class="rr-font" style="font-size:12px;color:var(--emerald);">Партнёрский Синдикат</div>
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">Получай +25 000 G за каждого друга, 10% их дохода в GRAM и 15% с покупок Stars!</div>
       </div>
-      <img src="/assets/dog.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/dog.png';}else{this.style.display='none';}" class="mascot-avatar-lg" alt="Dog">
+      <div id="friendsDogAvatar" style="width:64px;height:64px;flex-shrink:0;"></div>
     </div>
-    <button class="mint-main-btn" onclick="ui.shareReferral()">ПРИГЛАСИТЬ ДРУГА В ИМПЕРИЮ (+25 000 G)</button>
+    <button class="mint-main-btn" onclick="ui.shareReferral()">ПРИГЛАСИТЬ ДРУГА (+25 000 G)</button>
   </div>
 
-  <!-- ==================== ЭКРАН 5: ЕЩЁ (ПОЛНАЯ КАСТОМНАЯ НАВИГАЦИЯ) ==================== -->
+  <!-- ==================== ЭКРАН 5: ЕЩЁ (#view-more) ==================== -->
   <div id="view-more" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
       <h2 class="rr-font" style="font-size:13px;">Экосистема Империи</h2>
@@ -319,19 +380,14 @@
       </button>
     </div>
 
-    <!-- Баннер Stars с Дуровым -->
     <div class="card-box nav-theme-gold" style="display:flex;justify-content:space-between;align-items:center;">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <img src="/assets/durov.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/durov.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Durov">
-        <div>
-          <div style="font-size:10px;color:var(--muted);font-weight:700;">Кошелек и Магазин Stars</div>
-          <div class="rr-font" style="font-size:12.5px;font-weight:900;color:var(--gold);margin-top:2px;"><span id="moreStarsBal">50</span> ⭐️ / VIP и Бусты</div>
-        </div>
+      <div>
+        <div style="font-size:10px;color:var(--muted);font-weight:700;">Кошелек и Магазин Stars</div>
+        <div class="rr-font" style="font-size:12.5px;font-weight:900;color:var(--gold);margin-top:2px;"><span id="moreStarsBal">50</span> ⭐️ / VIP и Удача ×2.5</div>
       </div>
-      <button class="btn-gold-top" onclick="ui.openStarsModal()">ОТКРЫТЬ</button>
+      <button class="btn-gold-top" onclick="ui.openStarsModal()">МАГАЗИН ⭐️</button>
     </div>
 
-    <!-- Витрина Тщеславия -->
     <div class="card-box nav-theme-violet">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
         <span class="rr-font" style="font-size:10.5px;color:#e9d5ff;">Витрина Тщеславия (Музей)</span>
@@ -340,7 +396,7 @@
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;" id="flexSlotsGrid"></div>
     </div>
 
-    <!-- 8 ПЛИТОК НАВИГАЦИИ С УНИКАЛЬНЫМИ SVG И ИНДИВИДУАЛЬНЫМИ CSS-ФОНАМИ -->
+    <!-- 8 ПЛИТОК НАВИГАЦИИ С КАСТОМНЫМИ SVG -->
     <div class="tools-grid">
       <div class="tool-tile nav-theme-amber" onclick="ui.openSub('cases')">
         <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 21,7 21,17 12,22 3,17 3,7" fill="rgba(245,158,11,0.28)" stroke="#F59E0B" stroke-width="2"/><polyline points="3,7 12,12 21,7" stroke="#FDE047" stroke-width="2"/><line x1="12" y1="12" x2="12" y2="22" stroke="#F59E0B" stroke-width="2"/></svg></div>
@@ -350,17 +406,17 @@
         <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 21,7 3,7" fill="rgba(16,185,129,0.3)" stroke="#10B981" stroke-width="2"/><line x1="6" y1="10" x2="6" y2="17" stroke="#34D399" stroke-width="2.2"/><line x1="12" y1="10" x2="12" y2="17" stroke="#34D399" stroke-width="2.2"/><line x1="18" y1="10" x2="18" y2="17" stroke="#34D399" stroke-width="2.2"/><rect x="3" y="18" width="18" height="3" rx="1" fill="#10B981"/></svg></div>
         <span>Холд-Банк</span>
       </div>
-      <div class="tool-tile nav-theme-violet" onclick="ui.openSub('minigames')">
+      <div class="tool-tile nav-theme-violet" onclick="ui.openSub('sapper')">
         <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="7" height="7" rx="2" fill="rgba(168,85,247,0.3)" stroke="#A855F7" stroke-width="2"/><rect x="14" y="3" width="7" height="7" rx="2" stroke="#C084FC" stroke-width="2"/><rect x="3" y="14" width="7" height="7" rx="2" stroke="#C084FC" stroke-width="2"/><rect x="14" y="14" width="7" height="7" rx="2" fill="rgba(168,85,247,0.3)" stroke="#A855F7" stroke-width="2"/></svg></div>
-        <span>Мини-Игры</span>
+        <span>Сапёр 5×5</span>
       </div>
       <div class="tool-tile nav-theme-ruby" onclick="ui.openSub('pvp')">
         <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M12 3L19 6V12C19 16.5 15.8 20.2 12 21C8.2 20.2 5 16.5 5 12V6L12 3Z" fill="rgba(239,68,68,0.28)" stroke="#EF4444" stroke-width="2"/><path d="M9 12L11 14L15 10" stroke="#FCA5A5" stroke-width="2.2" stroke-linecap="round"/></svg></div>
         <span>Дуэли</span>
       </div>
-      <div class="tool-tile nav-theme-blue" onclick="ui.openSub('contracts')">
-        <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><rect x="5" y="3" width="14" height="18" rx="2.5" fill="rgba(59,130,246,0.28)" stroke="#3B82F6" stroke-width="2"/><line x1="9" y1="8" x2="15" y2="8" stroke="#93C5FD" stroke-width="2"/><line x1="9" y1="12" x2="15" y2="12" stroke="#93C5FD" stroke-width="2"/><circle cx="15" cy="16.5" r="2" fill="#60A5FA"/></svg></div>
-        <span>Контракты</span>
+      <div class="tool-tile nav-theme-blue" onclick="ui.openSub('crash')">
+        <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><path d="M14 3C18 3 21 6 21 10C21 14 16 18 12 20L9 15L4 12C6 8 10 3 14 3Z" fill="rgba(59,130,246,0.28)" stroke="#3B82F6" stroke-width="2"/></svg></div>
+        <span>Ракетка</span>
       </div>
       <div class="tool-tile nav-theme-cyan" onclick="ui.openSub('collections')">
         <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><polygon points="12,3 20,8 12,13 4,8" fill="rgba(6,182,212,0.3)" stroke="#06B6D4" stroke-width="2"/><polyline points="4,12 12,17 20,12" stroke="#67E8F9" stroke-width="2"/><polyline points="4,16 12,21 20,16" stroke="#06B6D4" stroke-width="2"/></svg></div>
@@ -372,29 +428,107 @@
       </div>
       <div class="tool-tile nav-theme-pink" onclick="ui.openSub('forge')">
         <div class="tool-ico"><svg viewBox="0 0 24 24" fill="none"><polygon points="12,2 16,9 22,12 16,15 12,22 8,15 2,12 8,9" fill="rgba(236,72,153,0.28)" stroke="#EC4899" stroke-width="2"/><circle cx="12" cy="12" r="2.5" fill="#FBCFE8"/></svg></div>
-        <span>Крафты</span>
+        <span>Крафт 5➔1</span>
       </div>
     </div>
 
-    <!-- Завод-Шредер и Взлом Сейфа Дурова -->
+    <!-- ВТОРОЙ РЯД НАВИГАЦИИ (5 КНОПОК) -->
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-bottom:8px;">
+      <div class="q-pill nav-theme-emerald" style="flex-direction:column;padding:7px 2px;" onclick="ui.openSub('pass')">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="6" width="18" height="12" rx="2" fill="rgba(16,185,129,0.25)" stroke="#10B981" stroke-width="2"/></svg>
+        <span>Пасс 100</span>
+      </div>
+      <div class="q-pill nav-theme-amber" style="flex-direction:column;padding:7px 2px;" onclick="ui.openSub('upgrader')">
+        <svg viewBox="0 0 24 24" fill="none"><polygon points="12,3 20,17 4,17" fill="rgba(245,158,11,0.25)" stroke="#F59E0B" stroke-width="2"/></svg>
+        <span>Апгрейд</span>
+      </div>
+      <div class="q-pill nav-theme-violet" style="flex-direction:column;padding:7px 2px;" onclick="ui.openSub('vault')">
+        <svg viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="3" stroke="#C084FC" stroke-width="2"/><circle cx="12" cy="12" r="3" fill="#C084FC"/></svg>
+        <span>Сейф Дурова</span>
+      </div>
+      <div class="q-pill nav-theme-blue" style="flex-direction:column;padding:7px 2px;" onclick="ui.openSub('clans')">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 3L20 7V13C20 17.5 16.5 20.8 12 22C7.5 20.8 4 17.5 4 13V7L12 3Z" fill="rgba(59,130,246,0.25)" stroke="#60A5FA" stroke-width="2"/></svg>
+        <span>Кланы</span>
+      </div>
+      <div class="q-pill nav-theme-cyan" style="flex-direction:column;padding:7px 2px;" onclick="ui.openSub('leaderboard')">
+        <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="#38BDF8" stroke-width="2"/><line x1="3" y1="12" x2="21" y2="12" stroke="#7DD3FC" stroke-width="1.6"/></svg>
+        <span>Топ Стран</span>
+      </div>
+    </div>
+
+    <!-- Шредер и Отмычки -->
     <div class="card-box nav-theme-cyan">
       <div style="display:flex;justify-content:space-between;align-items:center;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <img src="/assets/dog.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/dog.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Dog">
-          <div>
-            <div class="rr-font" style="font-size:10.5px;font-weight:900;color:var(--cyan);">Шредер и Взлом Сейфа Дурова</div>
-            <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">Деталей: <b id="scrapPartsVal" style="color:#fff;">15</b>/50 • Отмычек: <b id="lockpicksVal" style="color:var(--emerald);">1</b></div>
-          </div>
+        <div>
+          <div class="rr-font" style="font-size:10.5px;font-weight:900;color:var(--cyan);">Завод-Шредер и Отмычки</div>
+          <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">Деталей: <b id="scrapPartsVal" style="color:#fff;">15</b>/50 • Отмычек: <b id="lockpicksVal" style="color:var(--emerald);">1</b></div>
         </div>
         <div style="display:flex;gap:5px;">
-          <button onclick="ui.playMini('craft_lockpick', 0)" class="q-pill nav-theme-blue" style="padding:7px 9px;">КРАФТ</button>
-          <button onclick="ui.openSub('vault')" class="q-pill nav-theme-emerald" style="padding:7px 9px;">СЕЙФ ›</button>
+          <button onclick="ui.playMini('craft_lockpick', 0)" class="q-pill nav-theme-blue" style="padding:7px 10px;">КРАФТ ОТМЫЧКИ</button>
+          <button onclick="ui.openSub('vault')" class="q-pill nav-theme-emerald" style="padding:7px 10px;">ВЗЛОМ ›</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== ПОДЭКРАН: 14 КЕЙСОВ (#view-cases) ==================== -->
+  <!-- ==================== ПОДЭКРАН 6: ПОЛНЫЙ ХОЛД-БАНК (GRAM + ВКЛАД NFT / +888 / @ID) ==================== -->
+  <div id="view-staking" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:13px;color:var(--emerald);">Имперский Холд-Банк</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('play')">‹ Назад</button>
+    </div>
+
+    <!-- ЧАСТЬ 1 ХОЛД-БАНКА: РУЧНОЙ ВВОД СУММЫ GRAM И ВЫБОР ТАРИФА -->
+    <div class="card-box nav-theme-emerald">
+      <div class="rr-font" style="font-size:11px;color:var(--emerald);margin-bottom:6px;">1. Депозит GRAM под процент</div>
+      <div style="font-size:9.5px;color:var(--muted);margin-bottom:8px;">Введи любую сумму GRAM, выбери тариф и получай гарантированную прибыль:</div>
+
+      <input type="number" id="stakeCustomInput" class="inp-dark" placeholder="Введите сумму GRAM (например, 15000)" value="10000">
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin:7px 0;">
+        <button class="q-pill nav-theme-blue" onclick="ui.setStakeQuick(0.25)">25%</button>
+        <button class="q-pill nav-theme-blue" onclick="ui.setStakeQuick(0.50)">50%</button>
+        <button class="q-pill nav-theme-blue" onclick="ui.setStakeQuick(0.75)">75%</button>
+        <button class="q-pill nav-theme-amber" onclick="ui.setStakeQuick(1.0)">MAX (ВСЁ)</button>
+      </div>
+
+      <!-- Тарифы -->
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-bottom:8px;">
+        <div class="q-pill nav-theme-emerald" id="plan-flex" onclick="ui.selectStakePlan('flex')" style="flex-direction:column;padding:7px 4px;">
+          <span style="font-size:10px;color:#34d399;">+15%</span>
+          <span style="font-size:8px;color:var(--muted);">Гибкий</span>
+        </div>
+        <div class="q-pill nav-theme-amber" id="plan-imperial" onclick="ui.selectStakePlan('imperial')" style="flex-direction:column;padding:7px 4px;">
+          <span style="font-size:10px;color:#fbbf24;">+35%</span>
+          <span style="font-size:8px;color:var(--muted);">Имперский</span>
+        </div>
+        <div class="q-pill nav-theme-violet" id="plan-durov" onclick="ui.selectStakePlan('durov')" style="flex-direction:column;padding:7px 4px;">
+          <span style="font-size:10px;color:#c084fc;">+60%</span>
+          <span style="font-size:8px;color:var(--muted);">Фонд Дурова</span>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+        <button class="mint-main-btn" style="margin:0;padding:11px;" onclick="ui.submitCustomStake()">ПОЛОЖИТЬ ПОД %</button>
+        <button class="mint-main-btn" style="margin:0;padding:11px;background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="ui.playMini('stake_withdraw', 0)">ЗАБРАТЬ ВКЛАДЫ</button>
+      </div>
+      <div id="stakesList" style="margin-top:8px;"></div>
+    </div>
+
+    <!-- ЧАСТЬ 2 ХОЛД-БАНКА: ХОЛД АКТИВОВ (NFT-ПОДАРКОВ, +888 НОМЕРОВ И @USERNAME) -->
+    <div class="card-box nav-theme-cyan">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <span class="rr-font" style="font-size:11px;color:#38bdf8;">2. Хранилище Активов (NFT / +888 / @ID)</span>
+        <span style="font-size:9.5px;color:var(--emerald);font-weight:800;">Бонус: +<b id="stakedItemsIncTxt">0</b> G/с</span>
+      </div>
+      <div style="font-size:9.5px;color:var(--muted);margin-bottom:8px;">
+        Положи любой NFT-гифт, номер +888 или @username в ячейку банка: предмет получает <b>+50% к пассивному доходу</b> и <b>0% износа</b>!
+      </div>
+      <div id="stakedAssetsBox"></div>
+    </div>
+  </div>
+
+  <!-- ==================== ПОДЭКРАН 7: 14 КЕЙСОВ (#view-cases) ==================== -->
   <div id="view-cases" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
       <span class="rr-font" style="font-size:13px;">Контейнеры и Боксы (14)</span>
@@ -403,10 +537,10 @@
     <div id="casesList"></div>
   </div>
 
-  <!-- ==================== ПОДЭКРАН: БИБЛИОТЕКА 500 NFT (#view-collections) ==================== -->
+  <!-- ==================== ПОДЭКРАН 8: 500 NFT КАТАЛОГ (#view-collections) ==================== -->
   <div id="view-collections" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <span class="rr-font" style="font-size:12px;">Каталог 500 NFT-Подарков</span>
+      <span class="rr-font" style="font-size:12px;">Библиотека 500 NFT-Подарков</span>
       <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
     </div>
     <div id="nftCatPills" style="display:flex;gap:5px;overflow-x:auto;padding-bottom:6px;margin-bottom:8px;"></div>
@@ -418,52 +552,131 @@
     </div>
   </div>
 
-  <!-- ==================== ПОДЭКРАН: ХОЛД-БАНК (#view-staking) ==================== -->
-  <div id="view-staking" class="view">
-    <div class="card-box nav-theme-emerald" style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div class="rr-font" style="font-size:12px;color:var(--emerald);">Имперский Холд-Банк (+25%)</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:3px;">Положи GRAM под процент и забирай с прибылью в любой момент</div>
-      </div>
-      <img src="/assets/dog.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/dog.png';}else{this.style.display='none';}" class="mascot-avatar-sm" alt="Dog">
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
-      <button class="mint-main-btn" style="margin:0;" onclick="ui.playMini('stake_deposit', 10000)">ВКЛАД 10 000 G</button>
-      <button class="mint-main-btn" style="margin:0;background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="ui.playMini('stake_withdraw', 0)">ЗАБРАТЬ ВСЁ (+25%)</button>
-    </div>
-    <div id="stakesList"></div>
-  </div>
-
-  <!-- ==================== ПОДЭКРАН: ВЗЛОМ СЕЙФА ДУРОВА (#view-vault) ==================== -->
-  <div id="view-vault" class="view">
-    <div class="card-box nav-theme-cyan" style="display:flex;justify-content:space-between;align-items:center;">
-      <div>
-        <div class="rr-font" style="font-size:12px;color:var(--cyan);">Личный Архив Основателя</div>
-        <div style="font-size:10px;color:var(--muted);margin-top:3px;">Отмычек в наличии: <b id="vaultPicksCnt" style="color:var(--emerald);">1</b> шт. Гарантия редкого NFT!</div>
-      </div>
-      <img src="/assets/durov.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/durov.png';}else{this.style.display='none';}" class="mascot-avatar-lg" alt="Durov">
-    </div>
-    <button class="mint-main-btn" onclick="ui.playMini('hack_vault', 0)">ВЗЛОМАТЬ СЕЙФ ДУРОВА (1 ОТМЫЧКА)</button>
-  </div>
-
-  <!-- ==================== ПОДЭКРАН: ИГРОВОЙ КЛУБ / ДУЭЛИ / КОЛЕСО / КРАФТ ==================== -->
-  <div id="view-minigames" class="view">
+  <!-- ==================== ПОДЭКРАН 9: САПЁР 5×5 (#view-sapper) ==================== -->
+  <div id="view-sapper" class="view">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
-      <span class="rr-font" style="font-size:12.5px;" id="subGameHeader">Игровой Клуб Империи</span>
-      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ В меню</button>
+      <span class="rr-font" style="font-size:12.5px;color:#c084fc;">Кристальный Сапёр 5×5</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('play')">‹ Назад</button>
     </div>
-    <div class="card-box nav-theme-violet" style="text-align:center;padding:18px;">
-      <img src="/assets/duo.webp" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/duo.png';}else{this.style.display='none';}" style="width:120px;height:120px;object-fit:contain;margin-bottom:8px;" alt="Game Art">
-      <div class="rr-font" style="font-size:13px;margin-bottom:6px;">Испытай удачу: Сапёр • Ракетка 1000X+ • PvP Дуэль</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px;">
-        <button class="q-pill nav-theme-emerald" style="padding:11px;" onclick="ui.playMini('sapper', 2500)">СТАВКА 2.5K G</button>
-        <button class="q-pill nav-theme-amber" style="padding:11px;" onclick="ui.playMini('crash', 10000)">СТАВКА 10K G</button>
-        <button class="q-pill nav-theme-ruby" style="padding:11px;" onclick="ui.playMini('pvp', 50000)">СТАВКА 50K G</button>
+    <div class="card-box nav-theme-violet" style="text-align:center;">
+      <div style="display:flex;justify-content:space-between;font-size:10.5px;margin-bottom:6px;">
+        <span>Ставка: <b id="minesBetTxt">2 500</b> G</span>
+        <span>Множитель: <b id="minesMultTxt" style="color:var(--emerald);">×1.00</b></span>
+      </div>
+      <input type="number" id="minesBetInp" class="inp-dark" value="2500" placeholder="Сумма ставки GRAM">
+      <div class="mines-grid" id="minesBoard"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;">
+        <button class="mint-main-btn" style="margin:0;" onclick="ui.startMines()">НОВАЯ ИГРА</button>
+        <button class="mint-main-btn" style="margin:0;background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="ui.cashoutMines()">ЗАБРАТЬ КУШ</button>
       </div>
     </div>
   </div>
 
-  <!-- ==================== НИЖНИЙ ТАББАР (5 КАСТОМНЫХ SVG-ИКОНОК) ==================== -->
+  <!-- ==================== ПОДЭКРАН 10: РАКЕТКА 1000X+ (#view-crash) ==================== -->
+  <div id="view-crash" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:var(--gold);">Ракетка 1000X+ (Canvas)</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('play')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-amber" style="text-align:center;">
+      <canvas id="crashCanvas" width="380" height="200" style="width:100%;height:190px;background:#060912;border-radius:14px;border:1px solid rgba(255,255,255,0.08);"></canvas>
+      <input type="number" id="crashBetInp" class="inp-dark" value="5000" style="margin-top:8px;" placeholder="Ставка GRAM">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;">
+        <button class="mint-main-btn" style="margin:0;" onclick="ui.startCrash()">ЗАПУСК РАКЕТЫ</button>
+        <button class="mint-main-btn" style="margin:0;background:linear-gradient(135deg,#f59e0b,#d97706);" onclick="ui.cashoutCrash()">ЗАБРАТЬ ИКСЫ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== ПОДЭКРАН 11: КОЛЕСО, ДУЭЛИ, КУЗНИЦА 5➔1, АПГРЕЙДЕР, СЕЙФ ДУРОВА, КЛАНЫ, ПАСС, ТОП ==================== -->
+  <div id="view-wheel" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:var(--gold);">Имперское Колесо Фортуны</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-gold" style="text-align:center;">
+      <canvas id="wheelCanvas" width="260" height="260" style="width:240px;height:240px;margin:0 auto;display:block;"></canvas>
+      <button class="mint-main-btn" onclick="ui.spinWheel()">КРУТИТЬ КОЛЕСО (5 000 G)</button>
+    </div>
+  </div>
+
+  <div id="view-forge" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:#f472b6;">Кузница Синтеза 5 ➔ 1</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-pink">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Объедини 5 младших предметов из Сейфа в 1 предмет повышенной редкости!</div>
+      <button class="mint-main-btn" onclick="ui.forgeAutoFive()">СИНТЕЗИРОВАТЬ 5 МЛАДШИХ АКТИВОВ ➔ 1</button>
+    </div>
+  </div>
+
+  <div id="view-upgrader" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:var(--cyan);">Квантовый Апгрейдер ×2 / ×5</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-cyan" style="text-align:center;">
+      <input type="number" id="upgBetInp" class="inp-dark" value="5000" placeholder="Ставка GRAM на апгрейд">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:8px;">
+        <button class="mint-main-btn" style="margin:0;" onclick="ui.runUpgrader(2.0)">АПГРЕЙД ×2 (48%)</button>
+        <button class="mint-main-btn" style="margin:0;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;" onclick="ui.runUpgrader(5.0)">АПГРЕЙД ×5 (19%)</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="view-pvp" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:#f87171;">PvP-Арена Дуэлей</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('play')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-ruby">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Введи сумму дуэли против оппонента в прямом эфире (победитель забирает ×1.95 банка):</div>
+      <input type="number" id="pvpBetInp" class="inp-dark" value="10000" placeholder="Ставка GRAM">
+      <button class="mint-main-btn" onclick="ui.startPvpDuel()">ВЫЗВАТЬ НА ДУЭЛЬ (×1.95)</button>
+    </div>
+  </div>
+
+  <div id="view-vault" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:var(--cyan);">Личный Архив Основателя</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-cyan" style="text-align:center;">
+      <div style="font-size:11px;margin-bottom:8px;">Мастер-Отмычек в наличии: <b id="vaultPicksCnt" style="color:var(--emerald);">1</b> шт.</div>
+      <button class="mint-main-btn" onclick="ui.playMini('hack_vault', 0)">ВЗЛОМАТЬ СЕЙФ ДУРОВА (1 ОТМЫЧКА)</button>
+    </div>
+  </div>
+
+  <div id="view-clans" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;">Синдикаты и Кланы</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <button class="mint-main-btn" style="margin-bottom:10px;" onclick="ui.createClanPrompt()">ОСНОВАТЬ СИНДИКАТ (100 000 G)</button>
+    <div id="clansListBox"></div>
+  </div>
+
+  <div id="view-pass" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:var(--gold);">Empire Pass (100 Уровней)</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <div class="card-box nav-theme-amber">
+      <div class="rr-font" style="font-size:12px;">Ваш Уровень: <span id="passLvlTxt" style="color:var(--emerald);">1</span> / 100</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:4px;">Опыт Империи: <b id="passXpTxt">120</b> XP (каждый минт, вклад и кейс качает уровень!)</div>
+    </div>
+  </div>
+
+  <div id="view-leaderboard" class="view">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+      <span class="rr-font" style="font-size:12.5px;color:var(--cyan);">Мировой Рейтинг Держав</span>
+      <button class="q-pill nav-theme-cyan" onclick="ui.nav('more')">‹ Назад</button>
+    </div>
+    <div id="countryTopBox"></div>
+  </div>
+
+  <!-- ==================== НИЖНИЙ ТАББАР ==================== -->
   <div class="tabbar">
     <div class="tab-item active" id="tab-play" onclick="ui.nav('play')">
       <svg viewBox="0 0 24 24" fill="none"><polygon points="13,2 3,14 12,14 11,22 21,10 12,10" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
@@ -487,12 +700,56 @@
     </div>
   </div>
 
-  <!-- МОДАЛКА ОТКРЫТИЯ КЕЙСА -->
+  <!-- 1. КАСТОМНАЯ ШТОРКА ВЫБОРА СТРАНЫ (БЕЗ УРОДЛИВОГО БРАУЗЕРНОГО PROMPT!) -->
+  <div class="modal-overlay" id="countryModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-sheet">
+      <div class="rr-font" style="font-size:13px;margin-bottom:4px;">Выбор Державы Империи</div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:10px;" id="countryPriceNotice">Первый выбор страны — БЕСПЛАТНО! Повторная смена — 500 000 GRAM.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px;" id="countryButtonsGrid"></div>
+    </div>
+  </div>
+
+  <!-- 2. ШТОРКА ОБЯЗАТЕЛЬНОЙ ПОДПИСКИ (БЕЗ БАГОВ И ЗАВИСАНИЙ) -->
+  <div class="modal-overlay" id="subGateModal">
+    <div class="modal-sheet" style="text-align:center;">
+      <div class="rr-font" style="font-size:14px;color:var(--emerald);margin-bottom:6px;">Обязательный Допуск Синдиката</div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:14px;">
+        Подпишись на официальный канал Империи и получи стартовый грант <b style="color:var(--gold);">+15 000 GRAM</b>!
+      </div>
+      <div style="display:grid;grid-template-columns:1fr;gap:8px;">
+        <button class="btn-gold-top" style="padding:13px;font-size:11px;" onclick="ui.openTgChannel()">1. ПЕРЕЙТИ И ПОДПИСАТЬСЯ</button>
+        <button class="mint-main-btn" style="margin:0;" onclick="ui.verifySubscription()">2. ПРОВЕРИТЬ ПОДПИСКУ (+15 000 G)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. ШТОРКА ОТКРЫТИЯ КЕЙСА С АНИМИРОВАННОЙ РУЛЕТКОЙ -->
   <div class="modal-overlay" id="caseModalSheet" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="modal-sheet" id="caseModalContent"></div>
   </div>
 
-  <!-- МОДАЛКА НАСТРОЕК И GOD-MODE АДМИНКИ (@hatebeinsober21) -->
+  <!-- 4. ШТОРКА МАГАЗИНА STARS И VIP -->
+  <div class="modal-overlay" id="starsShopModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="modal-sheet">
+      <div class="rr-font" style="font-size:13px;color:var(--gold);margin-bottom:8px;">Магазин Telegram Stars ⭐️</div>
+      <div class="card-box nav-theme-gold" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="rr-font" style="font-size:11px;">VIP-Статус + Удача ×2.5 (7 дней)</div>
+          <div style="font-size:9.5px;color:var(--muted);">Удваивает шансы на редкие NFT и +888</div>
+        </div>
+        <button class="btn-gold-top" onclick="ui.playMini('buy_vip_stars', 100)">100 ⭐️</button>
+      </div>
+      <div class="card-box nav-theme-amber" style="display:flex;justify-content:space-between;align-items:center;">
+        <div>
+          <div class="rr-font" style="font-size:11px;">Звёздные Кейсы Основателя</div>
+          <div style="font-size:9.5px;color:var(--muted);">Перейти к открытию Divine и Founder боксов</div>
+        </div>
+        <button class="q-pill nav-theme-emerald" onclick="document.getElementById('starsShopModal').classList.remove('open');ui.openSub('cases');">К БОКСАМ ›</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ШТОРКА НАСТРОЕК И GOD-MODE АДМИНКИ (@hatebeinsober21) -->
   <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="modal-sheet">
       <div class="rr-font" style="font-size:13px;margin-bottom:10px;">Настройки Империи</div>
@@ -512,322 +769,3 @@
       </div>
     </div>
   </div>
-
-  <script>
-    const tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : null;
-    if (tg) { tg.expand(); tg.ready(); }
-
-    const RARITY_COLORS = ['#94a3b8','#10b981','#3b82f6','#06b6d4','#a855f7','#ec4899','#f59e0b','#ef4444','#38bdf8','#fde047'];
-    const RARITY_NAMES = ['Common','Uncommon','Rare','Elite','Epic','Mythic','Legendary','Ancient','Celestial','Divine'];
-
-    function fmt(n) {
-      const num = Number(n || 0);
-      if (!ui.compactBal) return num.toLocaleString('ru-RU');
-      if (num >= 1e9) return (num / 1e9).toFixed(2) + 'B';
-      if (num >= 1e6) return (num / 1e6).toFixed(2) + 'M';
-      if (num >= 1e3) return (num / 1e3).toFixed(1) + 'K';
-      return String(num);
-    }
-
-    function itemVisualBox(imgUrl, tier = 0) {
-      const col = RARITY_COLORS[Math.min(9, Math.max(0, tier))] || '#10b981';
-      const src = imgUrl || '/assets/cases/emerald_vault_chest.webp';
-      const pngSrc = src.replace(/\.webp$/i, '.png');
-      const svgFallback = `<svg viewBox="0 0 64 64" fill="none"><polygon points="32,6 56,22 46,56 18,56 8,22" fill="${col}33" stroke="${col}" stroke-width="3"/></svg>`;
-      return `<div class="webp-item-box" style="border-color:${col}55;">
-        <img src="${src}" loading="lazy" decoding="async"
-             onerror="if(!this.dataset.p){this.dataset.p=1;this.src='${pngSrc}';}else{this.outerHTML='${svgFallback.replace(/'/g, "\\'")}';}">
-      </div>`;
-    }
-
-    const ui = {
-      userId: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) ? tg.initDataUnsafe.user.id : 777000,
-      username: (tg && tg.initDataUnsafe && tg.initDataUnsafe.user && tg.initDataUnsafe.user.username) ? tg.initDataUnsafe.user.username : 'hatebeinsober21',
-      mintMode: 'user',
-      safeFilter: 'all',
-      compactBal: localStorage.getItem('mt_compact_bal') !== '0',
-      state: null,
-      casesCatalog: [],
-      nftCat: 'all',
-      nftPage: 1,
-
-      toast(msg) {
-        const b = document.getElementById('toastBox');
-        b.textContent = msg;
-        b.style.display = 'block';
-        clearTimeout(this._t);
-        this._t = setTimeout(() => { b.style.display = 'none'; }, 2400);
-      },
-
-      async init() {
-        try {
-          const [sRes, cRes] = await Promise.all([
-            fetch('/api/sync', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, username: this.username }) }),
-            fetch('/api/cases_catalog')
-          ]);
-          const sData = await sRes.json();
-          const cData = await cRes.json();
-          this.casesCatalog = cData.cases || [];
-          this.applyState(sData);
-          this.renderCasesList();
-          this.loadNftCatalog('all', 1);
-        } catch (e) {
-          console.error(e);
-        } finally {
-          setTimeout(() => document.getElementById('preloader').classList.add('hidden'), 450);
-        }
-      },
-
-      applyState(data) {
-        if (!data || !data.user) return;
-        this.state = data;
-        const u = data.user;
-        if (localStorage.getItem('mt_compact_bal') === null) {
-          this.compactBal = Boolean(u.compact_pref);
-        }
-        document.getElementById('compactBalToggle').checked = this.compactBal;
-        document.getElementById('mainBalanceVal').textContent = fmt(u.balance);
-        document.getElementById('mainIncomeVal').textContent = fmt(u.income_per_sec);
-        document.getElementById('topStarsVal').textContent = u.stars;
-        document.getElementById('moreStarsBal').textContent = u.stars;
-        document.getElementById('topLuckVal').textContent = '×' + u.luck_mult;
-        document.getElementById('topCountryFlag').textContent = u.country ? `🌍 ${u.country}` : '🌍 Выбрать страну';
-        document.getElementById('divineServerCnt').textContent = `${data.divine_global}/75`;
-        document.getElementById('merchBannerSub').textContent = `Скупает «${data.merch_tier_name}» за +80%`;
-        document.getElementById('safeUsedCnt').textContent = (data.inventory || []).length;
-        document.getElementById('safeMaxCnt').textContent = u.safe_slots;
-        document.getElementById('scrapPartsVal').textContent = u.scrap_parts;
-        document.getElementById('lockpicksVal').textContent = u.lockpicks;
-        document.getElementById('vaultPicksCnt').textContent = u.lockpicks;
-        document.getElementById('flexLikesCnt').textContent = u.flex_likes;
-
-        if (u.is_admin) document.getElementById('adminGodPanel').style.display = 'block';
-        this.renderSafe();
-        this.renderChannels();
-        this.renderFlexSlots();
-        this.renderMarket();
-        this.renderStakes();
-      },
-
-      nav(tab) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-        const target = document.getElementById('view-' + tab);
-        if (target) target.classList.add('active');
-        const btn = document.getElementById('tab-' + tab);
-        if (btn) btn.classList.add('active');
-      },
-
-      openSub(sub) {
-        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-        const map = { cases: 'view-cases', collections: 'view-collections', staking: 'view-staking', vault: 'view-vault' };
-        const id = map[sub] || 'view-minigames';
-        document.getElementById(id).classList.add('active');
-      },
-
-      setMintMode(m) {
-        this.mintMode = m;
-        document.getElementById('seg-u').classList.toggle('active', m === 'user');
-        document.getElementById('seg-n').classList.toggle('active', m === 'num');
-        document.getElementById('mintStageTitle').textContent = m === 'num' ? 'ГЕНЕРАТОР АНОНИМНЫХ НОМЕРОВ +888' : 'ГЕНЕРАТОР TELEGRAM @USERNAME';
-        document.getElementById('mintBtnText').textContent = m === 'num' ? 'СМИНТИТЬ НОМЕР +888 (2 500 G)' : 'СМИНТИТЬ @USERNAME (1 000 G)';
-      },
-
-      async doMint() {
-        const r = await fetch('/api/mint', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, mode: this.mintMode }) });
-        const d = await r.json();
-        if (!r.ok) return this.toast(d.error || 'Ошибка');
-        document.getElementById('lastMintedTag').textContent = d.dropped.tag;
-        document.getElementById('lastMintedTag').style.color = RARITY_COLORS[d.dropped.tier];
-        document.getElementById('lastMintedRarity').textContent = `${RARITY_NAMES[d.dropped.tier]} • Оценка: ${fmt(d.dropped.value)} G`;
-        this.applyState(d.state);
-      },
-
-      setSafeFilter(f) { this.safeFilter = f; this.renderSafe(); },
-
-      renderSafe() {
-        const box = document.getElementById('safeItemsList');
-        if (!box || !this.state) return;
-        const items = (this.state.inventory || []).filter(i => this.safeFilter === 'all' || i.item_type === this.safeFilter);
-        if (!items.length) {
-          box.innerHTML = `<div class="card-box" style="text-align:center;color:var(--muted);font-size:11px;">В этой категории пока нет активов</div>`;
-          return;
-        }
-        box.innerHTML = items.map(item => {
-          const col = RARITY_COLORS[item.tier] || '#94a3b8';
-          return `<div class="card-box" style="display:flex;justify-content:space-between;align-items:center;border-left:3.5px solid ${col};">
-            <div style="display:flex;align-items:center;gap:10px;">
-              ${itemVisualBox(item.image, item.tier)}
-              <div>
-                <div class="rr-font" style="font-size:11px;color:${col};">${item.tag}</div>
-                <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">${RARITY_NAMES[item.tier]} • +${fmt(item.income)}/с • Износ: ${item.wear}%</div>
-              </div>
-            </div>
-            <div style="display:flex;gap:4px;">
-              <button class="q-pill nav-theme-violet" onclick="ui.sellItem(${item.id},'flex')" title="В музей">★</button>
-              <button class="q-pill nav-theme-cyan" onclick="ui.sellItem(${item.id},'shred')" title="В шредер">⚙️</button>
-              <button class="q-pill nav-theme-emerald" onclick="ui.sellItem(${item.id},'single')">${fmt(item.value)} G</button>
-            </div>
-          </div>`;
-        }).join('');
-      },
-
-      async sellItem(itemId, mode) {
-        const r = await fetch('/api/sell_item', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, item_id: itemId, mode }) });
-        const d = await r.json();
-        if (!r.ok) return this.toast(d.error || 'Ошибка');
-        this.applyState(d.state);
-        this.toast('Выполнено!');
-      },
-
-      renderChannels() {
-        const box = document.getElementById('channelsList');
-        if (!box || !this.state) return;
-        const ch = this.state.channels || [];
-        box.innerHTML = ch.length ? ch.map(c => `<div style="display:flex;justify-content:space-between;font-size:10.5px;padding:6px 0;border-bottom:1px solid var(--border);"><span>📢 <b>${c.name}</b> (${c.subs} подп.)</span><span style="color:var(--emerald);font-weight:800;">+${fmt(c.income)} G/с</span></div>`).join('') : `<div style="font-size:10px;color:var(--muted);">У вас пока нет медиа-каналов</div>`;
-      },
-
-      renderFlexSlots() {
-        const box = document.getElementById('flexSlotsGrid');
-        if (!box || !this.state) return;
-        const flexed = (this.state.inventory || []).filter(i => i.is_flex).slice(0, 3);
-        let html = '';
-        for (let i = 0; i < 3; i++) {
-          const it = flexed[i];
-          html += it
-            ? `<div class="card-box" style="margin:0;padding:8px;text-align:center;border-color:${RARITY_COLORS[it.tier]};"><div style="font-size:9px;font-weight:800;color:${RARITY_COLORS[it.tier]};overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${it.tag}</div></div>`
-            : `<div class="card-box" style="margin:0;padding:8px;text-align:center;color:var(--muted);font-size:9px;">Слот #${i+1}</div>`;
-        }
-        box.innerHTML = html;
-      },
-
-      renderCasesList() {
-        const box = document.getElementById('casesList');
-        if (!box) return;
-        box.innerHTML = this.casesCatalog.map(c => {
-          const isStars = c.currency === 'stars';
-          const priceLbl = isStars ? `${c.price} ⭐️` : `${fmt(c.price)} G`;
-          return `<div class="card-box" onclick="ui.openCaseModal('${c.id}')" style="display:flex;justify-content:space-between;align-items:center;border-left:3.5px solid ${c.color};cursor:pointer;">
-            <div style="display:flex;align-items:center;gap:11px;">
-              ${itemVisualBox(c.image, 8)}
-              <div>
-                <div class="rr-font" style="font-size:11px;font-weight:900;color:${isStars ? 'var(--gold)' : '#fff'};">${c.name}</div>
-                <div style="font-size:9.5px;color:var(--muted);margin-top:2px;">${c.desc}</div>
-              </div>
-            </div>
-            <button class="btn-gold-top" style="flex-shrink:0;">${priceLbl}</button>
-          </div>`;
-        }).join('');
-      },
-
-      openCaseModal(caseId) {
-        const c = this.casesCatalog.find(x => x.id === caseId);
-        if (!c) return;
-        const sheet = document.getElementById('caseModalSheet');
-        const content = document.getElementById('caseModalContent');
-        const priceLbl = c.currency === 'stars' ? `${c.price} ⭐️` : `${fmt(c.price)} GRAM`;
-        content.innerHTML = `
-          <div style="text-align:center;">
-            <div style="width:96px;height:96px;margin:0 auto 10px;">${itemVisualBox(c.image, 9).replace('52px','96px')}</div>
-            <div class="rr-font" style="font-size:14px;">${c.name}</div>
-            <div style="font-size:10.5px;color:var(--muted);margin:6px 0 14px;">${c.desc}</div>
-            <div id="caseSpinResult" style="margin:10px 0;"></div>
-            <button class="mint-main-btn" onclick="ui.confirmOpenCase('${c.id}')">ОТКРЫТЬ ЗА ${priceLbl}</button>
-          </div>
-        `;
-        sheet.classList.add('open');
-      },
-
-      async confirmOpenCase(caseId) {
-        const r = await fetch('/api/open_case', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, case_id: caseId }) });
-        const d = await r.json();
-        if (!r.ok) return this.toast(d.error || 'Ошибка');
-        const col = RARITY_COLORS[d.dropped.tier];
-        document.getElementById('caseSpinResult').innerHTML = `
-          <div class="card-box" style="border:1.5px solid ${col};">
-            <div class="rr-font" style="font-size:12px;color:${col};">ВЫПАЛО: ${d.dropped.tag}</div>
-            <div style="font-size:10px;color:var(--muted);margin-top:3px;">${RARITY_NAMES[d.dropped.tier]} • Ценность: ${fmt(d.dropped.value)} G</div>
-          </div>
-        `;
-        this.applyState(d.state);
-      },
-
-      async loadNftCatalog(category = 'all', page = 1) {
-        this.nftCat = category;
-        this.nftPage = page;
-        const cats = ['all','plush','watches','royal','telegram','cyberpunk','resistance','gaming','genesis','luxury','seasonal'];
-        document.getElementById('nftCatPills').innerHTML = cats.map(c => `<button class="q-pill ${c===category?'nav-theme-emerald':'nav-theme-blue'}" style="flex-shrink:0;padding:6px 10px;" onclick="ui.loadNftCatalog('${c}',1)">${c.toUpperCase()}</button>`).join('');
-        const r = await fetch(`/api/nft_catalog?category=${category}&page=${page}&per_page=12`);
-        const d = await r.json();
-        document.getElementById('nftPageInfo').textContent = `Стр. ${d.page} (Всего: ${d.total} NFT)`;
-        document.getElementById('nftCatalogGrid').innerHTML = (d.items || []).map(item => {
-          const col = RARITY_COLORS[item.tier];
-          return `<div class="card-box" style="margin:0;border-top:2.5px solid ${col};display:flex;flex-direction:column;align-items:center;text-align:center;">
-            ${itemVisualBox(item.image, item.tier)}
-            <div class="rr-font" style="font-size:9.5px;margin-top:6px;color:#fff;">${item.name}</div>
-            <div style="font-size:8.5px;color:${col};font-weight:800;margin:2px 0;">${item.rarity.toUpperCase()}</div>
-            <div style="font-size:9.5px;color:var(--emerald);font-weight:900;">${fmt(item.base_price)} G</div>
-          </div>`;
-        }).join('');
-      },
-
-      renderMarket() {
-        const box = document.getElementById('marketLotsList');
-        if (!box) return;
-        box.innerHTML = `<div class="card-box" style="text-align:center;color:var(--muted);font-size:10.5px;">Все 500 моделей NFT доступны в разделе «Каталог 500 NFT» и в 14 Кейсах Империи!</div>`;
-      },
-
-      renderStakes() {
-        const box = document.getElementById('stakesList');
-        if (!box || !this.state) return;
-        const st = this.state.stakes || [];
-        box.innerHTML = st.length ? st.map(s => `<div class="card-box" style="display:flex;justify-content:space-between;font-size:11px;"><span>Вклад: <b>${fmt(s.amount)} G</b></span><span style="color:var(--emerald);font-weight:800;">К выплате: ${fmt(Math.floor(s.amount*1.25))} G</span></div>`).join('') : `<div class="card-box" style="text-align:center;color:var(--muted);font-size:10.5px;">Активных вкладов пока нет</div>`;
-      },
-
-      async playMini(game, bet) {
-        const r = await fetch('/api/minigame/play', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, game, bet }) });
-        const d = await r.json();
-        if (!r.ok) return this.toast(d.error || 'Ошибка');
-        this.applyState(d.state);
-        this.toast(d.message || 'Успешно!');
-      },
-
-      openSettings() { document.getElementById('settingsModal').classList.add('open'); },
-      openStarsModal() { this.openSub('cases'); this.toast('Выберите Звёздный Бокс или Founder Case!'); },
-
-      async openCountryModal() {
-        const c = prompt('Введите код или название вашей страны (первый выбор бесплатно, смена — 500 000 G):', 'RU');
-        if (!c) return;
-        const r = await fetch('/api/country/change', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, country: c.toUpperCase() }) });
-        const d = await r.json();
-        if (!r.ok) return this.toast(d.error || 'Ошибка');
-        this.applyState(d.state);
-        this.toast('Регион обновлён!');
-      },
-
-      async toggleCompactBal(checked) {
-        this.compactBal = checked;
-        localStorage.setItem('mt_compact_bal', checked ? '1' : '0');
-        await fetch('/api/settings/compact', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, compact: checked ? 1 : 0 }) });
-        if (this.state) this.applyState(this.state);
-      },
-
-      async adminAct(action, amount) {
-        const r = await fetch('/api/admin/action', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ user_id: this.userId, username: this.username, action, amount }) });
-        const d = await r.json();
-        if (!r.ok) return this.toast(d.error || 'Нет прав');
-        this.applyState(d.state);
-        this.toast('Админ-команда выполнена!');
-      },
-
-      shareReferral() {
-        const url = `https://t.me/share/url?url=https://t.me/minttags_bot?start=${this.userId}&text=Строй крипто-империю MintTags 2.0 вместе со мной!`;
-        if (tg && tg.openTelegramLink) tg.openTelegramLink(url);
-        else window.open(url, '_blank');
-      }
-    };
-
-    window.addEventListener('DOMContentLoaded', () => ui.init());
-  </script>
-</body>
-</html>
