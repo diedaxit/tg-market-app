@@ -68,21 +68,21 @@
     .v-ico { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
     /* ПРЕЛОАДЕР С ПЕРВЫМ ФОТО (ДУРОВ И REDO НА НЕОНОВОЙ СКАЛЕ ТОЧЬ-В-ТОЧЬ) */
-    #preloader {
+   #preloader {
       position: fixed; inset: 0; z-index: 99999;
-      background: radial-gradient(circle at 50% 42%, rgba(16, 185, 129, 0.24) 0%, #06080d 74%);
+      opacity: 1;
+      background-color: #040609;
+      background-image:
+        radial-gradient(circle at 50% 40%, rgba(16, 185, 129, 0.38) 0%, rgba(5, 150, 105, 0.16) 40%, rgba(4, 6, 9, 0.98) 76%),
+        linear-gradient(135deg, #030508 0%, #06241b 50%, #030508 100%);
+      background-size: 160% 160%;
+      animation: preloaderShimmer 4s ease-in-out infinite alternate;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; transition: opacity 0.35s ease, visibility 0.35s ease;
     }
-    #preloader.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
-    .preloader-hero-img {
-      width: 265px; max-width: 78vw; height: auto; object-fit: contain;
-      filter: drop-shadow(0 16px 36px rgba(16, 185, 129, 0.42));
-      margin-bottom: 14px; animation: heroFloat 3.2s ease-in-out infinite;
-    }
-    @keyframes heroFloat {
-      0%, 100% { transform: translateY(0px); }
-      50% { transform: translateY(-6px); }
+    @keyframes preloaderShimmer {
+      0% { background-position: 0% 25%; }
+      100% { background-position: 100% 75%; }
     }
     .loader-emblem {
       width: 72px; height: 72px; border-radius: 20px;
