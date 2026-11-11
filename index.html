@@ -69,20 +69,59 @@
 
     /* ПРЕЛОАДЕР С ПЕРВЫМ ФОТО (ДУРОВ И REDO НА НЕОНОВОЙ СКАЛЕ ТОЧЬ-В-ТОЧЬ) */
    #preloader {
+     #preloader {
       position: fixed; inset: 0; z-index: 99999;
       opacity: 1;
-      background-color: #040609;
+      background-color: #04070b;
       background-image:
-        radial-gradient(circle at 50% 40%, rgba(16, 185, 129, 0.38) 0%, rgba(5, 150, 105, 0.16) 40%, rgba(4, 6, 9, 0.98) 76%),
-        linear-gradient(135deg, #030508 0%, #06241b 50%, #030508 100%);
+        radial-gradient(circle at 50% 42%, rgba(16, 185, 129, 0.36) 0%, rgba(36, 161, 222, 0.14) 36%, #04070b 74%),
+        linear-gradient(145deg, #030508 0%, #06291f 50%, #030508 100%);
       background-size: 160% 160%;
-      animation: preloaderShimmer 4s ease-in-out infinite alternate;
+      animation: preloaderShimmer 3.5s ease-in-out infinite alternate;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       padding: 20px; transition: opacity 0.35s ease, visibility 0.35s ease;
+    }
+    #preloader.hidden {
+      opacity: 0 !important;
+      visibility: hidden !important;
+      pointer-events: none !important;
+      display: none !important;
     }
     @keyframes preloaderShimmer {
       0% { background-position: 0% 25%; }
       100% { background-position: 100% 75%; }
+    }
+    .preloader-hero-wrap {
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .preloader-hero-wrap::before {
+      content: "";
+      position: absolute;
+      width: 170px; height: 170px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.55) 0%, rgba(36, 161, 222, 0.22) 50%, transparent 75%);
+      filter: blur(18px);
+      animation: auraPulse 2.4s ease-in-out infinite alternate;
+      z-index: 0;
+    }
+    @keyframes auraPulse {
+      0% { transform: scale(0.92); opacity: 0.75; }
+      100% { transform: scale(1.12); opacity: 1; }
+    }
+    .preloader-hero-img {
+      position: relative; z-index: 1;
+      width: 195px; max-width: 56vw; height: auto; object-fit: contain;
+      filter:
+        drop-shadow(0 0 14px rgba(16, 185, 129, 0.78))
+        drop-shadow(0 0 32px rgba(36, 161, 222, 0.45))
+        drop-shadow(0 14px 22px rgba(0, 0, 0, 0.85));
+      animation: heroFloat 3s ease-in-out infinite;
+    }
+    @keyframes heroFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
     }
     .loader-emblem {
       width: 72px; height: 72px; border-radius: 20px;
@@ -469,20 +508,31 @@
 
   <!-- ПРЕЛОАДЕР С ПЕРВОЙ ФОТКОЙ (ДУЭТ ДУРОВА В МАСКЕ И REDO НА СКАЛЕ ТОЧЬ-В-ТОЧЬ) -->
   <div id="preloader">
-    <img src="/assets/duo.webp"
-         onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/duo.png';}else{this.style.display='none';document.getElementById('loaderFallbackEmblem').style.display='flex';}"
-         alt="MintTags Duo" class="preloader-hero-img">
+    <div class="preloader-hero-wrap">
+      <img src="/assets/duo.webp"
+           onerror="if(!this.dataset.p){this.dataset.p=1;this.src='/assets/duo.png';}else{this.style.display='none';document.getElementById('loaderFallbackEmblem').style.display='flex';}"
+           alt="MintTags Duo" class="preloader-hero-img">
+    </div>
     <div class="loader-emblem" id="loaderFallbackEmblem">
       <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#24A1DE" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
     </div>
-    <div class="loader-title">MINTTAGS EMPIRE</div>
-    <div style="font-size:10px;color:var(--muted);margin-top:5px;font-weight:700;">Синхронизация глобального реестра...</div>
+    <div class="loader-title">MINTTAGS EMPIRE 2.0</div>
+    <div style="font-size:10px;color:#94a3b8;margin-top:5px;font-weight:700;">Синхронизация глобального реестра...</div>
   </div>
   <script>
-    setTimeout(function() {
-      var p = document.getElementById('preloader');
-      if (p) p.classList.add('hidden');
-    }, 3000);
+    (function() {
+      function hidePreloaderNow() {
+        var p = document.getElementById('preloader');
+        if (p) {
+          p.classList.add('hidden');
+          p.style.display = 'none';
+        }
+      }
+      setTimeout(hidePreloaderNow, 1600);
+      window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(hidePreloaderNow, 900);
+      });
+    })();
   </script>
 
   <!-- ПОЛНОЭКРАННЫЙ СПЕЦЭФФЕКТ ВЫПАДЕНИЯ LEGENDARY+ (7/10 ➔ 10/10 DIVINE) -->
