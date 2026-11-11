@@ -124,10 +124,13 @@ class CursorWrapper:
         self.cur = cur
         self.is_pg = is_pg
 
-    def execute(self, sql: str, params: tuple = ()):
+    def execute(self, sql: str, params=None):
         if not self.is_pg:
             sql = sql.replace("%s", "?")
-        self.cur.execute(sql, params)
+        if params is not None:
+            self.cur.execute(sql, params)
+        else:
+            self.cur.execute(sql)
         return self
 
     def fetchone(self):
@@ -256,7 +259,7 @@ def init_db():
         ("users", "obep_fine", "BIGINT DEFAULT 0"),
         ("usernames", "is_staked", "INTEGER DEFAULT 0"),
         ("usernames", "category", "TEXT DEFAULT 'telegram'"),
-        ("staked_deposits", "plan_name", "TEXT DEFAULT 'Имперский +25%'"),
+        ("staked_deposits", "plan_name", "TEXT DEFAULT 'Имперский'"),
     ]
     for tbl, col, ctype in migrations:
         try:
