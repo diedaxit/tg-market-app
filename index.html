@@ -68,13 +68,13 @@
     .v-ico { width: 15px; height: 15px; display: inline-block; vertical-align: -2px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
 
     /* ПРЕЛОАДЕР С ПЕРВЫМ ФОТО (ДУРОВ И REDO НА НЕОНОВОЙ СКАЛЕ ТОЧЬ-В-ТОЧЬ) */
-     #preloader {
+    #preloader {
       position: fixed; inset: 0; z-index: 99999;
       opacity: 1;
       background-color: #04070b;
       background-image:
-        radial-gradient(circle at 50% 42%, rgba(16, 185, 129, 0.36) 0%, rgba(36, 161, 222, 0.14) 36%, #04070b 74%),
-        linear-gradient(145deg, #030508 0%, #06291f 50%, #030508 100%);
+        radial-gradient(circle at 50% 42%, rgba(16, 185, 129, 0.42) 0%, rgba(36, 161, 222, 0.16) 38%, #04070b 75%),
+        linear-gradient(145deg, #030508 0%, #062b20 50%, #030508 100%);
       background-size: 160% 160%;
       animation: preloaderShimmer 3.5s ease-in-out infinite alternate;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -93,29 +93,29 @@
     .preloader-hero-wrap {
       position: relative;
       display: flex; align-items: center; justify-content: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
     .preloader-hero-wrap::before {
       content: "";
       position: absolute;
-      width: 170px; height: 170px;
+      width: 225px; height: 225px;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(16, 185, 129, 0.55) 0%, rgba(36, 161, 222, 0.22) 50%, transparent 75%);
-      filter: blur(18px);
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.62) 0%, rgba(36, 161, 222, 0.26) 52%, transparent 76%);
+      filter: blur(20px);
       animation: auraPulse 2.4s ease-in-out infinite alternate;
       z-index: 0;
     }
     @keyframes auraPulse {
-      0% { transform: scale(0.92); opacity: 0.75; }
-      100% { transform: scale(1.12); opacity: 1; }
+      0% { transform: scale(0.92); opacity: 0.78; }
+      100% { transform: scale(1.14); opacity: 1; }
     }
     .preloader-hero-img {
       position: relative; z-index: 1;
-      width: 195px; max-width: 56vw; height: auto; object-fit: contain;
+      width: 236px; max-width: 66vw; height: auto; object-fit: contain;
       filter:
-        drop-shadow(0 0 14px rgba(16, 185, 129, 0.78))
-        drop-shadow(0 0 32px rgba(36, 161, 222, 0.45))
-        drop-shadow(0 14px 22px rgba(0, 0, 0, 0.85));
+        drop-shadow(0 0 16px rgba(16, 185, 129, 0.85))
+        drop-shadow(0 0 36px rgba(36, 161, 222, 0.48))
+        drop-shadow(0 16px 24px rgba(0, 0, 0, 0.88));
       animation: heroFloat 3s ease-in-out infinite;
     }
     @keyframes heroFloat {
@@ -132,16 +132,16 @@
 
     /* МАСКОТЫ ГГ №1 (ДУРОВ) И ГГ №2 (REDO ПЁС) И СКИНЫ WEBP */
     .gg-mascot-sm {
-      width: 44px; height: 44px; object-fit: contain; flex-shrink: 0;
-      filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.65));
+      width: 52px; height: 52px; object-fit: contain; flex-shrink: 0;
+      filter: drop-shadow(0 4px 12px rgba(16, 185, 129, 0.35));
     }
     .gg-mascot-md {
-      width: 58px; height: 58px; object-fit: contain; flex-shrink: 0;
-      filter: drop-shadow(0 6px 14px rgba(16, 185, 129, 0.32));
+      width: 68px; height: 68px; object-fit: contain; flex-shrink: 0;
+      filter: drop-shadow(0 6px 16px rgba(16, 185, 129, 0.42));
     }
     .gg-mascot-lg {
-      width: 82px; height: 82px; object-fit: contain; flex-shrink: 0;
-      filter: drop-shadow(0 8px 20px rgba(16, 185, 129, 0.38));
+      width: 104px; height: 104px; object-fit: contain; flex-shrink: 0;
+      filter: drop-shadow(0 10px 24px rgba(16, 185, 129, 0.48));
     }
     .webp-skin-thumb {
       width: 46px; height: 46px; border-radius: 12px;
@@ -3816,34 +3816,35 @@ const LEGAL_DOCS_CONTENT = {
               </div>
             </div>
           `;
-            document.body.insertAdjacentHTML('beforeend', modalsHtml);
-          }
+          document.body.insertAdjacentHTML('beforeend', modalsHtml);
+        }
 
-          // АВТО-ПОДСТАНОВКА WEBP-ИКОНОК РЕЖИМОВ ИЗ ПАПКИ /assets/games/
-          [
-            { sel: '#view-rocket h3', img: '/assets/games/rocket_1000x.webp' },
-            { sel: '#view-minigames h3', img: '/assets/games/sapper_mines.webp' },
-            { sel: '#view-duels h3', img: '/assets/games/pvp_duels.webp' },
-            { sel: '#view-vault h3', img: '/assets/games/durov_vault.webp' },
-            { sel: '#view-bank h3', img: '/assets/games/hold_bank.webp' }
-          ].forEach(({ sel, img }) => {
-            const h = document.querySelector(sel);
-            if (h && !h.querySelector('img')) {
-              const png = img.replace('.webp', '.png');
-              h.style.display = 'flex';
-              h.style.alignItems = 'center';
-              h.style.gap = '7px';
-              h.insertAdjacentHTML(
-                'afterbegin',
-                `<img src="${img}" style="width:26px;height:26px;object-fit:contain;" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='${png}';}else{this.style.display='none';}">`
-              );
-            }
-          });
-        },
+        // АВТО-ПОДСТАНОВКА WEBP-ИКОНОК РЕЖИМОВ ИЗ ПАПКИ /assets/games/
+      [
+        { sel: '#view-rocket h3', img: '/assets/games/rocket_1000x.webp' },
+        { sel: '#view-minigames h3', img: '/assets/games/sapper_mines.webp' },
+        { sel: '#view-duels h3', img: '/assets/games/pvp_duels.webp' },
+        { sel: '#view-vault h3', img: '/assets/games/durov_vault.webp' },
+        { sel: '#view-bank h3', img: '/assets/games/hold_bank.webp' }
+      ].forEach(({ sel, img }) => {
+        const h = document.querySelector(sel);
+        if (h && !h.querySelector('img')) {
+          const png = img.replace('.webp', '.png');
+          h.style.display = 'flex';
+          h.style.alignItems = 'center';
+          h.style.gap = '7px';
+          h.insertAdjacentHTML('afterbegin', `<img src="${img}" style="width:26px;height:26px;object-fit:contain;" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='${png}';}else{this.style.display='none';}">`);
+        }
+      });
+    },
 
-        // ==================== МЕТОДЫ 8 НОВЫХ ФИШЕК И ДОКУМЕНТАЦИИ ====================
+      // ==================== МЕТОДЫ 8 НОВЫХ ФИШЕК И ДОКУМЕНТАЦИИ ====================
+      openLegalModal(tab = 'tos') {
         this.renderLegalTab(tab);
-document.getElementById('legalDocsModal').style.display = 'flex';
+        document.getElementById('legalDocsModal').style.display = 'flex';
+      },
+
+      renderLegalTab(tab) {
         const doc = LEGAL_DOCS_CONTENT[tab] || LEGAL_DOCS_CONTENT.tos;
         const box = document.getElementById('legalDocBody');
         if (box) {
