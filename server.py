@@ -1,3 +1,8 @@
+
+
+
+Значок PY-файла
+server
 import sqlite3
 import psycopg2
 from psycopg2 import pool
@@ -27,40 +32,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ==================== СТАТИКА С КЭШИРОВАНИЕМ И АВТО-ПОДДЕРЖКОЙ WEBP СКИНОВ ====================
-class CachedStaticFiles(StaticFiles):
-    async def get_response(self, path: str, scope):
-        response = await super().get_response(path, scope)
-        if response.status_code == 200:
-            response.headers["Cache-Control"] = "public, max-age=2592000, immutable"
-        return response
-
-for folder in ["assets", "assets/cases", "assets/nft", "icons", "backdrops"]:
-    os.makedirs(folder, exist_ok=True)
-
-def auto_build_webp_assets():
-    try:
-        from PIL import Image
-    except ImportError:
-        return
-    for root, _, files in os.walk("assets"):
-        for f in files:
-            if f.lower().endswith((".png", ".jpg", ".jpeg")):
-                src = os.path.join(root, f)
-                dst = os.path.join(root, os.path.splitext(f)[0] + ".webp")
-                if not os.path.exists(dst):
-                    try:
-                        im = Image.open(src).convert("RGBA")
-                        im.thumbnail((512, 512), Image.Resampling.LANCZOS)
-                        im.save(dst, "WEBP", quality=84, method=6)
-                    except Exception:
-                        pass
-
-auto_build_webp_assets()
-
-app.mount("/assets", CachedStaticFiles(directory="assets"), name="assets")
-app.mount("/icons", CachedStaticFiles(directory="icons"), name="icons")
-app.mount("/backdrops", CachedStaticFiles(directory="backdrops"), name="backdrops")
+# Раздача папок с картинками, иконками и фонами с GitHub
+if os.path.isdir("assets"):
+    app.mount("/assets", StaticFiles(directory="assets"), name="assets")
+if os.path.isdir("icons"):
+    app.mount("/icons", StaticFiles(directory="icons"), name="icons")
+if os.path.isdir("backdrops"):
+    app.mount("/backdrops", StaticFiles(directory="backdrops"), name="backdrops")
 
 DATABASE_URL = os.getenv("DATABASE_URL", "")
 DB_NAME = "market.db"
@@ -83,7 +61,7 @@ class CursorWrapper:
         self.cur = raw_cur
         self.is_pg = is_pg
 
-    def execute(self, sql: str, params: tuple | list = None):
+    def execute(self, sql: str, params: tuple | list = ()):
         if self.is_pg:
             q = sql.replace("?", "%s")
             q = q.replace("INSERT OR IGNORE INTO", "INSERT INTO")
@@ -99,12 +77,8 @@ class CursorWrapper:
                     num_multi = EXCLUDED.num_multi, reasons = EXCLUDED.reasons, is_equipped = EXCLUDED.is_equipped,
                     channel_slot = EXCLUDED.channel_slot, is_saved = EXCLUDED.is_saved, on_market = EXCLUDED.on_market,
                     equipped_at = EXCLUDED.equipped_at, subs_count = EXCLUDED.subs_count"""
-            if params is not None and len(params) > 0:
-                return self.cur.execute(q, params)
-            return self.cur.execute(q)
-        if params is not None and len(params) > 0:
-            return self.cur.execute(sql, params)
-        return self.cur.execute(sql)
+            return self.cur.execute(q, params)
+        return self.cur.execute(sql, params)
 
     def fetchone(self):
         return self.cur.fetchone()
@@ -161,20 +135,20 @@ def get_db():
 # ==========================================
 BASE_PRICE_GRAM = 50.0
 DIVINE_SERVER_LIMIT = 75
-MAX_PASSIVE_PER_SEC = 2000000.0
+MAX_PASSIVE_PER_SEC = 150000000.0
 VIP_STYLE_COST_GRAM = 50000000.0
 
 RARITIES = [
-    {"name": "Common",       "ru": "Обычный",      "w": 780000, "u_min": 260,       "u_max": 980,        "n_min": 20000,      "n_max": 72000,      "gift_base": 3500,      "inc": 5.0,    "xp": 5,     "num_x": 1.5},
-    {"name": "Uncommon",     "ru": "Необычный",    "w": 155000, "u_min": 950,       "u_max": 3600,       "n_min": 65000,      "n_max": 230000,     "gift_base": 8500,      "inc": 15.0,   "xp": 15,    "num_x": 2.5},
-    {"name": "Rare",         "ru": "Редкий",       "w": 42000,  "u_min": 3800,      "u_max": 14000,      "n_min": 210000,     "n_max": 740000,     "gift_base": 22000,     "inc": 45.0,   "xp": 40,    "num_x": 5.0},
-    {"name": "Epic",         "ru": "Эпический",    "w": 11000,  "u_min": 16000,     "u_max": 58000,      "n_min": 820000,     "n_max": 2950000,    "gift_base": 65000,     "inc": 120.0,  "xp": 100,   "num_x": 10.0},
-    {"name": "Legendary",    "ru": "Легендарный",  "w": 2400,   "u_min": 72000,     "u_max": 265000,     "n_min": 3400000,    "n_max": 12500000,   "gift_base": 210000,    "inc": 310.0,  "xp": 300,   "num_x": 20.0},
-    {"name": "Mythic",       "ru": "Мифический",   "w": 520,    "u_min": 340000,    "u_max": 1250000,    "n_min": 14500000,   "n_max": 52000000,   "gift_base": 750000,    "inc": 720.0,  "xp": 800,   "num_x": 35.0},
-    {"name": "Luxury",       "ru": "Роскошный",    "w": 130,    "u_min": 1600000,   "u_max": 5800000,    "n_min": 56000000,   "n_max": 195000000,  "gift_base": 2900000,   "inc": 1450.0, "xp": 1500,  "num_x": 50.0},
-    {"name": "Ultra-Mythic", "ru": "Ультра-Мифик", "w": 35,     "u_min": 9500000,   "u_max": 34000000,   "n_min": 250000000,  "n_max": 780000000,  "gift_base": 14000000,  "inc": 2600.0, "xp": 2500,  "num_x": 65.0},
-    {"name": "Exclusive",    "ru": "Эксклюзивный", "w": 10,     "u_min": 48000000,  "u_max": 165000000,  "n_min": 950000000,  "n_max": 2600000000, "gift_base": 60000000,  "inc": 4500.0, "xp": 5000,  "num_x": 80.0},
-    {"name": "Divine",       "ru": "Божественный", "w": 2,      "u_min": 240000000, "u_max": 1200000000, "n_min": 3100000000, "n_max": 9200000000, "gift_base": 260000000, "inc": 8500.0, "xp": 15000, "num_x": 95.0}
+    {"name": "Common",       "ru": "Обычный",      "w": 780000, "u_min": 240,       "u_max": 680,        "n_min": 18000,      "n_max": 48000,      "gift_base": 3500,      "inc": 12.0,    "xp": 5,     "num_x": 1.5},
+    {"name": "Uncommon",     "ru": "Необычный",    "w": 155000, "u_min": 920,       "u_max": 2500,       "n_min": 58000,      "n_max": 155000,     "gift_base": 8500,      "inc": 38.0,    "xp": 15,    "num_x": 2.5},
+    {"name": "Rare",         "ru": "Редкий",       "w": 42000,  "u_min": 3600,      "u_max": 9800,       "n_min": 190000,     "n_max": 510000,     "gift_base": 22000,     "inc": 115.0,   "xp": 40,    "num_x": 5.0},
+    {"name": "Epic",         "ru": "Эпический",    "w": 11000,  "u_min": 15000,     "u_max": 41000,      "n_min": 750000,     "n_max": 2050000,    "gift_base": 65000,     "inc": 340.0,   "xp": 100,   "num_x": 10.0},
+    {"name": "Legendary",    "ru": "Легендарный",  "w": 2400,   "u_min": 68000,     "u_max": 185000,     "n_min": 3100000,    "n_max": 8600000,    "gift_base": 210000,    "inc": 950.0,   "xp": 300,   "num_x": 20.0},
+    {"name": "Mythic",       "ru": "Мифический",   "w": 520,    "u_min": 310000,    "u_max": 860000,     "n_min": 13500000,   "n_max": 35500000,   "gift_base": 750000,    "inc": 2800.0,  "xp": 800,   "num_x": 35.0},
+    {"name": "Luxury",       "ru": "Роскошный",    "w": 130,    "u_min": 1450000,   "u_max": 4100000,    "n_min": 48000000,   "n_max": 132000000,  "gift_base": 2900000,   "inc": 7500.0,  "xp": 1500,  "num_x": 50.0},
+    {"name": "Ultra-Mythic", "ru": "Ультра-Мифик", "w": 35,     "u_min": 8500000,   "u_max": 26000000,   "n_min": 165000000,  "n_max": 440000000,  "gift_base": 14000000,  "inc": 19500.0, "xp": 2500,  "num_x": 65.0},
+    {"name": "Exclusive",    "ru": "Эксклюзивный", "w": 10,     "u_min": 42000000,  "u_max": 135000000,  "n_min": 580000000,  "n_max": 1650000000, "gift_base": 60000000,  "inc": 48000.0, "xp": 5000,  "num_x": 80.0},
+    {"name": "Divine",       "ru": "Божественный", "w": 2,      "u_min": 220000000, "u_max": 980000000,  "n_min": 2100000000, "n_max": 6800000000, "gift_base": 260000000, "inc": 125000.0,"xp": 15000, "num_x": 95.0}
 ]
 
 SPIN_TIERS = {
@@ -304,6 +278,7 @@ def load_minttags_json_catalog(json_path: str = "minttags_catalog_11000_v21.json
 
 load_minttags_json_catalog()
 
+
 def generate_live_human_username(rarity_name: str) -> str:
     base = random.choice(REAL_CHAT_USERNAMES)
     if rarity_name == "Rare":
@@ -317,34 +292,33 @@ def generate_live_human_username(rarity_name: str) -> str:
             return f"@{base}"
         return f"@{base}{random.randint(10, 999)}"
 
-# РАСШИРЕННЫЙ КАТАЛОГ NFT-ПОДАРКОВ С ПОДДЕРЖКОЙ НОВЫХ WEBP-СКИНОВ
 GIFT_CATALOG = {
-    "Common":       [("Леденец TON", 1.0, "lollipop"), ("Кофе Разработчика", 1.1, "coffee"), ("Шарик Telegram", 1.2, "balloon")],
-    "Uncommon":     [("Алая Роза", 1.0, "rose"), ("Торт Дурова", 1.15, "cake"), ("Шампанское Магната", 1.25, "champagne")],
-    "Rare":         [("UFC Strike", 1.0, "glove"), ("Цилиндр Джентльмена", 1.1, "hat"), ("Pro Neon Katana", 1.28, "cyber_katana"), ("Магический Шар", 1.25, "orb")],
-    "Epic":         [("Scared Cat", 1.0, "cat"), ("Heart Locket N.Y.C.", 1.15, "locket"), ("Swiss Watch", 1.35, "chronos_watch"), ("Chronos Tourbillon Cyan", 1.42, "chronos_watch")],
-    "Legendary":    [("Heroic Helmet", 1.0, "helmet"), ("Durov's Cap", 1.2, "durov_cap"), ("Obsidian Stealth Cap", 1.32, "durov_cap"), ("Синий Plush Pepe", 1.4, "gold_pepe")],
-    "Mythic":       [("Resistance Dog (REDO)", 1.0, "dog"), ("Emerald Crystal Dog REDO", 1.35, "dog"), ("Красный Plush Pepe", 1.25, "gold_pepe"), ("Розовый Plush Pepe", 1.4, "gold_pepe")],
-    "Luxury":       [("Фиолетовый Plush Pepe", 1.0, "gold_pepe"), ("Изумрудный Plush Pepe", 1.3, "gold_pepe"), ("Emerald Vault Relic", 1.38, "emerald_vault_chest"), ("Спорткар Магната", 1.15, "car")],
-    "Ultra-Mythic": [("Золотой Plush Pepe", 1.35, "gold_pepe"), ("Faceted Durov Mask", 1.45, "durov_mask"), ("Genesis Block Shard", 1.3, "genesis_shard"), ("Корона Основателя", 1.15, "imperial_crown")],
-    "Exclusive":    [("Космо-Галактический Pepe", 1.4, "gold_pepe"), ("Золотой REDO", 1.25, "dog"), ("Imperial Obsidian Crown", 1.5, "imperial_crown"), ("Остров в Дубае", 1.1, "island")],
-    "Divine":       [("Genesis Gold Plush Pepe", 1.5, "gold_pepe"), ("Genesis REDO", 1.35, "dog"), ("Imperial Obsidian Crown", 1.6, "imperial_crown"), ("Ключ Блокчейна TON", 1.25, "key_ton")]
+    "Common":       [("Neon Genesis Shard", 1.0, "shard"), ("Obsidian Cap Lite", 1.1, "cap"), ("TON Crystal Orb", 1.2, "shard")],
+    "Uncommon":     [("Cyber Katana Lite", 1.05, "katana"), ("Durov Stealth Cap", 1.15, "cap"), ("Emerald Shard", 1.25, "shard")],
+    "Rare":         [("Pro Neon Katana", 1.1, "katana"), ("Chronos Silver Watch", 1.2, "watch"), ("Obsidian Durov Cap", 1.25, "cap")],
+    "Epic":         [("Chronos Tourbillon Watch", 1.25, "watch"), ("Cyber Neon Katana Pro", 1.2, "katana"), ("Stealth Durov Mask", 1.35, "mask")],
+    "Legendary":    [("Obsidian Durov Cap VIP", 1.2, "cap"), ("Faceted Durov Mask", 1.3, "mask"), ("Emerald Plush Pepe", 1.4, "pepe_emerald")],
+    "Mythic":       [("Emerald Crystal Dog REDO", 1.25, "redo"), ("Chronos Gold Tourbillon", 1.3, "watch"), ("Ruby Plush Pepe", 1.4, "pepe_red")],
+    "Luxury":       [("Emerald Vault Relic", 1.2, "vault"), ("Imperial Emerald Pepe", 1.35, "pepe_emerald"), ("Obsidian Founder Mask", 1.3, "mask")],
+    "Ultra-Mythic": [("Gold Plush Pepe", 1.35, "pepe_gold"), ("Imperial Obsidian Crown", 1.25, "crown"), ("Faceted Gold Mask", 1.2, "mask")],
+    "Exclusive":    [("Cosmic Gold Pepe", 1.4, "pepe_cosmic"), ("Emerald Genesis REDO", 1.3, "redo_gold"), ("Imperial Founder Crown", 1.25, "crown")],
+    "Divine":       [("Genesis Gold Plush Pepe", 1.5, "pepe_genesis"), ("Imperial Obsidian Crown #1", 1.4, "crown"), ("Genesis TON Core Shard", 1.35, "shard")]
 }
 
 # ==========================================
-# БОКСЫ И КЕЙСЫ (ВКЛЮЧАЯ НОВЫЕ WEBP БОКСЫ EMERALD VAULT И FOUNDER MASK)
+# БОКСЫ И КЕЙСЫ (ФИКС ALL-IN: НИКАКИХ ОБЫЧНЫХ НОМЕРОВ +888 НА ТИРЕ 0!)
 # ==========================================
 CASES_CATALOG = {
     "case_emerald_vault": {
         "title": "Emerald Vault Chest",
-        "sub": "Изумрудно-обсидиановый сундук! Повышенный шанс на Emerald REDO, Маску Дурова и Корону!",
+        "sub": "Изумрудно-обсидиановый сундук! Шанс на Emerald REDO, Маску Дурова и Корону!",
         "curr": "gram", "price": 75000,
         "types": ["username", "number", "gift"],
         "weights": {1: 380, 2: 340, 3: 170, 4: 75, 5: 25, 6: 8, 7: 2}
     },
     "case_founder_mask": {
         "title": "Founder Obsidian Case",
-        "sub": "Эксклюзивный бокс с Золотой Маской Дурова! Только Epic ➔ Divine (Окуп ×1.65)!",
+        "sub": "Личный сундук с золотой маской Основателя! Только Legendary ➔ Divine!",
         "curr": "stars", "price": 149,
         "types": ["username", "number", "gift"],
         "weights": {4: 260, 5: 350, 6: 220, 7: 110, 8: 42, 9: 18}
@@ -353,8 +327,8 @@ CASES_CATALOG = {
         "title": "ALL-IN БОКС (ВСЁ ИЛИ НИЧЕГО)",
         "sub": "99.89% Обычный @username • 0.111% Божественный или Эксклюзив!",
         "curr": "gram", "price": 10000,
-        "types": ["username"],
-        "jackpot_types": ["username", "number", "gift"],
+        "types": ["username"],  # На тире 0 падают только дешевые @username (260-980 G)!
+        "jackpot_types": ["username", "number", "gift"],  # Номера +888 и Пепе только при джекпоте (тиры 8 и 9)!
         "weights": {0: 99889, 8: 80, 9: 31}
     },
     "case_tag_start": {
@@ -617,11 +591,12 @@ RATE_BUCKETS = {}
 TX_LOCKS = set()
 ACTIVE_ROCKETS = {}
 ACTIVE_MINES = {}
+# Расширенный стейт лотереи / денежного аукциона с участниками и таймером раунда
 LOTTERY_STATE = {
     "round_id": 1,
     "pot": 1500000.0,
     "ends_at": int(time.time()) + 180,
-    "participants": {},
+    "participants": {},  # uid -> {"username": str, "tickets": int}
     "last_winner": "@durov",
     "last_win_amount": 4250000.0,
     "last_win_chance": 38.5
@@ -666,14 +641,14 @@ def check_rate(uid: int, max_hits: int = 22, window: float = 2.0):
     arr.append(now)
     RATE_BUCKETS[uid] = arr
 
-MAX_SMM_LVL = 25
-MAX_BUYER_LVL = 20
+MAX_SMM_LVL = 50
+MAX_BUYER_LVL = 40
 
 def get_smm_upgrade_cost(lvl: int) -> float:
-    return round(6000.0 * (2.25 ** (lvl - 1)))
+    return round(6000.0 * (1.85 ** (lvl - 1)))
 
 def get_buyer_upgrade_cost(lvl: int) -> float:
-    return round(35000.0 * (2.45 ** lvl))
+    return round(35000.0 * (1.95 ** lvl))
 
 def get_pass_level_info(season_xp: int):
     lvl = 0
@@ -833,9 +808,9 @@ def generate_phone_number_fragment(r_obj: dict, quality_override: int = None):
         tag = f"+888 {random.randint(1000,9999)} {random.randint(100,999)}"
         pat_lbl = "Стандартный анонимный пул +888"
 
-    pat_roll = random.uniform(0.0, 1.0)
+    pat_roll = random.uniform(0.0, 1.0) ** 1.35
     q_norm = max(0.0, min(1.0, (quality - 70) / 30.0))
-    blend = 0.70 * pat_roll + 0.30 * q_norm
+    blend = 0.72 * pat_roll + 0.28 * q_norm
     sell = round(r_obj["n_min"] + (r_obj["n_max"] - r_obj["n_min"]) * blend)
     inc = round(r_obj["inc"] * 1.8 * (quality / 100.0), 2)
 
@@ -913,7 +888,7 @@ def roll_single_candidate_fast(cur, item_type: str, tier_key: str, luck: float, 
         if i < min_idx:
             continue
         dist = i - min_idx
-        decay_weights = [875000, 96000, 20000, 4200, 850, 175, 38, 9, 2, 1]
+        decay_weights = [915000, 68000, 13000, 2800, 520, 110, 22, 5, 2, 1]
         base_w = r["w"] if min_idx == 0 else decay_weights[min(dist, len(decay_weights) - 1)]
         effective_luck = 1.0 if dist == 0 else float(max(1.0, luck))
         w = max(1, int(base_w * effective_luck))
@@ -1004,6 +979,7 @@ def process_passive_income(cur, user_id: int):
     (balance, last_claim, smm, buyer, ai_b, vip_until, clan_id, ref_by,
      tax_until, raid_amt, raid_dl, titles_raw, luck_u) = u
 
+    # Автоматический сброс истекшей удачи в БД
     if (luck_u or 0) > 0 and now >= luck_u:
         cur.execute("UPDATE users SET luck_multi = 1.0, luck_until = 0 WHERE tg_user_id = ?", (user_id,))
 
@@ -1160,7 +1136,7 @@ async def check_channel_sub(uid: int):
         if member.status in ["member", "administrator", "creator", "restricted"]:
             is_sub = True
     except Exception:
-        is_sub = True
+        is_sub = False
 
     if is_sub:
         conn = get_db(); cur = conn.cursor()
@@ -1229,6 +1205,18 @@ def get_state(uid: int, uname: str = ""):
     settle_expired_auctions(cur)
     check_and_roll_lottery_round(cur)
     process_passive_income(cur, uid)
+    # Авто-сброс ежедневных (раз в 24ч) и еженедельных (раз в 7 дней) заданий
+    day_marker = f"day_{now // 86400}"
+    week_marker = f"week_{now // 604800}"
+    cur.execute("SELECT q_claimed, w_claimed FROM users WHERE tg_user_id = ?", (uid,))
+    qw_row = cur.fetchone()
+    if qw_row:
+        q_list = json.loads(qw_row[0] or "[]")
+        w_list = json.loads(qw_row[1] or "[]")
+        if day_marker not in q_list:
+            cur.execute("UPDATE users SET q_spins = 0, q_rare = 0, q_crafts = 0, q_duels = 0, q_claimed = ? WHERE tg_user_id = ?", (json.dumps([day_marker]), uid))
+        if week_marker not in w_list:
+            cur.execute("UPDATE users SET w_spins = 0, w_cases = 0, w_duels = 0, w_claimed = ? WHERE tg_user_id = ?", (json.dumps([week_marker]), uid))
     conn.commit()
 
     cur.execute("""
@@ -1334,6 +1322,7 @@ def get_state(uid: int, uname: str = ""):
     pass_lvl, pass_cur_xp, pass_req_xp = get_pass_level_info(s_xp or 0)
     raid_active = ((raid_dl or 0) > now) and ((raid_amt or 0) > 0) and not is_vip
 
+    # Формирование участников лотереи с процентами шанса
     l_parts_raw = LOTTERY_STATE["participants"]
     tot_lot_tix = sum(p["tickets"] for p in l_parts_raw.values())
     l_parts_list = [{
@@ -1362,7 +1351,7 @@ def get_state(uid: int, uname: str = ""):
         "vault_wait": max(0, ((l_vault or 0) + 3600) - now),
         "story_wait": max(0, ((last_story or 0) + 86400) - now),
         "daily_streak": d_streak, "can_daily": (now - l_daily) >= 86400,
-        "quests": {"spins": qs, "rare": qr, "crafts": qc, "duels": qd or 0, "claimed": json.loads(q_cl or "[]")},
+        "quests": {"spins": qs, "rare": qr, "crafts": qc, "duels": qd or 0, "claimed": json.loads(q_cl or "[]"), "reset_left": 86400 - (now % 86400), "week_reset_left": 604800 - (now % 604800)},
         "weekly": {"spins": ws or 0, "cases": wc or 0, "duels": wd or 0, "claimed": json.loads(w_cl or "[]")},
         "ach": {"stats": json.loads(a_st or "{}"), "claimed": json.loads(a_cl or "[]")},
         "albums_claimed": json.loads(alb_cl or "[]"),
@@ -1427,6 +1416,7 @@ def select_or_change_country(data: ReqCountrySelect):
         conn.commit(); conn.close()
         return {"status": "ok", "masked_by_nft": data.mask_nft_tag}
 
+    # ИСПРАВЛЕНО: первый выбор страны бесплатный, повторная смена стоит 500,000 GRAM!
     new_phone = old_phone
     if old_cc != data.country_code or not old_phone:
         if old_cc != "" and old_cc != data.country_code:
@@ -1501,7 +1491,7 @@ def claim_story_reward(data: ReqSimple):
     return {"status": "ok", "reward": reward}
 
 # ==========================================
-# ПРОКРУТ С ГАРАНТАМИ x5 (100) И x25 (500) + СОРТИРОВКА ЛУЧШЕГО ДРОПА СВЕРХУ
+# ПРОКРУТ С ГАРАНТАМИ x5 (100) И x25 (500)
 # ==========================================
 def execute_spins_internal(cur, user_id: int, item_type: str, tier: str, count: int, cost: float, auto_save_min_idx: int = 0):
     now = int(time.time())
@@ -1578,9 +1568,6 @@ def execute_spins_internal(cur, user_id: int, item_type: str, tier: str, count: 
         })
         added_xp += cand["xp"]
 
-    # Сортируем выпавшую пачку так, чтобы первый предмет всегда был самым редким и дорогим!
-    drops.sort(key=lambda x: (x.get("rar_idx", 0), x.get("sell", 0)), reverse=True)
-
     new_bal = round(bal - cost, 2)
     new_xp = xp + added_xp
     new_lvl = lvl
@@ -1618,7 +1605,7 @@ def mint(data: ReqMint):
         conn.close()
 
 # ==========================================
-# БОКСЫ (С ФИКСОМ ALL-IN И ВЫБОРОМ ЛУЧШЕГО ДРОПА ПРИ 5x / 10x!)
+# БОКСЫ (С ФИКСОМ ALL-IN БОКСА!)
 # ==========================================
 def roll_case_drop_fast(cur, case_key: str, luck: float = 1.0, user_id: int = 0):
     c_info = CASES_CATALOG[case_key]
@@ -1649,6 +1636,7 @@ def roll_case_drop_fast(cur, case_key: str, luck: float = 1.0, user_id: int = 0)
         if div_cnt >= DIVINE_SERVER_LIMIT or has_div:
             picked_idx = 8
 
+    # ИСПРАВЛЕНО: в ALL-IN боксе на тире 0 падает только дешевый username (без номеров за 20K+)!
     if case_key == "case_all_in":
         itype = "username" if picked_idx == 0 else random.choice(c_info.get("jackpot_types", ["username", "number", "gift"]))
     else:
@@ -1656,7 +1644,7 @@ def roll_case_drop_fast(cur, case_key: str, luck: float = 1.0, user_id: int = 0)
 
     cand = ensure_unique_tag_clean(cur, fast_build_item_in_memory(itype, picked_idx, luck))
     if c_info["curr"] == "stars":
-        boost = 1.45 if case_key == "case_stars_lite" else (1.65 if case_key == "case_founder_mask" else (1.55 if case_key == "case_stars_founder" else 1.75))
+        boost = 1.45 if case_key == "case_stars_lite" else (1.55 if case_key == "case_stars_founder" else 1.75)
         cand["sell"] = round(cand["sell"] * boost)
         cand["inc"] = round(cand["inc"] * 1.35, 2)
 
@@ -1713,9 +1701,6 @@ def open_case_multi(data: ReqCaseOpen):
             "q": cand["quality"], "inc": cand["inc"], "sell": cand["sell"], "num_x": cand["num_multi"],
             "reasons": cand["reasons"].split("|"), "eq": 0, "slot": 0, "staked": 0, "verified": 0, "duel_cd": 0
         })
-
-    # Сортируем выпавшие предметы из бокса так, чтобы главным победителем на ленте был САМЫЙ ВЫСОКИЙ тир!
-    winners.sort(key=lambda x: (x.get("rar_idx", 0), x.get("sell", 0)), reverse=True)
 
     if c_info["curr"] == "stars":
         new_stars = stars_bal - int(total_price)
@@ -2374,6 +2359,7 @@ def claim_album(data: ReqSimple):
     my_tags = cur.fetchall()
 
     reward = 0
+    new_title = ""
     if data.key == "alb_numbers":
         cnt = sum(1 for t in my_tags if t[1] == "number")
         if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 номера +888 ({cnt}/3)")
@@ -2385,8 +2371,7 @@ def claim_album(data: ReqSimple):
     elif data.key == "alb_blackout":
         cnt = sum(1 for t in my_tags if "[BLACKOUT]" in (t[0] or ""))
         if cnt < 2: conn.close(); raise HTTPException(400, f"Нужно 2 подарка на Чёрном фоне [BLACKOUT] ({cnt}/2)")
-        reward = 3500000
-        if "BLACKOUT LOVER" not in unl_t: unl_t.append("BLACKOUT LOVER")
+        reward = 3500000; new_title = "BLACKOUT LOVER"
     elif data.key == "alb_verified":
         cnt = sum(1 for t in my_tags if (t[3] or 0) == 1)
         if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 верифицированных предмета ({cnt}/3)")
@@ -2402,16 +2387,41 @@ def claim_album(data: ReqSimple):
     elif data.key == "alb_luxury":
         cnt = sum(1 for t in my_tags if t[2] in ["Luxury", "Ultra-Mythic", "Exclusive", "Divine"])
         if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 предмета Luxury+ ({cnt}/3)")
-        reward = 12000000
-        if "КОЛЛЕКЦИОНЕР" not in unl_t: unl_t.append("КОЛЛЕКЦИОНЕР")
+        reward = 12000000; new_title = "КОЛЛЕКЦИОНЕР"
+    elif data.key == "alb_pepe_pantheon":
+        cnt = sum(1 for t in my_tags if "pepe" in (t[0] or "").lower())
+        if cnt < 4: conn.close(); raise HTTPException(400, f"Нужно 4 любых подарка Plush Pepe ({cnt}/4)")
+        reward = 18000000; new_title = "PEPE GOD"
+    elif data.key == "alb_durov_arsenal":
+        cnt = sum(1 for t in my_tags if any(w in (t[0] or "").lower() for w in ["mask", "cap", "crown", "katana", "watch"]))
+        if cnt < 5: conn.close(); raise HTTPException(400, f"Нужно 5 артефактов (Mask/Cap/Crown/Katana/Watch) ({cnt}/5)")
+        reward = 25000000; new_title = "АРСЕНАЛ ДУРОВА"
+    elif data.key == "alb_888_monopoly":
+        cnt = sum(1 for t in my_tags if t[1] == "number" and t[2] in ["Legendary", "Mythic", "Luxury", "Ultra-Mythic", "Exclusive", "Divine"])
+        if cnt < 5: conn.close(); raise HTTPException(400, f"Нужно 5 элитных номеров +888 Legendary+ ({cnt}/5)")
+        reward = 45000000; new_title = "ВЛАСТЕЛИН +888"
+    elif data.key == "alb_ultra_fleet":
+        cnt = sum(1 for t in my_tags if t[2] in ["Ultra-Mythic", "Exclusive", "Divine"])
+        if cnt < 4: conn.close(); raise HTTPException(400, f"Нужно 4 предмета Ultra-Mythic+ ({cnt}/4)")
+        reward = 95000000; new_title = "КРИПТО-КИТ"
+    elif data.key == "alb_exclusive_club":
+        cnt = sum(1 for t in my_tags if t[2] in ["Exclusive", "Divine"])
+        if cnt < 3: conn.close(); raise HTTPException(400, f"Нужно 3 предмета Exclusive или Divine ({cnt}/3)")
+        reward = 250000000; new_title = "ИМПЕРАТОР TON"
+    elif data.key == "alb_divine_throne":
+        cnt = sum(1 for t in my_tags if t[2] == "Divine")
+        if cnt < 1: conn.close(); raise HTTPException(400, f"Нужен хотя бы 1 Божественный (Divine 10/10) предмет ({cnt}/1)")
+        reward = 500000000; new_title = "ABSOLUTE GOD"
     else:
         conn.close(); raise HTTPException(400, "Неизвестная коллекция")
 
+    if new_title and new_title not in unl_t:
+        unl_t.append(new_title)
     claimed.append(data.key)
-    cur.execute("UPDATE users SET balance = balance + ?, albums_claimed = ?, unlocked_titles = ?, season_xp = season_xp + 100 WHERE tg_user_id = ?",
+    cur.execute("UPDATE users SET balance = balance + ?, albums_claimed = ?, unlocked_titles = ?, season_xp = season_xp + 120 WHERE tg_user_id = ?",
                 (reward, json.dumps(claimed), json.dumps(unl_t, ensure_ascii=False), data.user_id))
     conn.commit(); conn.close()
-    return {"reward": reward}
+    return {"reward": reward, "new_title": new_title}
 
 @app.post("/api/wheel_spin")
 def spin_wheel(data: ReqSimple):
@@ -2471,10 +2481,10 @@ PRICES = {
     "channel_slot":       {"title": "📢 Новый слот Канала",                "price": 59},
     "coins_10m":          {"title": "🪙 5,000,000 GRAM Магната",           "price": 35},
     "coins_100m":         {"title": "💰 50,000,000 GRAM Империи",          "price": 99},
-    "case_founder_mask":  {"title": "🎭 Бокс Маски Основателя (Epic+)",    "price": 149},
     "case_stars_lite":    {"title": "⭐️ Звездный Ларец (Бокс)",            "price": 29},
     "case_stars_founder": {"title": "👑 Бокс Основателя (Mythic+)",        "price": 99},
-    "case_stars_divine":  {"title": "💎 Божественный Сундук Дурова",       "price": 249}
+    "case_stars_divine":  {"title": "💎 Божественный Сундук Дурова",       "price": 249},
+    "case_founder_mask":  {"title": "🎭 Founder Obsidian Case (Маска)",    "price": 149}
 }
 
 def apply_donate_product(cur, user_id: int, p: str, itype: str = "username"):
@@ -2496,7 +2506,7 @@ def apply_donate_product(cur, user_id: int, p: str, itype: str = "username"):
         drops, _, _, _ = execute_spins_internal(cur, user_id, itype, "tier_2", 10, 0.0, 0)
     elif p == "spin_25_stars":
         drops, _, _, _ = execute_spins_internal(cur, user_id, itype, "tier_3", 25, 0.0, 0)
-    elif p in ["case_founder_mask", "case_stars_lite", "case_stars_founder", "case_stars_divine"]:
+    elif p in ["case_stars_lite", "case_stars_founder", "case_stars_divine", "case_founder_mask"]:
         cand, tape = roll_case_drop_fast(cur, p, 2.5, user_id)
         cur.execute("""
             INSERT OR IGNORE INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_equipped, channel_slot, is_saved, on_market, created_at)
@@ -2936,3 +2946,133 @@ def admin_execute_action(data: ReqAdminAction):
 
     conn.commit(); conn.close()
     return {"status": "ok", "message": msg}
+
+
+# ==========================================
+# ЗАБРАТЬ ВСЕ НАГРАДЫ ПАССА В 1 КЛИК + НОВЫЕ ЭНДГЕЙМ МЕХАНИКИ (DIVINE FORGE ★1-★5 И ПЛАТНЫЙ ОВЕРКЛОКЕР)
+# ==========================================
+@app.post("/api/pass/claim_all")
+def claim_all_pass_rewards(data: ReqSimple):
+    now = int(time.time())
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT season_xp, season_claimed, unlocked_titles FROM users WHERE tg_user_id = ?", (data.user_id,))
+    row = cur.fetchone()
+    if not row:
+        conn.close(); raise HTTPException(404, "Игрок не найден")
+    s_xp, s_cl_raw, unl_raw = row
+    s_cl = json.loads(s_cl_raw or "[]")
+    unl_t = json.loads(unl_raw or '["Магнат"]')
+    cur_pass_lvl, _, _ = get_pass_level_info(s_xp or 0)
+
+    total_gram = 0
+    total_stars = 0
+    claimed_cnt = 0
+    extra_notes = []
+
+    for lvl in range(1, cur_pass_lvl + 1):
+        k = f"pass_{lvl}"
+        if k in s_cl:
+            continue
+        p_rew = get_pass_reward_for_level(lvl)
+        total_gram += p_rew.get("gram", 0)
+        total_stars += p_rew.get("stars", 0)
+        if p_rew["type"] == "mega_100":
+            cur.execute("UPDATE users SET vip_until = GREATEST(vip_until, ?) + 43200, luck_multi = GREATEST(luck_multi, 5.0), luck_until = GREATEST(luck_until, ?) + 10800 WHERE tg_user_id = ?" if conn.is_pg else "UPDATE users SET vip_until = MAX(vip_until, ?) + 43200, luck_multi = MAX(luck_multi, 5.0), luck_until = MAX(luck_until, ?) + 10800 WHERE tg_user_id = ?", (now, now, data.user_id))
+            if "СОТКА ПАССА" not in unl_t:
+                unl_t.append("СОТКА ПАССА")
+            extra_notes.append("VIP + Удача ×5")
+        elif p_rew["type"] == "blackout_pepe":
+            cand = ensure_unique_tag_clean(cur, fast_build_item_in_memory("gift", 8, 5.0, quality_override=100, force_blackout=True))
+            cand["sell"] = random.randint(150000000, 950000000)
+            cur.execute("INSERT OR IGNORE INTO usernames (tag, item_type, owner_id, rarity, quality_pct, income_per_sec, sell_price, num_multi, reasons, is_saved, created_at) VALUES (?,?,?,?,100,?,?,1.0,?,1,?)",
+                        (cand["tag"], "gift", data.user_id, "Exclusive", cand["inc"], cand["sell"], cand["reasons"], now))
+            extra_notes.append(cand["tag"])
+        s_cl.append(k)
+        claimed_cnt += 1
+
+    if claimed_cnt == 0:
+        conn.close(); raise HTTPException(400, "Нет доступных несобранных наград Пасса!")
+
+    cur.execute("UPDATE users SET balance = balance + ?, stars_balance = COALESCE(stars_balance,0) + ?, season_claimed = ?, unlocked_titles = ? WHERE tg_user_id = ?",
+                (total_gram, total_stars, json.dumps(s_cl), json.dumps(unl_t, ensure_ascii=False), data.user_id))
+    conn.commit(); conn.close()
+    return {"status": "ok", "count": claimed_cnt, "gram": total_gram, "stars": total_stars, "extra": ", ".join(extra_notes)}
+
+class ReqOverclockPlay(BaseModel):
+    user_id: int
+    bet: float = 100000.0
+    taps: int = 25
+
+@app.post("/api/overclock/play")
+def play_paid_overclock_node(data: ReqOverclockPlay):
+    check_rate(data.user_id, 8, 2.0)
+    bet = max(50000.0, float(data.bet or 100000.0))
+    taps = max(1, min(80, int(data.taps or 20)))
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT balance FROM users WHERE tg_user_id = ?", (data.user_id,))
+    row = cur.fetchone()
+    if not row or row[0] < bet:
+        conn.close(); raise HTTPException(400, f"Недостаточно средств: нужно {int(bet):,} GRAM!")
+
+    # База от активного тапания (от 60% до 90% ставки)
+    tap_ratio = min(1.0, taps / 45.0)
+    base_pool = round(bet * (0.58 + 0.32 * tap_ratio))
+
+    # Иксовка: 50% шанс не окупиться (x0.4, x0.6, x0.8, x1.0) и 50% шанс выйти в плюс (x1.3, x1.6, x2.0, x3.5, x10.0)
+    if random.random() < 0.50:
+        mult = random.choice([0.4, 0.6, 0.75, 0.9, 1.0])
+        win = False
+    else:
+        r_m = random.random()
+        if r_m < 0.03: mult = 10.0
+        elif r_m < 0.14: mult = 4.0
+        elif r_m < 0.38: mult = 2.0
+        elif r_m < 0.70: mult = 1.6
+        else: mult = 1.35
+        win = True
+
+    payout = round(base_pool * mult)
+    net_diff = payout - bet
+    new_bal = round(row[0] + net_diff, 2)
+    cur.execute("UPDATE users SET balance = ?, season_xp = season_xp + 15 WHERE tg_user_id = ?", (new_bal, data.user_id))
+    conn.commit(); conn.close()
+    return {
+        "win": payout >= bet,
+        "bet": bet,
+        "base_pool": base_pool,
+        "mult": mult,
+        "payout": payout,
+        "balance": new_bal
+    }
+
+@app.post("/api/forge/star_up")
+def forge_upgrade_item_star(data: ReqSimple):
+    conn = get_db(); cur = conn.cursor()
+    cur.execute("SELECT sell_price, income_per_sec, reasons, num_multi, item_type FROM usernames WHERE tag = ? AND owner_id = ? AND is_saved = 1", (data.key, data.user_id))
+    row = cur.fetchone()
+    if not row:
+        conn.close(); raise HTTPException(400, "Предмет не найден в Сейфе!")
+    sell_p, inc_p, reas, num_m, itype = row
+    reas_str = reas or ""
+    cur_stars = reas_str.count("★")
+    if cur_stars >= 5:
+        conn.close(); raise HTTPException(400, "Предмет уже прокачан до максимума (★★★★★)!")
+
+    next_star = cur_stars + 1
+    cost = max(2500000.0, round(float(sell_p) * (0.65 * next_star)))
+    cur.execute("SELECT balance FROM users WHERE tg_user_id = ?", (data.user_id,))
+    bal = cur.fetchone()[0]
+    if bal < cost:
+        conn.close(); raise HTTPException(400, f"Для возвышения до {'★'*next_star} нужно {int(cost):,} GRAM!")
+
+    new_inc = round(float(inc_p) * 1.55, 2)
+    new_sell = round(float(sell_p) * 1.35)
+    new_num_m = round(min(150.0, float(num_m or 1.0) * 1.18), 2) if itype == "number" else float(num_m or 1.0)
+    star_badge = f"Возвышение Кузницы {'★'*next_star} ×1,55"
+    new_reas = (reas_str + "|" + star_badge) if reas_str else star_badge
+
+    cur.execute("UPDATE users SET balance = balance - ?, season_xp = season_xp + 50 WHERE tg_user_id = ?", (cost, data.user_id))
+    cur.execute("UPDATE usernames SET income_per_sec = ?, sell_price = ?, num_multi = ?, reasons = ? WHERE tag = ? AND owner_id = ?",
+                (new_inc, new_sell, new_num_m, new_reas, data.key, data.user_id))
+    conn.commit(); conn.close()
+    return {"status": "ok", "stars": next_star, "new_inc": new_inc, "new_sell": new_sell, "new_num_x": new_num_m, "cost": cost}
