@@ -3842,37 +3842,8 @@ const LEGAL_DOCS_CONTENT = {
         },
 
         // ==================== МЕТОДЫ 8 НОВЫХ ФИШЕК И ДОКУМЕНТАЦИИ ====================
-        openLegalModal(tab = 'tos') {
-          { sel: '#view-rocket h3', img: '/assets/games/rocket_1000x.webp' },
-          { sel: '#view-minigames h3', img: '/assets/games/sapper_mines.webp' },
-          { sel: '#view-duels h3', img: '/assets/games/pvp_duels.webp' },
-          { sel: '#view-vault h3', img: '/assets/games/durov_vault.webp' },
-          { sel: '#view-bank h3', img: '/assets/games/hold_bank.webp' }
-        ].forEach(({ sel, img }) => {
-          const h = document.querySelector(sel);
-          if (h && !h.querySelector('img')) {
-            const png = img.replace('.webp', '.png');
-            h.style.display = 'flex';
-            h.style.alignItems = 'center';
-            h.style.gap = '7px';
-            h.insertAdjacentHTML(
-              'afterbegin',
-              `<img src="${img}" style="width:26px;height:26px;object-fit:contain;" onerror="if(!this.dataset.p){this.dataset.p=1;this.src='${png}';}else{this.style.display='none';}">`
-            );
-          }
-        });
-      },
-
-      // ==================== МЕТОДЫ 8 НОВЫХ ФИШЕК И ДОКУМЕНТАЦИИ ====================
-      openLegalModal(tab = 'tos') {
         this.renderLegalTab(tab);
-        document.getElementById('legalDocsModal').style.display = 'flex';
-      },
-        this.renderLegalTab(tab);
-        document.getElementById('legalDocsModal').style.display = 'flex';
-      },
-
-      renderLegalTab(tab) {
+document.getElementById('legalDocsModal').style.display = 'flex';
         const doc = LEGAL_DOCS_CONTENT[tab] || LEGAL_DOCS_CONTENT.tos;
         const box = document.getElementById('legalDocBody');
         if (box) {
